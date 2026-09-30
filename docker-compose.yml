@@ -1,0 +1,55 @@
+# Docker-first dev loop. No Node, pnpm or wrangler on the host required.
+#
+#   docker compose up dev          # Astro dev server on http://localhost:4321
+#   docker compose up worker       # Real Cloudflare workerd on http://localhost:8787
+#   docker compose run --rm test   # Unit tests
+#   docker compose run --rm lint   # Lint + typecheck
+#   docker compose run --rm shell  # Interactive shell in the container
+
+services:
+  base: &base
+    build: .
+    image: gof-dev:latest
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+      - astro-cache:/workspace/apps/site/.astro
+      - wrangler-cache:/workspace/apps/site/.wrangler
+
+  dev:
+    <<: *base
+    command: pnpm dev
+    ports:
+      - "4321:4321"
+
+  worker:
+    <<: *base
+    command: sh -c "pnpm --filter @gof/site build && pnpm --filter @gof/site preview"
+    ports:
+      - "8787:8787"
+    environment:
+      - PUBLIC_SITE_URL=http://localhost:8787
+
+  test:
+    <<: *base
+    command: pnpm test
+
+  lint:
+    <<: *base
+    command: sh -c "pnpm lint && pnpm typecheck"
+
+  pipeline:
+    <<: *base
+    command: pnpm run pipeline --dry-run
+
+  shell:
+    <<: *base
+    command: bash
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
+  astro-cache:
+  wrangler-cache:

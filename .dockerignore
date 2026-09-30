@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+.git
+.github
+.wrangler
+.astro
+.cache
+dist
+coverage
+tests/fixtures/**/*.recorded.json
+*.log
+.DS_Store

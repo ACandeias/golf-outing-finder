@@ -1,0 +1,6 @@
+# Course-type overrides. First match wins in the classifier (SPEC.md section 8.1).
+# Entries look like:
+#   - osm_ref: way/123456
+#     course_type: private
+#     reason: "Member roster confirmed by owner, 2026-09-15"
+overrides: []

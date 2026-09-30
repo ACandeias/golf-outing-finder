@@ -1,0 +1,31 @@
+{
+  "name": "@gof/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "astro check",
+    "test:e2e": "playwright test",
+    "db:migrate:local": "wrangler d1 migrations apply gof --local --config wrangler.toml",
+    "db:migrate:remote": "wrangler d1 migrations apply gof --remote --config wrangler.toml"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.6.13",
+    "@gof/db": "workspace:*",
+    "@gof/shared": "workspace:*",
+    "astro": "^5.18.2",
+    "drizzle-orm": "^0.36.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@cloudflare/workers-types": "^4.20250927.0",
+    "@playwright/test": "^1.48.2",
+    "typescript": "~5.6.3",
+    "wrangler": "^4.42.0"
+  }
+}

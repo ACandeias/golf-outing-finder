@@ -1,0 +1,3 @@
+# Domains and URL patterns the crawler never fetches or lists (SPEC.md section 8.2).
+domains: []
+url_patterns: []

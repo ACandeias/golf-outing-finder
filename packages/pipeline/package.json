@@ -1,0 +1,17 @@
+{
+  "name": "@gof/pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "node --experimental-strip-types src/cli.ts",
+    "start:seed": "node --experimental-strip-types src/seed.ts",
+    "start:live-extract": "node --experimental-strip-types src/live-extract.ts"
+  },
+  "dependencies": {
+    "@gof/db": "workspace:*",
+    "@gof/shared": "workspace:*",
+    "zod": "^3.23.8"
+  }
+}

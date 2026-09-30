@@ -1,0 +1,10 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Build scripts allowed to run. Only well-known upstream packages needed by
+# Astro, wrangler and image processing. Review before adding new entries.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
