@@ -14,11 +14,11 @@
     "db:migrate:remote": "wrangler d1 migrations apply gof --remote --config wrangler.toml"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/cloudflare": "^13.1.10",
     "@gof/db": "workspace:*",
     "@gof/shared": "workspace:*",
-    "astro": "^5.18.2",
-    "drizzle-orm": "^0.36.4",
+    "astro": "^7.2.8",
+    "drizzle-orm": "^0.45.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
