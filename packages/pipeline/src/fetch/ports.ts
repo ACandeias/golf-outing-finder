@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import type { SerpProvider } from "@gof/shared/env";
 import { Agent, fetch as undiciFetch } from "undici";
 import { z } from "zod";
 import { createListingSource, loadPlatforms } from "../discovery/sources.ts";
@@ -29,6 +30,15 @@ export interface FetchSidePorts {
   serp: SerpAdapter | BatchSerpAdapter;
   validators: ValidatorStore & { save(): void };
   close(): Promise<void>;
+  /** `--prioritize-states`: searched tonight and first (see planSearch). */
+  prioritizeStates?: readonly string[];
+}
+
+export interface FetchSideOptions {
+  /** Live SERP provider (default dataforseo). A dry run always uses the fixture adapter. */
+  serp?: SerpProvider;
+  /** The adapter for `claude-search`, built by the caller (src/run/wire.ts) so it can report usage. */
+  serpAdapter?: BatchSerpAdapter;
 }
 
 const VALIDATORS_FILE = join(PATHS.cache, "http-validators.json");
@@ -92,10 +102,15 @@ function siteUrl(env: Readonly<Record<string, string | undefined>>): string {
   return "http://localhost:8787";
 }
 
+function missingAdapter(name: string): never {
+  throw new Error(`--serp=${name} needs its adapter (built in src/run/wire.ts)`);
+}
+
 export async function createFetchSidePorts(
   ctx: Context,
   mode: "dry-run" | "live",
   env: Readonly<Record<string, string | undefined>> = process.env,
+  opts: FetchSideOptions = {},
 ): Promise<FetchSidePorts> {
   const startMs = ctx.clock.nowMs();
   const nowIso = (): string =>
@@ -151,7 +166,12 @@ export async function createFetchSidePorts(
     validators,
   });
   const credentials = env.SERP_API_KEY;
-  const serp: BatchSerpAdapter = credentials
+  const provider = opts.serp ?? "dataforseo";
+  const serp: BatchSerpAdapter = provider === "claude-search"
+    ? (opts.serpAdapter ?? missingAdapter("claude-search"))
+    : provider === "fixture"
+      ? createFixtureSerpAdapter()
+      : credentials
     ? createDataForSeoAdapter({
         credentials,
         http: dataForSeoHttp,

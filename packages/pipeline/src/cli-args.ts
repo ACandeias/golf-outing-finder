@@ -1,5 +1,12 @@
 import { parseArgs } from "node:util";
 import { budgetJob, budgetProfileSchema, type BudgetJob, type BudgetProfile } from "@gof/shared/budget";
+import {
+  llmProviderSchema,
+  serpProviderSchema,
+  type LlmProvider,
+  type SerpProvider,
+} from "@gof/shared/env";
+import { isUsStateCode } from "@gof/shared/places";
 import { isStageName, selectStages, type StageName } from "./stages/registry.ts";
 import type { D1Target } from "./d1/port.ts";
 
@@ -15,6 +22,12 @@ export interface CliOptions {
   strict: boolean;
   d1: D1Target;
   persistTo: string | null;
+  /** `--llm` or LLM_PROVIDER: `api` (Message Batches) or `claude-cli` (subscription). Dry run: always fixtures. */
+  llm: LlmProvider;
+  /** `--serp` or SERP_PROVIDER; a dry run always uses `fixture`. */
+  serp: SerpProvider;
+  /** `--prioritize-states=NY,NJ,CT`: search those states' metros and courses tonight, first. */
+  prioritizeStates: string[];
 }
 
 export class CliUsageError extends Error {
@@ -26,7 +39,8 @@ export class CliUsageError extends Error {
 
 export const USAGE = `pnpm run pipeline [--dry-run | --live] [--budget=nightly|monthly|smoke] [--stages=a,b,c]
                   [--fail-stage=<stage>] [--now=<ISO date>] [--strict] [--d1=local|remote|memory]
-                  [--persist-to=<dir>]`;
+                  [--persist-to=<dir>] [--llm=api|claude-cli]
+                  [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT]`;
 
 /**
  * Parses the pipeline CLI (SPEC.md 8.0, 12). `--dry-run` is the default and uses
@@ -55,6 +69,9 @@ export function parseCliArgs(
         strict: { type: "boolean", default: false },
         d1: { type: "string" },
         "persist-to": { type: "string" },
+        llm: { type: "string" },
+        serp: { type: "string" },
+        "prioritize-states": { type: "string" },
       },
       strict: true,
       allowPositionals: false,
@@ -109,6 +126,42 @@ export function parseCliArgs(
   if (mode === "dry-run" && d1 === "remote")
     throw new CliUsageError("--dry-run never writes the remote D1");
 
+  // Providers: flag, then env, then the default. A dry run runs on fixtures only:
+  // it never spawns `claude` and never calls a paid API.
+  let llm: LlmProvider = "api";
+  let serp: SerpProvider = mode === "live" ? "dataforseo" : "fixture";
+  if (values.llm !== undefined) {
+    const p = llmProviderSchema.safeParse(values.llm);
+    if (!p.success) throw new CliUsageError(`--llm must be api or claude-cli, got "${values.llm}"`);
+    if (mode === "dry-run" && p.data !== "api")
+      throw new CliUsageError("--dry-run replays recorded LLM results; --llm needs --live");
+    llm = p.data;
+  } else if (mode === "live") {
+    const p = llmProviderSchema.safeParse(env.LLM_PROVIDER);
+    if (p.success) llm = p.data;
+    else if (env.LLM_PROVIDER) throw new CliUsageError(`LLM_PROVIDER must be api or claude-cli`);
+  }
+  if (values.serp !== undefined) {
+    const p = serpProviderSchema.safeParse(values.serp);
+    if (!p.success)
+      throw new CliUsageError(`--serp must be dataforseo, claude-search or fixture, got "${values.serp}"`);
+    if (mode === "dry-run" && p.data !== "fixture")
+      throw new CliUsageError("--dry-run uses the fixture SERP adapter; --serp needs --live");
+    serp = p.data;
+  } else if (mode === "live") {
+    const p = serpProviderSchema.safeParse(env.SERP_PROVIDER);
+    if (p.success) serp = p.data;
+    else if (env.SERP_PROVIDER) throw new CliUsageError("SERP_PROVIDER must be dataforseo, claude-search or fixture");
+  }
+
+  const prioritizeStates: string[] = [];
+  for (const raw of (values["prioritize-states"] ?? "").split(",")) {
+    const s = raw.trim().toUpperCase();
+    if (s === "") continue;
+    if (!isUsStateCode(s)) throw new CliUsageError(`--prioritize-states takes USPS codes, got "${raw.trim()}"`);
+    if (!prioritizeStates.includes(s)) prioritizeStates.push(s);
+  }
+
   return {
     mode,
     budget: budget.data,
@@ -119,5 +172,8 @@ export function parseCliArgs(
     strict: values.strict,
     d1,
     persistTo: values["persist-to"] ?? null,
+    llm,
+    serp,
+    prioritizeStates,
   };
 }

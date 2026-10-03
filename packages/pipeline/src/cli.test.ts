@@ -57,6 +57,37 @@ describe("parseCliArgs", () => {
     expect(() => parseCliArgs(["--bogus"], ENV)).toThrow();
   });
 
+  it("picks the LLM and SERP providers from flags, then env, then the defaults", () => {
+    expect(parseCliArgs([], ENV)).toMatchObject({ llm: "api", serp: "fixture", prioritizeStates: [] });
+    expect(parseCliArgs(["--live"], {})).toMatchObject({ llm: "api", serp: "dataforseo" });
+    expect(
+      parseCliArgs(["--live", "--llm=claude-cli", "--serp=claude-search", "--d1=local"], {}),
+    ).toMatchObject({ mode: "live", llm: "claude-cli", serp: "claude-search", d1: "local" });
+    expect(
+      parseCliArgs(["--live"], { LLM_PROVIDER: "claude-cli", SERP_PROVIDER: "claude-search" }),
+    ).toMatchObject({ llm: "claude-cli", serp: "claude-search" });
+    // A flag beats the env.
+    expect(parseCliArgs(["--live", "--llm=api"], { LLM_PROVIDER: "claude-cli" }).llm).toBe("api");
+  });
+
+  it("a dry run never spawns claude or calls a paid API", () => {
+    expect(() => parseCliArgs(["--llm=claude-cli"], ENV)).toThrow(/--dry-run/);
+    expect(() => parseCliArgs(["--serp=claude-search"], ENV)).toThrow(/--dry-run/);
+    expect(() => parseCliArgs(["--serp=dataforseo"], ENV)).toThrow(/--dry-run/);
+    // The env alone does not switch a dry run off its fixtures.
+    expect(parseCliArgs([], { ...ENV, LLM_PROVIDER: "claude-cli", SERP_PROVIDER: "claude-search" })).toMatchObject({
+      llm: "api",
+      serp: "fixture",
+    });
+    expect(() => parseCliArgs(["--live", "--llm=gpt"], {})).toThrow(/--llm/);
+    expect(() => parseCliArgs(["--live", "--serp=bing"], {})).toThrow(/--serp/);
+  });
+
+  it("--prioritize-states takes USPS codes, upper-cased and de-duplicated", () => {
+    expect(parseCliArgs(["--prioritize-states=ny, NJ,ct,NY"], ENV).prioritizeStates).toEqual(["NY", "NJ", "CT"]);
+    expect(() => parseCliArgs(["--prioritize-states=NY,XX"], ENV)).toThrow(/--prioritize-states/);
+  });
+
   it("allows --now only outside production", () => {
     expect(parseCliArgs(["--now=2026-09-28"], ENV).now).toBe("2026-09-28");
     expect(() => parseCliArgs(["--now=2026-09-28"], { NODE_ENV: "production" })).toThrow(

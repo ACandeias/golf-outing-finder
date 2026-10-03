@@ -57,6 +57,14 @@ describe("report stage", () => {
     expect(output.markdown).not.toContain("stage not implemented: match");
   });
 
+  it("says the API-rate estimate is covered by the subscription when claude -p did the work", () => {
+    const note = "Estimated cost at API rates: $1.63, covered by subscription (Claude Code headless).";
+    const { output } = report(ctx, input({ cost_note: note }));
+    expect(output.markdown).toContain(note);
+    expect(output.markdown).not.toContain("Estimated cost: $1.63.");
+    expect(report(ctx, input({ cost_note: "a <b> | c" })).output.markdown).toContain("a &lt;b&gt; \\| c");
+  });
+
   it("fails above 20% fetch errors, not at 20%", () => {
     expect(report(ctx, input()).output.fetchErrorRate).toBe(0.2);
     const over = report(ctx, input({ counters: { fetches: 100, fetch_errors: 21 } })).output;

@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { LlmProvider, SerpProvider } from "@gof/shared/env";
 import { z } from "zod";
 import { courseTypesHandler } from "../courses/course-types-handler.ts";
 import { coursesHandler } from "../courses/monthly.ts";
@@ -14,6 +15,9 @@ import { openIrsLookup, type SqliteIrsLookup } from "../irs/db.ts";
 import { ensureIrsDb } from "../irs/ensure.ts";
 import { IRS_CACHE_DIR, IRS_FIXTURE_CSV, irsHandler } from "../irs/handler.ts";
 import { AnthropicBatchClient, MAX_WAIT_MS, POLL_INTERVAL_MS, runExtractionBatch } from "../llm/batch-client.ts";
+import { ClaudeCliBatchClient, DEFAULT_CONCURRENCY, type ClaudeSpawner } from "../llm/claude-cli.ts";
+import { estimateCostCents } from "../budget.ts";
+import { createClaudeSearchAdapter, type ClaudeSearchAdapter } from "../serp/claude-search.ts";
 import { sqlValue } from "../sql/literal.ts";
 import { classify } from "../stages/classify.ts";
 import { dedupeUpsert } from "../stages/dedupe-upsert.ts";
@@ -94,6 +98,19 @@ export interface RunEdges {
   readonly poll: PollSettings;
   /** Closes the renderer, saves HTTP validators, closes the IRS database. */
   close(): Promise<void>;
+  /** `--llm`: where extraction and course-type calls go. */
+  readonly llm: LlmProvider;
+  /** `--serp`: where search queries go. */
+  readonly serp: SerpProvider;
+  /** The claude-cli client when `llm` is claude-cli (stats, token limit); else null. */
+  claudeCli(): ClaudeCliBatchClient | null;
+  /** The claude-search adapter once built, when `serp` is claude-search; else null. */
+  claudeSearch(): ClaudeSearchAdapter | null;
+  /**
+   * The report's cost line when a subscription-backed provider ran: the API-rate
+   * estimate is covered by the subscription. Null for API-only runs.
+   */
+  costNote(estCostCents: number): string | null;
 }
 
 export interface RunEdgesOptions {
@@ -109,6 +126,14 @@ export interface RunEdgesOptions {
   irs?: IrsLookup;
   indexnow?: IndexNowClient | null;
   poll?: Partial<PollSettings>;
+  /** `--llm` (default api). Only a live run uses it; a dry run always replays fixtures. */
+  llm?: LlmProvider;
+  /** `--serp` (default dataforseo live, fixture dry run). */
+  serp?: SerpProvider;
+  /** `--prioritize-states`, handed to the search plan. */
+  prioritizeStates?: readonly string[];
+  /** Test double for `claude -p` (claude-cli and claude-search); never a real process in tests. */
+  claudeSpawner?: ClaudeSpawner;
 }
 
 /** A BatchClient that constructs the real one on first use (no SDK client unless a batch is sent). */
@@ -127,8 +152,30 @@ function botUserAgent(env: Readonly<Record<string, string | undefined>>): string
   return `GolfOutingFinderBot/1.0 (+${site.replace(/\/$/, "")}/bot)`;
 }
 
+function claudeConcurrency(env: Readonly<Record<string, string | undefined>>): number {
+  const n = Number(env.CLAUDE_CLI_CONCURRENCY);
+  return Number.isInteger(n) && n >= 1 && n <= 8 ? n : DEFAULT_CONCURRENCY;
+}
+
 export function createRunEdges(o: RunEdgesOptions): RunEdges {
   const { ctx, mode, env } = o;
+  const llm: LlmProvider = mode === "live" ? (o.llm ?? "api") : "api";
+  const serp: SerpProvider = mode === "live" ? (o.serp ?? "dataforseo") : "fixture";
+  const concurrency = claudeConcurrency(env);
+  let cliClient: ClaudeCliBatchClient | null = null;
+  const claudeCliClient = (): ClaudeCliBatchClient =>
+    (cliClient ??= new ClaudeCliBatchClient({
+      ...(o.claudeSpawner ? { spawner: o.claudeSpawner } : {}),
+      concurrency,
+      log: ctx.log,
+    }));
+  let searchAdapter: ClaudeSearchAdapter | null = null;
+  const claudeSearchAdapter = (): ClaudeSearchAdapter =>
+    (searchAdapter ??= createClaudeSearchAdapter({
+      ...(o.claudeSpawner ? { spawner: o.claudeSpawner } : {}),
+      concurrency,
+      log: ctx.log,
+    }));
   let side: Promise<FetchSidePorts> | null = o.fetchSide ? Promise.resolve(o.fetchSide) : null;
   let sideBuilt = false;
   let irsOpen: SqliteIrsLookup | null = null;
@@ -137,20 +184,29 @@ export function createRunEdges(o: RunEdgesOptions): RunEdges {
   const fetchSidePorts = (): Promise<FetchSidePorts> => {
     side ??= (async () => {
       sideBuilt = true;
-      const built = await createFetchSidePorts(ctx, mode, env);
+      const built = await createFetchSidePorts(ctx, mode, env, {
+        serp,
+        ...(mode === "live" && serp === "claude-search" ? { serpAdapter: claudeSearchAdapter() } : {}),
+      });
       // Dry run: the seed pages stand in for what discovery would have found.
-      const ports =
+      const withSeed =
         mode === "live"
           ? built
           : { ...built, listings: concatListings(built.listings, await seedListingSource(loadFixtureDocs())) };
+      const ports: FetchSidePorts =
+        o.prioritizeStates && o.prioritizeStates.length > 0
+          ? { ...withSeed, prioritizeStates: [...o.prioritizeStates] }
+          : withSeed;
       return o.decorateFetchSide ? o.decorateFetchSide(ports) : ports;
     })();
     return side;
   };
 
-  // One Anthropic batch client per live run, shared by extraction and course types.
+  // One batch client per live run, shared by extraction and course types: the
+  // Message Batches API, or `claude -p` on the subscription (--llm=claude-cli).
   const liveBatch: BatchClient =
-    o.liveBatch ?? lazyBatch(() => new AnthropicBatchClient(new Anthropic()));
+    o.liveBatch ??
+    (llm === "claude-cli" ? claudeCliClient() : lazyBatch(() => new AnthropicBatchClient(new Anthropic())));
   let extraction: BatchClient | null = o.extractionBatch ?? null;
 
   const poll: PollSettings = {
@@ -221,6 +277,33 @@ export function createRunEdges(o: RunEdgesOptions): RunEdges {
       return p;
     },
     poll,
+    llm,
+    serp,
+    claudeCli: () => (llm === "claude-cli" && !o.liveBatch ? claudeCliClient() : null),
+    claudeSearch: () => searchAdapter,
+    costNote(estCostCents) {
+      if (llm !== "claude-cli" && serp !== "claude-search") return null;
+      const parts: string[] = [];
+      let proxy = 0;
+      if (llm === "claude-cli" && cliClient) {
+        const s = cliClient.stats();
+        proxy += s.cost_usd;
+        parts.push(
+          `LLM: claude -p, ${s.succeeded} of ${s.requests} requests answered, ${s.input_tokens} input and ${s.output_tokens} output tokens` +
+            ` (${(estimateCostCents({ llm_input_tokens: s.input_tokens, llm_output_tokens: s.output_tokens, serp_queries: 0 }) / 100).toFixed(2)} USD at Batch API rates)`,
+        );
+      }
+      if (serp === "claude-search" && searchAdapter) {
+        const s = searchAdapter.stats();
+        proxy += s.cost_usd;
+        parts.push(`search: claude -p WebSearch, ${s.succeeded} of ${s.queries} queries answered, ${s.results} results`);
+      }
+      return (
+        `Estimated cost at API rates: $${(estCostCents / 100).toFixed(2)}, covered by subscription (Claude Code headless). ` +
+        `${parts.join("; ")}${parts.length ? ". " : ""}` +
+        `Claude Code's own total_cost_usd for these calls (API list prices, a usage proxy): $${proxy.toFixed(2)}.`
+      );
+    },
     async close() {
       if (side && (sideBuilt || o.fetchSide)) await (await side).close();
       irsOpen?.close();
@@ -388,8 +471,19 @@ export function wiredHandlers(edges: RunEdges): StageHandlers {
 
     "extract-collect": async ({ ctx, guard, state, snapshot, runId }) => {
       const result = emptyResult();
-      const pending = pendingNightlyBatch(snapshot, runId);
+      const cli = edges.claudeCli();
+      const pendingFromDb = pendingNightlyBatch(snapshot, runId);
+      // claude-cli answers every request before submit returns: no batch is ever
+      // pending, and a Message Batches id left by an API run is not its to collect.
+      const pending = cli ? null : pendingFromDb;
+      if (cli && pendingFromDb)
+        ctx.log.warn("a Message Batches batch is pending from an earlier API run; claude-cli leaves it", {
+          batch_id: pendingFromDb,
+        });
       if (pending) ctx.log.info("collecting the batch the last nightly run left pending", { batch_id: pending });
+      const before = cli?.stats() ?? null;
+      // The guard is charged the estimate before submit; the client also stops on actual usage.
+      cli?.setInputTokenLimit(guard.remaining("MAX_LLM_INPUT_TOKENS_PER_RUN"));
       const outcome = await runExtractionBatch(edges.extractionBatch(), state.extractionRequests, {
         pendingBatchId: pending,
         budget: guard,
@@ -398,6 +492,28 @@ export function wiredHandlers(edges: RunEdges): StageHandlers {
         pollIntervalMs: edges.poll.intervalMs,
         maxWaitMs: edges.poll.maxWaitMs,
       });
+      if (cli && before) {
+        const after = cli.stats();
+        const actual = after.input_tokens - before.input_tokens;
+        const estimated = outcome.submitted > 0 ? state.extractionRequests.reduce((n, r) => n + r.est_input_tokens, 0) : 0;
+        // Claude Code adds its own overhead to every request: meter what was really used.
+        if (actual > estimated) guard.record({ llm_input_tokens: actual - estimated });
+        if (after.token_capped > before.token_capped)
+          guard.recordHit(
+            "MAX_LLM_INPUT_TOKENS_PER_RUN",
+            "extract-collect",
+            `${after.token_capped - before.token_capped} requests not sent (actual claude -p usage)`,
+          );
+        ctx.log.info("claude-cli extraction", {
+          requests: after.requests - before.requests,
+          succeeded: after.succeeded - before.succeeded,
+          errored: after.errored - before.errored,
+          input_tokens: actual,
+          estimated_input_tokens: estimated,
+          output_tokens: after.output_tokens - before.output_tokens,
+          cost_usd_at_api_prices: Math.round((after.cost_usd - before.cost_usd) * 100) / 100,
+        });
+      }
       if (outcome.status === "pending") {
         ctx.log.info("batch still running after the wait; the next nightly run collects it", {
           batch_id: outcome.batchId,
