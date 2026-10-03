@@ -6,16 +6,23 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "start": "node --experimental-strip-types src/cli.ts",
-    "start:seed": "node --experimental-strip-types src/seed.ts",
-    "start:live-extract": "node --experimental-strip-types src/live-extract.ts"
+    "start:seed": "node --experimental-strip-types --no-warnings src/seed.ts",
+    "start:live-extract": "node --experimental-strip-types src/live-extract.ts",
+    "start:seed-course-types": "node --experimental-strip-types --no-warnings src/seed/course-types-cli.ts",
+    "start:courses-import": "node --experimental-strip-types --no-warnings src/courses/cli.ts",
+    "start:places-build": "node --experimental-strip-types --no-warnings src/places/build.ts",
+    "start:places-load": "node --experimental-strip-types --no-warnings src/places/load-cli.ts"
   },
   "dependencies": {
     "@gof/db": "workspace:*",
     "@gof/shared": "workspace:*",
+    "tz-lookup": "6.1.25",
+    "yaml": "2.9.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@mozilla/readability": "0.6.0",
+    "@types/tz-lookup": "6.1.2",
     "linkedom": "0.18.13",
     "playwright": "1.63.0"
   }

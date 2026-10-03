@@ -221,13 +221,13 @@ importers:
 
   packages/db:
     dependencies:
+      '@gof/shared':
+        specifier: workspace:*
+        version: link:../shared
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@cloudflare/workers-types@4.20260702.1)
     devDependencies:
-      '@gof/shared':
-        specifier: workspace:*
-        version: link:../shared
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
@@ -240,6 +240,12 @@ importers:
       '@gof/shared':
         specifier: workspace:*
         version: link:../shared
+      tz-lookup:
+        specifier: 6.1.25
+        version: 6.1.25
+      yaml:
+        specifier: 2.9.1
+        version: 2.9.1
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -247,6 +253,9 @@ importers:
       '@mozilla/readability':
         specifier: 0.6.0
         version: 0.6.0
+      '@types/tz-lookup':
+        specifier: 6.1.2
+        version: 6.1.2
       linkedom:
         specifier: 0.18.13
         version: 0.18.13
@@ -1715,6 +1724,9 @@ packages:
   '@types/node@22.20.4':
     resolution: {integrity: sha512-zJRE40jpHtKqE/C4fgHrAKQLJuSpzEnP9ff9Y7YtoR3Wd2pwqzlekDeEuUQXjRd+QCYnVnNwuJYmhdk9XV8gvA==}
 
+  '@types/tz-lookup@6.1.2':
+    resolution: {integrity: sha512-9y31Xf/8FHXrCHjvVjGZLcsayAa6ABNc8bZlk6MPOQLLlr41tICSqW3TRPRIx2nodbzdKs5N7ipHWBrUsWUiAA==}
+
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
@@ -3072,6 +3084,9 @@ packages:
     resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  tz-lookup@6.1.25:
+    resolution: {integrity: sha512-fFewT9o1uDzsW1QnUU1ValqaihFnwiUiiHr1S79/fxOzKXYYvX+EHeRnpvQJ9B3Qg67wPXT6QF2Esc4pFOrvLg==}
 
   ufo@1.6.4:
     resolution: {integrity: sha512-JFNbkD1Svwe0KvGi8GOeLcP4kAWQ609twvCdcHxq1oSL8svv39ZuSvajcD8B+5D0eL4+s1Is2D/O6KN3qcTeRA==}
@@ -4537,6 +4552,8 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/tz-lookup@6.1.2': {}
+
   '@types/unist@3.0.3': {}
 
   '@typescript-eslint/eslint-plugin@8.71.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.6.3))(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.6.3)':
@@ -5994,6 +6011,8 @@ snapshots:
       - supports-color
 
   typescript@5.6.3: {}
+
+  tz-lookup@6.1.25: {}
 
   ufo@1.6.4: {}
 
