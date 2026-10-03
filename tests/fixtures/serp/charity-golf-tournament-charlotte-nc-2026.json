@@ -1,0 +1,15 @@
+{
+  "q": "charity golf tournament Charlotte NC 2026",
+  "response": {
+    "status_code": 20000,
+    "status_message": "Ok.",
+    "tasks": [
+      {
+        "id": "09281200-1535-0139-0000-2f6d1a0e3c12",
+        "status_code": 20000,
+        "status_message": "Ok.",
+        "result": [{ "keyword": "charity golf tournament Charlotte NC 2026", "items": [] }]
+      }
+    ]
+  }
+}

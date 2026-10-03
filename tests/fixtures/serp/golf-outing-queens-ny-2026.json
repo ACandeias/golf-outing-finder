@@ -1,0 +1,90 @@
+{
+  "q": "golf outing Queens NY 2026",
+  "response": {
+    "version": "0.1.20260901",
+    "status_code": 20000,
+    "status_message": "Ok.",
+    "time": "0.0412 sec.",
+    "cost": 0,
+    "tasks_count": 1,
+    "tasks_error": 0,
+    "tasks": [
+      {
+        "id": "09281200-1535-0139-0000-2f6d1a0e3c11",
+        "status_code": 20000,
+        "status_message": "Ok.",
+        "time": "0.0288 sec.",
+        "cost": 0,
+        "result_count": 1,
+        "path": ["v3", "serp", "google", "organic", "task_get", "regular", "09281200-1535-0139-0000-2f6d1a0e3c11"],
+        "data": {
+          "api": "serp",
+          "function": "task_get",
+          "se": "google",
+          "se_type": "organic",
+          "keyword": "golf outing Queens NY 2026",
+          "location_code": 2840,
+          "language_code": "en",
+          "device": "desktop",
+          "os": "windows",
+          "tag": "0"
+        },
+        "result": [
+          {
+            "keyword": "golf outing Queens NY 2026",
+            "type": "organic",
+            "se_domain": "google.com",
+            "location_code": 2840,
+            "language_code": "en",
+            "check_url": "https://www.google.com/search?q=golf+outing+Queens+NY+2026&num=10&hl=en&gl=US",
+            "datetime": "2026-09-28 07:20:11 +00:00",
+            "item_types": ["paid", "organic"],
+            "se_results_count": 1840000,
+            "items_count": 4,
+            "items": [
+              {
+                "type": "paid",
+                "rank_group": 1,
+                "rank_absolute": 1,
+                "domain": "ads.example",
+                "title": "Book a tee time",
+                "url": "https://ads.example/tee-times"
+              },
+              {
+                "type": "organic",
+                "rank_group": 1,
+                "rank_absolute": 2,
+                "page": 1,
+                "domain": "www.buildersinstitute.org",
+                "title": "Annual Golf Outing - The Builders Institute",
+                "description": "Annual golf outing at Metropolis Country Club.",
+                "url": "https://www.buildersinstitute.org/annual-golf-outing?utm_source=google",
+                "breadcrumb": "https://www.buildersinstitute.org › annual-golf-outing"
+              },
+              {
+                "type": "organic",
+                "rank_group": 2,
+                "rank_absolute": 3,
+                "page": 1,
+                "domain": "queens-charity.example",
+                "title": "Queens Charity Golf Outing 2026",
+                "description": "Register a foursome for our fall outing.",
+                "url": "https://queens-charity.example/golf-outing-2026"
+              },
+              {
+                "type": "organic",
+                "rank_group": 3,
+                "rank_absolute": 4,
+                "page": 1,
+                "domain": "www.facebook.com",
+                "title": "Golf outing",
+                "description": "",
+                "url": "javascript:void(0)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
