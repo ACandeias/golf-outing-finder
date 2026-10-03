@@ -1,0 +1,103 @@
+{
+  "url": "https://www.buildersinstitute.org/annual-golf-outing",
+  "fetched_at": "2026-10-03T16:03:16.835Z",
+  "http_status": 200,
+  "text": "Wednesday, October 7, 2026 | 10:30 AM – 7:30 PM\nMetropolis Country Club\n289 Dobbs Ferry Rd\nWhite Plains, NY 10607\n\nJoin us on Wednesday, October 7, 2026 for our Annual Golf Outing!\nDon’t miss out on a day of golfing under the sun, networking and connecting with industry professionals, dinner at the prestigious Metropolis Country Club, and a chance to win some amazing prizes at our raffle! You can help make our raffle prizes even better by donating. Contact Margie at margie@buildersinstitute.org if your business or organization would like to make a prize donation!\nTentative Schedule (subject to change closer to the date)\n10:30 am to 12:00 noon — Registration and breakfast buffet\n12:15 noon — Shotgun start\n12:30 pm — Lunch available at the Halfway House\n5:00 pm — Cocktail reception\n6:00 pm — Dinner and prize raffle\nREGISTER HERE!",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://www.buildersinstitute.org/annual-golf-outing/",
+          "url": "https://www.buildersinstitute.org/annual-golf-outing/",
+          "name": "Annual Golf Outing - The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region",
+          "isPartOf": {
+            "@id": "https://www.buildersinstitute.org/#website"
+          },
+          "datePublished": "2026-07-17T18:36:10+00:00",
+          "dateModified": "2026-08-12T19:05:50+00:00",
+          "breadcrumb": {
+            "@id": "https://www.buildersinstitute.org/annual-golf-outing/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://www.buildersinstitute.org/annual-golf-outing/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://www.buildersinstitute.org/annual-golf-outing/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.buildersinstitute.org/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://www.buildersinstitute.org/events/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Annual Golf Outing"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.buildersinstitute.org/#website",
+          "url": "https://www.buildersinstitute.org/",
+          "name": "The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region",
+          "description": "",
+          "publisher": {
+            "@id": "https://www.buildersinstitute.org/#organization"
+          },
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://www.buildersinstitute.org/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://www.buildersinstitute.org/#organization",
+          "name": "The Builders Institute | The Building & Realty Institute of Westchester & the Mid-Hudson Region",
+          "url": "https://www.buildersinstitute.org/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://www.buildersinstitute.org/#/schema/logo/image/",
+            "url": "https://www.buildersinstitute.org/wp-content/uploads/2019/10/logo.png",
+            "contentUrl": "https://www.buildersinstitute.org/wp-content/uploads/2019/10/logo.png",
+            "width": 392,
+            "height": 42,
+            "caption": "The Builders Institute | The Building & Realty Institute of Westchester & the Mid-Hudson Region"
+          },
+          "image": {
+            "@id": "https://www.buildersinstitute.org/#/schema/logo/image/"
+          }
+        }
+      ]
+    }
+  ]
+}

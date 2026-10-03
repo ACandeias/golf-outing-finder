@@ -1,0 +1,243 @@
+{
+  "url": "https://support.kidney.org/event/2026-nkf-golf-classic-at-philadelphia-county-club/e793429",
+  "fetched_at": "2026-10-03T16:03:20.444Z",
+  "http_status": 200,
+  "text": "The NKF Golf Classic is the nation's Premier Amateur Golf Event for Charity. Each year thousands of golfers from across the country participate in 30 events across the U.S. for the exciting competition and the chance to earn an invitation to the National Finals at Pebble Beach - while supporting the NKF and our mission.Enter a team in one of two competitive divisions: the Handicap Index or Gross Division, providing you and your guests with a competitive yet social day of golf whether you are a low handicapper or new to the game. Each Handicap Index Division team can have one player with a handicap index of 8.0 or less and the total combined handicap index for your four players must be 42.0 or more. Golfers must have submitted at least 3 scores towards their Handicap Index in the last 12 months. The Gross Division is for teams whose golfers do not have an official USGA Handicap Index or do not meet the above Handicap Index requirements. Non-competitive entries are also available.\nTop teams in both competitive divisions from each NKF Golf Classic are invited to compete in the National Finals held at the famed Pebble Beach Resorts (additional fees required) held January 14-17, 2027.",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Event",
+          "name": "2026 NKF Golf Classic at Philadelphia County Club",
+          "url": "https://pro.gofundme.com/event/e793429",
+          "startDate": "2026-10-12T10:00:00-04:00",
+          "endDate": "2026-10-12T18:30:00-04:00",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "image": "https://assets.classy.org/19614948/8778bdce-af07-11ed-939f-0a58a9feac02.png",
+          "location": {
+            "@type": "Place",
+            "name": "Philadelphia County Club",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1601 North Spring Mill Road",
+              "addressLocality": "Lower Merion Township",
+              "addressRegion": "PA",
+              "postalCode": "19035",
+              "addressCountry": "US"
+            }
+          },
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Premier Foursome Entry",
+              "price": "4000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Foursome Entry",
+              "price": "3000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Presenting Sponsor",
+              "price": "15000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/SoldOut"
+            },
+            {
+              "@type": "Offer",
+              "name": "Eagle Sponsor",
+              "price": "10000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/SoldOut"
+            },
+            {
+              "@type": "Offer",
+              "name": "Apparel Sponsor",
+              "price": "7500.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/SoldOut"
+            },
+            {
+              "@type": "Offer",
+              "name": "Driving Range Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Golf Cart Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Halfway House Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Lunch Sponsor",
+              "price": "4000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Dinner Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Golf Ball Sponsor",
+              "price": "3000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Golfer Welcome Bag Sponsor",
+              "price": "2500.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Hole Sponsor",
+              "price": "1000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Ad in Digital Program Book",
+              "price": "250.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Guest Awards Reception Ticket",
+              "price": "200.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e793429",
+              "availability": "https://schema.org/InStock"
+            }
+          ],
+          "organizer": {
+            "@id": "https://pro.gofundme.com/event/e793429#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://pro.gofundme.com/event/e793429#organization",
+          "name": "National Kidney Foundation",
+          "url": "https://www.kidney.org/",
+          "logo": "https://assets.classy.org/26421026/f25bc7da-cc6f-11ef-98d3-0affcc6bf4b7.png",
+          "sameAs": [
+            "https://www.kidney.org/",
+            "https://www.facebook.com/nationalkidneyfoundation/",
+            "https://x.com/nkf"
+          ]
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "National Kidney Foundation",
+          "item": "https://www.kidney.org/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "2026 NKF Golf Classic at Philadelphia County Club",
+          "item": "https://pro.gofundme.com/event/e793429"
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is this donation tax deductible?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "National Kidney Foundation (EIN: 13-1673104) is a 501(c)3 tax-exempt organization and your donation is tax-deductible within the guidelines of U.S. law. To claim a donation as a deduction on your U.S. taxes, please keep your email donation receipt as your official record. We'll send it to you upon successful completion of your donation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a minimum amount I'm allowed to give?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Every dollar counts. No gift is too small and makes a meaningful difference in our work to advance research, diagnosis and treatment of kidney disease."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will I receive a donation receipt?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. A donation receipt will be sent to you at the email address you provide on this form. Please be sure to keep a copy of your receipt for tax purposes. We’ll also make a statement of your generosity available for download in your Account whenever you need it. Can’t find it? Contact: <u><a href=\"mailto:donations@kidney.org\" rel=\"nofollow\">Donations@kidney.org</a></u>."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How will my gift help?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Your support helps us do more. More research, more advocacy, more transplants, more hope. Your generosity will ensure that NKF can continue to make transplants a priority through research, innovation and advocacy, while expanding access to programs that help patients find their perfect match."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I make my gift by mail or over the phone?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Of course! Complete our mail-in donation form to accompany your offline donation and send it to: <br><br>Attn: Gift Processing at National Kidney Foundation HQ<br>30 East 33rd Street<br>New York, NY 10016<br><br>Or, call us to complete your gift at 212-889-2210"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Still have questions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "If you are experiencing any issues or have questions about your contribution, please contact <u><a href=\"mailto:donations@kidney.org\" rel=\"nofollow\">donations@kidney.org</a></u>."
+          }
+        }
+      ]
+    }
+  ]
+}
