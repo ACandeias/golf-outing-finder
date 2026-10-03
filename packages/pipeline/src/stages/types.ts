@@ -5,6 +5,7 @@ import type { Overrides } from "../overrides/load.ts";
 import {
   charityStatusSchema,
   courseRowSchema,
+  discoveryQueueRowSchema, // workstream B: DiscoverInput.pending
   orgTypeSchema,
   outingRowSchema,
   sourceKindSchema,
@@ -227,6 +228,8 @@ export const recheckCandidateSchema = z.object({
   start_date: isoDate,
   last_verified: isoTimestamp,
   time_zone: z.string(),
+  /** Added by workstream B: the source's `sources.kind`, kept on the queue entry (default organizer). */
+  source_kind: sourceKindSchema.optional(),
 });
 export type RecheckCandidate = z.infer<typeof recheckCandidateSchema>;
 
@@ -284,7 +287,20 @@ export const discoverInputSchema = z.object({
   /** Sources fetched in the last 7 days (the discovery dedupe window). */
   recentlyFetched: z.array(z.object({ url: httpUrl, fetched_at: isoTimestamp })),
   /** Held sources whose `held_until` is still ahead: retried to find a second source. */
-  heldSources: z.array(z.object({ url: httpUrl, held_until: isoDate })),
+  heldSources: z.array(
+    z.object({
+      url: httpUrl,
+      held_until: isoDate,
+      /** Added by workstream B: the source's `sources.kind` (default organizer). */
+      kind: sourceKindSchema.optional(),
+    }),
+  ),
+  /**
+   * Added by workstream B: `discovery_queue` rows left from earlier runs (caps,
+   * per-host limit). New URLs are deduped against them; due rows
+   * (`next_attempt_at` null or not after now) are queued again.
+   */
+  pending: z.array(discoveryQueueRowSchema).optional(),
   allowance: allowanceSchema,
 });
 export type DiscoverInput = z.infer<typeof discoverInputSchema>;
@@ -370,6 +386,9 @@ export const fetchedPageSchema = z.object({
   error: z.string().nullable(),
   recheck_outing_id: z.string().nullable(),
   directory_host: z.string().nullable(),
+  /** Added by workstream B: HTTP validators for the next conditional GET. */
+  etag: z.string().nullable().optional(),
+  last_modified: z.string().nullable().optional(),
 });
 export type FetchedPage = z.infer<typeof fetchedPageSchema>;
 
