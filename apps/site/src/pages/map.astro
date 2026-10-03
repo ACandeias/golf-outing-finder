@@ -1,0 +1,53 @@
+---
+import { OPENFREEMAP_ATTRIBUTION_TEXT, OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
+import Base from "../layouts/Base.astro";
+
+export const prerender = false;
+Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=3600");
+---
+
+<Base
+  title="Map of Golf Outings | Golf Outing Finder"
+  description="A map of upcoming golf outings across the US. Zoom in to see outings near you."
+  path="/map"
+  noindex
+  crumbs={[{ name: "Map", path: "/map" }]}
+  wide
+>
+  <div class="map-head wrap">
+    <h1>Map of upcoming outings</h1>
+    <p class="muted small" aria-live="polite" data-map-count>Loading the map…</p>
+  </div>
+  <div class="map" id="map" data-map role="region" aria-label="Map of upcoming golf outings"></div>
+  <p class="wrap small muted attr">
+    Map data: {OPENFREEMAP_ATTRIBUTION_TEXT}. {OSM_ATTRIBUTION_TEXT}. Prefer a list? <a href="/golf-outings">Browse outings by state</a>.
+  </p>
+</Base>
+
+<style>
+  .map-head h1 {
+    margin-bottom: 0.25rem;
+  }
+  .map {
+    height: calc(100vh - 220px);
+    min-height: 420px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .attr {
+    margin-top: 0.5rem;
+  }
+</style>
+
+<script>
+  import { mountMap } from "../scripts/map.ts";
+  const el = document.querySelector<HTMLElement>("[data-map]");
+  const count = document.querySelector<HTMLElement>("[data-map-count]");
+  if (el) {
+    void mountMap(el, {
+      onCount: (n) => {
+        if (count) count.textContent = n === 0 ? "No upcoming outings in this area. Zoom out or move the map." : `${n} upcoming ${n === 1 ? "outing" : "outings"} in this area (up to 200 shown). Select a cluster to zoom in.`;
+      },
+    });
+  }
+</script>

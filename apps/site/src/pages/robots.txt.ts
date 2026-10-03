@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { siteEnv } from "../lib/env.ts";
+import { cacheControl, TTL } from "../lib/cache.ts";
 
 export const prerender = false;
 
@@ -13,5 +14,5 @@ export const GET: APIRoute = () => {
     `Sitemap: ${base}/sitemap-index.xml`,
     "",
   ].join("\n");
-  return new Response(body, { headers: { "content-type": "text/plain; charset=utf-8" } });
+  return new Response(body, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": cacheControl(TTL.robots) } });
 };

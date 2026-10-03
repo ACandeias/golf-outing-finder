@@ -1,0 +1,79 @@
+---
+import { z } from "zod";
+import { organizerBySlug, outingsForOrganizer } from "@gof/db/queries";
+import { buildItemListJsonLd } from "@gof/shared/jsonld";
+import { isPast } from "@gof/shared/dates";
+import Base from "../../layouts/Base.astro";
+import OutingCard from "../../components/OutingCard.astro";
+import { getDb } from "../../lib/db.ts";
+import { requestNow } from "../../lib/clock.ts";
+import { TTL } from "../../lib/cache.ts";
+import { notFound, setCache } from "../../lib/page.ts";
+import { absoluteUrl, organizerPath, outingPath } from "../../lib/urls.ts";
+
+export const prerender = false;
+
+const slug = z.string().max(200).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).safeParse(Astro.params.slug);
+if (!slug.success) return notFound(Astro);
+const db = getDb();
+const org = await organizerBySlug(db, slug.data);
+if (!org) return notFound(Astro);
+
+const now = requestNow();
+const all = await outingsForOrganizer(db, org.id);
+const isDone = (o: (typeof all)[number]) =>
+  o.status === "past" || (o.status !== "expected" && o.startDate !== null && isPast(o.startDate, o.endDate, now, o.course.timeZone));
+const upcoming = all.filter((o) => o.status !== "expected" && !isDone(o)).reverse();
+const expected = all.filter((o) => o.status === "expected");
+const past = all.filter(isDone);
+const courses = [...new Set(all.map((o) => o.course.name))];
+const path = organizerPath(org.slug);
+const charityLine: Record<string, string> = {
+  "501c3": "IRS records list this organizer as a 501(c)(3) charity.",
+  other_nonprofit: "IRS records list this organizer as a nonprofit, but not a 501(c)(3).",
+  not_nonprofit: "This organizer isn't a registered nonprofit.",
+  unverified: "We haven't matched this organizer to IRS charity records yet.",
+};
+
+setCache(Astro, TTL.list);
+---
+
+<Base
+  title={`Golf Outings by ${org.name}`}
+  description={`${all.length} golf ${all.length === 1 ? "outing" : "outings"} by ${org.name}${courses.length > 0 ? ` at ${courses.slice(0, 3).join(", ")}` : ""}. Dates, prices and registration links.`.slice(0, 300)}
+  path={path}
+  crumbs={[{ name: "Golf outings", path: "/golf-outings" }, { name: org.name, path }]}
+  jsonLd={[buildItemListJsonLd([...upcoming, ...expected, ...past].map((o) => absoluteUrl(outingPath(o.slug))))]}
+>
+  <h1>Golf outings by {org.name}</h1>
+  <p>{charityLine[org.charityStatus] ?? ""} {courses.length > 1 ? `They run outings at ${courses.length} courses.` : ""}</p>
+
+  <section aria-labelledby="upcoming">
+    <h2 id="upcoming">Upcoming outings</h2>
+    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <div class="cards">{upcoming.map((o) => <OutingCard outing={o} />)}</div>}
+  </section>
+  {
+    expected.length > 0 && (
+      <section aria-labelledby="expected">
+        <h2 id="expected">Expected to return</h2>
+        <div class="cards">{expected.map((o) => <OutingCard outing={o} />)}</div>
+      </section>
+    )
+  }
+  {
+    past.length > 0 && (
+      <section aria-labelledby="past">
+        <h2 id="past">Past outings</h2>
+        <div class="cards">{past.map((o) => <OutingCard outing={o} />)}</div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 1rem;
+  }
+</style>

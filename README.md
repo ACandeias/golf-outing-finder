@@ -2,7 +2,7 @@
 
 A nationwide directory of golf outings that anyone can pay to enter, at municipal, public, semi-private, private and resort courses. It's free to use, earns money only from display ads, and runs unattended. The build spec is [`SPEC.md`](SPEC.md) (v1.1) and the working rules for contributors and agents are in [`CLAUDE.md`](CLAUDE.md).
 
-Status: **Phase 0** (scaffold, schema, empty site, CI, Docker, seed fixtures). Phase 1 brings pages from seed data.
+Status: **Phase 1** in progress (workstream A done: typed queries, places data, course import, matcher, seed loader). Phase 0 delivered the scaffold, schema, empty site, CI, Docker and seed fixtures.
 
 ## Run locally in Docker
 
@@ -19,8 +19,9 @@ What happens:
 
 1. The `builder` stage installs the workspace with `pnpm install --frozen-lockfile` and runs `pnpm build`.
 2. The `runner` stage is `node:22-bookworm-slim` with only wrangler (at the lockfile's version), the built Worker, the migrations and the seed file. It runs as the `node` user under `tini`.
-3. On start, `docker/entrypoint.sh` applies D1 migrations with `wrangler d1 migrations apply gof --local --persist-to /data`. If the `outings` table is empty and the seed loader is implemented, it loads `seed/outings.json`. Until Phase 1 it logs `seed not implemented yet, skipping`. Then it runs `wrangler dev --local --ip 0.0.0.0 --port 8787 --persist-to /data`.
-4. The local D1 database lives on the named volume `d1-data` mounted at `/data`, so it survives restarts. Run `docker compose down -v` to reset it.
+3. The `builder` stage also runs the seed loader offline with `--sql-out`, producing the seed as D1-sized literal-SQL files (`/app/seed-sql` in the runner).
+4. On start, `docker/entrypoint.sh` applies D1 migrations with `wrangler d1 migrations apply gof --local --persist-to /data`. If the `outings` table is empty, it applies the seed SQL files with `wrangler d1 execute gof --local --file`. Then it runs `wrangler dev --local --ip 0.0.0.0 --port 8787 --persist-to /data`.
+5. The local D1 database lives on the named volume `d1-data` mounted at `/data`, so it survives restarts. Run `docker compose down -v` to reset it.
 
 `.env` settings: `PUBLIC_SITE_URL` (default `http://localhost:8787`), `SITE_NOW` (pins the clock, ignored when `NODE_ENV=production`), and `NODE_ENV` (default `development`).
 
@@ -47,13 +48,34 @@ pnpm test:e2e                 # Playwright against wrangler dev with seeded D1
 pnpm lint && pnpm typecheck
 pnpm db:migrate:local         # apply migrations to local D1
 pnpm db:migrate:remote        # apply migrations to production D1 (CI only)
-pnpm seed                     # load seed/outings.json into local D1 (Phase 1)
+pnpm run seed                 # load places, courses and seed/outings.json into local D1 (see below)
 pnpm run pipeline --dry-run   # full pipeline on fixtures, zero network calls
 pnpm run pipeline --live --budget=nightly   # real run; used by nightly.yml
 pnpm test:live-extract        # re-record LLM fixtures (costs money, asks first)
 pnpm build && pnpm deploy     # deploy the Worker (CI only)
 pnpm docker:up                # build and run the site in Docker
 ```
+
+## Seed data and loaders (Phase 1)
+
+```bash
+pnpm db:migrate:local
+pnpm run seed                          # full reload of the local D1, offline
+pnpm run seed --include-test-entries   # also load s14 (excluded, unpublished) and s15 (synthetic gc7)
+pnpm run seed --sql-out=.cache/seed    # only write the SQL files (the Docker builder does this)
+pnpm run seed:course-types             # one-time: seed expected_course_type -> course-types.yaml (already committed)
+pnpm run courses:import --states=NY,NJ # courses from tests/fixtures/courses.json into the local D1 (upsert by osm_ref)
+pnpm run courses:import --states=NY --live   # same from the free Overpass API, one state at a time with backoff
+pnpm run places:build [--all]          # re-download GeoNames and rebuild data/places (free, CC BY 4.0)
+pnpm run places:load                   # cities and zips only
+```
+
+`pnpm run seed` clears and reloads `cities`, `zips`, `courses`, `organizers`, `outings`, `sources` and `source_outings` in the local D1:
+
+- **Places**: `data/places/cities.csv.gz` and `zips.csv.gz` (GeoNames subsets for the ten seed states).
+- **Courses**: `tests/fixtures/courses.json` (recorded once from Overpass by `packages/pipeline/scripts/record-courses-fixture.ts`) through the importer: SPEC 8.1 steps 1 (`course-types.yaml`), 2 (OSM tags) and 4 (`unknown`); mini golf and driving ranges dropped; `time_zone` from tz-lookup; `city` from `addr:city`, else the nearest city within 30 km.
+- **Outings**: every seed entry is matched to a course with the SPEC 8.6 matcher; the run fails listing any entry that doesn't match. Prices become cents, open entries are `open`, expected entries keep the seed's `expected_month` (and `announced_date` as `start_date`), e17 is held with `hold_reason = 'no_date'`. Organizers are `unverified` with `org_type` from the outing type. `source_url`, `event_url` and `registration_url` become `sources` rows linked through `source_outings`. `registration_url` is kept only when it is on the page's domain or a host in `registration-hosts.yaml`. `removals.yaml` is honored. `synthetic` and `excluded` entries are skipped unless `--include-test-entries`.
+- **Writes**: literal-value SQL (no bound parameters), at most 50 rows per statement, at most 1,000 statements per file, applied with `wrangler d1 execute gof --local --file`. Tests apply the same SQL to node:sqlite. `PIPELINE_NOW` pins the clock outside production.
 
 To serve the built Worker the way CI and Docker do:
 
@@ -74,15 +96,25 @@ apps/site/                Astro 7 + @astrojs/cloudflare 14, output: 'server'
   wrangler.toml           Worker config, D1 binding DB -> database "gof"
   tests/e2e/              Playwright against wrangler dev
 packages/db/              Drizzle schema (src/schema.ts) mirroring SPEC 7.1
+  src/queries.ts          typed read queries for the site (listings, lookups, sitemaps)
+  src/testing.ts          node:sqlite + drizzle sqlite-proxy helpers for tests
   migrations/0000_init.sql  the D1 schema; tests/ apply it to SQLite and check it
-packages/shared/          zod env schemas, budget profiles, slug/date/money utils, extraction schema
-packages/pipeline/        nightly and monthly pipeline CLI (Phase 2), seed loader (Phase 1)
-  scripts/record-seed-fixtures.ts   one-time Phase 0 page recorder (free HTTP only)
+packages/shared/          zod env schemas, budget profiles, slug/date/money utils, extraction schema,
+                          places helpers and attributions, display-label table, ULIDs
+packages/pipeline/        nightly and monthly pipeline CLI (Phase 2), loaders (Phase 1)
+  src/match/              course matcher (SPEC 8.6)
+  src/courses/            Overpass client, OSM course-type rules, course importer
+  src/places/             GeoNames parsing, places:build, city locator
+  src/seed/ src/seed.ts   seed loader and seed:course-types
+  src/sql/                literal SQL for D1
+  scripts/record-seed-fixtures.ts     one-time Phase 0 page recorder (free HTTP only)
+  scripts/record-courses-fixture.ts   one-time Overpass recorder for tests/fixtures/courses.json
 data/overrides/           YAML the owner edits (SPEC 7.2)
-data/places/              GeoNames subsets and metros.yaml (Phase 1)
+data/places/              GeoNames subsets for the seed states and metros.yaml
 seed/outings.json         32 seed entries and the golden cases (SPEC 11)
 seed/guides/              guide drafts (Phase 3)
-tests/fixtures/           raw/ HTML and pages/ normalized records of the seed pages; MISSING.md
+tests/fixtures/           raw/ HTML and pages/ normalized records of the seed pages; MISSING.md;
+                          courses.json (recorded Overpass subset, © OpenStreetMap contributors)
 docker/entrypoint.sh      runner entrypoint: migrate, seed, serve
 Dockerfile                dev, builder and runner stages
 docker-compose.yml        site service (default) and dev profile services

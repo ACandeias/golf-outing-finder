@@ -1,0 +1,23 @@
+---
+import Base from "../layouts/Base.astro";
+import { BOT_NAME, botUserAgent, correctionsEmail } from "../lib/contact.ts";
+
+export const prerender = true;
+const ua = botUserAgent(Astro);
+const email = correctionsEmail(Astro);
+---
+
+<Base title="GolfOutingFinderBot | Golf Outing Finder" description="About GolfOutingFinderBot, the crawler that finds golf outings for Golf Outing Finder, and how to control it." path="/bot" noindex crumbs={[{ name: "Our crawler", path: "/bot" }]}>
+  <h1>GolfOutingFinderBot</h1>
+  <p>Our crawler visits public pages that announce golf outings, about once a week per page, to keep listings current. It identifies itself as:</p>
+  <p><code>{ua}</code></p>
+  <h2>What it does and doesn't do</h2>
+  <ul>
+    <li>It follows robots.txt. To block it, add <code>User-agent: {BOT_NAME.split("/")[0]}</code> and <code>Disallow: /</code>.</li>
+    <li>It spaces out requests to each site and fetches a small number of pages per run.</li>
+    <li>It doesn't log in, submit forms, keep cookies or download images.</li>
+    <li>It reads event details and links back to the page. It doesn't copy your text or images.</li>
+  </ul>
+  <h2>Problems?</h2>
+  <p>Email <a href={`mailto:${email}`}>{email}</a> and we'll adjust or stop crawling your site.</p>
+</Base>

@@ -1,0 +1,74 @@
+---
+import { z } from "zod";
+import { listExpectedOutings, listUpcomingOutings } from "@gof/db/queries";
+import { buildItemListJsonLd } from "@gof/shared/jsonld";
+import { isUsStateCode } from "@gof/shared/places";
+import Base from "../../../layouts/Base.astro";
+import FilterForm from "../../../components/FilterForm.astro";
+import OutingList from "../../../components/OutingList.astro";
+import { getDb } from "../../../lib/db.ts";
+import { listToday } from "../../../lib/clock.ts";
+import { TTL } from "../../../lib/cache.ts";
+import { notFound, setCache } from "../../../lib/page.ts";
+import { stateName } from "../../../lib/format.ts";
+import { filtersFromUrl, isVisible, listDescription } from "../../../lib/listing.ts";
+import { absoluteUrl, cityPath, outingPath, statePath } from "../../../lib/urls.ts";
+
+export const prerender = false;
+
+const stateParam = z.string().regex(/^[a-z]{2}$/).safeParse(Astro.params.state);
+if (!stateParam.success || !isUsStateCode(stateParam.data.toUpperCase())) return notFound(Astro);
+const st = stateParam.data.toUpperCase();
+const name = stateName(st);
+
+const db = getDb();
+const today = listToday();
+const [dated, expected] = await Promise.all([
+  listUpcomingOutings(db, { state: st, today, limit: 1000 }),
+  listExpectedOutings(db, { state: st, limit: 500 }),
+]);
+const { filters, anyFilterParam } = filtersFromUrl(Astro.url);
+
+const cityCounts = new Map<string, number>();
+for (const o of [...dated, ...expected]) {
+  if (o.course.city) cityCounts.set(o.course.city, (cityCounts.get(o.course.city) ?? 0) + 1);
+}
+const cities = [...cityCounts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+const all = [...dated, ...expected];
+const path = statePath(st);
+
+setCache(Astro, TTL.list);
+---
+
+<Base
+  title={`Golf Outings and Charity Tournaments in ${name} | Golf Outing Finder`}
+  description={listDescription(name, all)}
+  path={path}
+  noindex={anyFilterParam || all.length === 0}
+  crumbs={[{ name: "Golf outings", path: "/golf-outings" }, { name, path }]}
+  jsonLd={[buildItemListJsonLd(all.filter((o) => isVisible(o, filters, null)).map((o) => absoluteUrl(outingPath(o.slug))))]}
+>
+  <h1>Golf outings in {name}</h1>
+  <p>
+    {dated.length} upcoming {dated.length === 1 ? "outing" : "outings"}
+    {expected.length > 0 && <>and {expected.length} expected to return</>} in {name}, by month. Prices are per player unless noted.
+  </p>
+
+  {
+    cities.length > 0 && (
+      <section aria-labelledby="cities">
+        <h2 id="cities">Cities</h2>
+        <ul class="grid-links">
+          {cities.map(([city, n]) => (
+            <li>
+              <a href={cityPath(st, city)}>{city}</a> <span class="muted small">({n})</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <FilterForm filters={filters} action={path} total={all.length} shown={all.filter((o) => isVisible(o, filters, null)).length} />
+  <OutingList dated={dated} expected={expected} filters={filters} emptyText={`No outings in ${name} yet. We add new ones every night.`} />
+</Base>

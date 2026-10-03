@@ -1,0 +1,164 @@
+---
+import { buildItemListJsonLd } from "@gof/shared/jsonld";
+import { OPENFREEMAP_ATTRIBUTION_TEXT, OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
+import Base from "../layouts/Base.astro";
+import FilterForm from "./FilterForm.astro";
+import OutingList from "./OutingList.astro";
+import OutingCard from "./OutingCard.astro";
+import type { CityPageData } from "../lib/city-page.ts";
+import { stateName } from "../lib/format.ts";
+import { isVisible, listDescription } from "../lib/listing.ts";
+import { absoluteUrl, charityCityPath, cityPath, outingPath, statePath } from "../lib/urls.ts";
+
+interface Props {
+  data: CityPageData;
+}
+const { charity, st, city, center, dated, expected, indexable, filters, anyFilterParam, nearby, nearCities } = Astro.props.data;
+const all = [...dated, ...expected];
+
+const place = `${city.name}, ${st}`;
+const path = charity ? charityCityPath(st, city.name) : cityPath(st, city.name);
+const title = charity
+  ? `Charity Golf Tournaments in ${place}`
+  : `Golf Outings and Charity Tournaments in ${place}`;
+const visibleUrls = all.filter((o) => isVisible(o, filters, center)).map((o) => absoluteUrl(outingPath(o.slug)));
+const crumbs = [
+  { name: "Golf outings", path: "/golf-outings" },
+  { name: stateName(st), path: statePath(st) },
+  ...(charity
+    ? [
+        { name: city.name, path: cityPath(st, city.name) },
+        { name: "Charity tournaments", path },
+      ]
+    : [{ name: city.name, path }]),
+];
+---
+
+<Base
+  title={title}
+  description={listDescription(place, all, charity)}
+  path={path}
+  noindex={anyFilterParam || !indexable}
+  crumbs={crumbs}
+  jsonLd={[buildItemListJsonLd(visibleUrls)]}
+>
+  {charity ? <h1>Charity golf tournaments in {place}</h1> : <h1>Golf outings in {place}</h1>}
+  {
+    charity ? (
+      <p>
+        Charity outings and school fundraisers in and around {city.name}. When a listing shows "Charity", we've checked the
+        organizer against IRS records of 501(c)(3) organizations. Other fundraisers say their charity status is unverified.
+      </p>
+    ) : (
+      <p>
+        Golf outings you can pay to enter in {city.name}: charity scrambles, school fundraisers, trade group days and open
+        tournaments, at every kind of course. <a href={charityCityPath(st, city.name)}>Only charity outings in {city.name}</a>
+      </p>
+    )
+  }
+
+  <FilterForm
+    filters={filters}
+    action={path}
+    showDistance={center !== null}
+    distanceFrom={`from ${city.name}`}
+    total={all.length}
+    shown={all.filter((o) => isVisible(o, filters, center)).length}
+  />
+
+  {
+    center && all.length > 0 && (
+      <div class="map-toggle">
+        <button class="button secondary" type="button" data-map-toggle aria-expanded="false" aria-controls="city-map">
+          Show map
+        </button>
+        <div id="city-map" class="city-map-wrap" hidden>
+          <div class="city-map" data-map data-lat={String(center.lat)} data-lng={String(center.lng)} />
+          <p class="small muted">
+            Map data: {OPENFREEMAP_ATTRIBUTION_TEXT}. {OSM_ATTRIBUTION_TEXT}.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  <OutingList
+    dated={dated}
+    expected={expected}
+    filters={filters}
+    center={center}
+    emptyText={charity ? `No charity outings listed in ${city.name} yet.` : `No outings listed in ${city.name} yet.`}
+  />
+
+  {
+    nearby.length > 0 && (
+      <section aria-labelledby="nearby">
+        <h2 id="nearby">Outings near {city.name}</h2>
+        <div class="cards">
+          {nearby.map((o) => (
+            <OutingCard outing={o} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    nearCities.length > 0 && (
+      <section aria-labelledby="near-cities">
+        <h2 id="near-cities">Nearby cities</h2>
+        <ul class="grid-links">
+          {nearCities.map((c) => (
+            <li>
+              <a href={charity ? charityCityPath(c.state, c.city) : cityPath(c.state, c.city)}>
+                {c.city}, {c.state}
+              </a>
+              <span class="muted small"> ({Math.round(c.distanceKm / 1.609344)} mi)</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 1rem;
+  }
+  .map-toggle {
+    margin: 0.5rem 0 1rem;
+  }
+  .city-map {
+    position: relative;
+    height: 420px;
+    margin-top: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>("[data-map-toggle]");
+  const wrap = document.querySelector<HTMLElement>("#city-map");
+  const box = document.querySelector<HTMLElement>("[data-map]");
+  let mounted = false;
+  if (button && box && wrap) {
+    button.addEventListener("click", async () => {
+      const show = wrap.hidden;
+      wrap.hidden = !show;
+      button.setAttribute("aria-expanded", String(show));
+      button.textContent = show ? "Hide map" : "Show map";
+      if (show && !mounted) {
+        mounted = true;
+        const lat = Number(box.dataset.lat);
+        const lng = Number(box.dataset.lng);
+        const { mountMap } = await import("../scripts/map.ts");
+        await mountMap(box, { center: Number.isFinite(lat) && Number.isFinite(lng) ? [lng, lat] : undefined, zoom: 9 });
+      }
+    });
+  }
+</script>

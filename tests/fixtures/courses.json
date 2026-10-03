@@ -1,0 +1,2428 @@
+{
+ "version": 1,
+ "recorded_at": "2026-10-03T16:50:24.712Z",
+ "source": "https://overpass-api.de/api/interpreter",
+ "attribution": "© OpenStreetMap contributors. Data available under the Open Database License (ODbL 1.0).",
+ "note": "Recorded by packages/pipeline/scripts/record-courses-fixture.ts: leisure=golf_course features in boxes around each seed course and decoy, grouped by state. Do not edit by hand.",
+ "states": {
+  "AZ": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-AZ\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(33.481368,-112.06451,33.553718,-111.978312);nwr[\"leisure\"=\"golf_course\"](area.s)(33.43904,-112.140843,33.51139,-112.054687);nwr[\"leisure\"=\"golf_course\"](area.s)(33.44041,-112.13524,33.512759,-112.049083);nwr[\"leisure\"=\"golf_course\"](area.s)(33.513153,-111.957326,33.585502,-111.871096);nwr[\"leisure\"=\"golf_course\"](area.s)(33.484182,-112.063721,33.556531,-111.97752););out center tags;",
+   "elements": [
+    {
+     "type": "node",
+     "id": 12639186191,
+     "lat": 33.5097078,
+     "lon": -112.0757524,
+     "tags": {
+      "addr:city": "Phoenix",
+      "addr:country": "US",
+      "addr:full": "24 W Camelback Rd Suite C, Phoenix, AZ 85013",
+      "addr:housenumber": "24",
+      "addr:postcode": "85013",
+      "addr:state": "AZ",
+      "addr:street": "West Camelback Road",
+      "addr:unit": "Suite C",
+      "air_conditioning": "yes",
+      "contact:facebook": "https://www.facebook.com/bladesgolflounge",
+      "contact:instagram": "https://www.instagram.com/bladesgolflounge/",
+      "contact:linkedin": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.linkedin.com/company/blades-golf-lounge",
+      "description": "Blades Golf Lounge is an indoor golf facility located at in Uptown Phoenix, in the Camel Central Plaza. It offers access to golf simulators using Foresight Falcon technology. Memberships and hourly rates are available.",
+      "email": "hello@bladesgolflounge.com",
+      "image": "https://flic.kr/p/2qQhzAr",
+      "leisure": "golf_course",
+      "name": "Blades Golf Lounge",
+      "outdoor_seating": "no",
+      "payment:credit_cards": "yes",
+      "payment:debit_cards": "yes",
+      "payment:mastercard": "yes",
+      "payment:visa": "yes",
+      "payment:visa_debit": "yes",
+      "phone": "+1-602-456-0252",
+      "smoking": "no",
+      "sport": "golf",
+      "television": "yes",
+      "toilets": "yes",
+      "toilets:wheelchair": "yes",
+      "website": "https://www.bladesgolflounge.com",
+      "wheelchair": "yes"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3518766,
+     "center": {
+      "lat": 33.5893435,
+      "lon": -111.9078446
+     },
+     "tags": {
+      "description": "27 holes, Par 34/34/36",
+      "gnis:feature_id": "43326",
+      "golf:course": "27_hole",
+      "golf:par": "34 + 34 +36",
+      "leisure": "golf_course",
+      "name": "Starfire Golf Club",
+      "phone": "+1-480-948-6000",
+      "type": "multipolygon",
+      "website": "https://www.starfiregolfclub.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3521491,
+     "center": {
+      "lat": 33.4765844,
+      "lon": -112.0921617
+     },
+     "tags": {
+      "addr:city": "Phoenix",
+      "addr:country": "US",
+      "addr:housenumber": "2775",
+      "addr:postcode": "85007",
+      "addr:state": "AZ",
+      "addr:street": "North 15th Avenue",
+      "description": "18 hole Par 70",
+      "gnis:feature_id": "2669903",
+      "golf:course": "18_hole",
+      "golf:par": "70",
+      "leisure": "golf_course",
+      "name": "Encanto Golf Course",
+      "operator": "City of Phoenix",
+      "phone": "+1-602-253-3963",
+      "source": "esri_USDOT_Arizona",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3521502,
+     "center": {
+      "lat": 33.5493275,
+      "lon": -111.9142107
+     },
+     "tags": {
+      "addr:city": "Scottsdale",
+      "addr:country": "US",
+      "addr:housenumber": "7505",
+      "addr:postcode": "85258",
+      "addr:state": "AZ",
+      "addr:street": "East McCormick Parkway",
+      "description": "18 hole Par 72 Palm Course & 18 hole par 72 Pine Course",
+      "golf:course": "36_hole",
+      "golf:par": "144",
+      "leisure": "golf_course",
+      "name": "McCormick Ranch Golf Club",
+      "phone": "+1-480-948-0260",
+      "source": "esri_USDOT_Arizona",
+      "type": "multipolygon",
+      "website": "https://www.mccormickranchgolf.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3524732,
+     "center": {
+      "lat": 33.5203565,
+      "lon": -112.0206209
+     },
+     "tags": {
+      "addr:city": "Phoenix",
+      "addr:country": "US",
+      "addr:housenumber": "2400",
+      "addr:postcode": "85016",
+      "addr:state": "AZ",
+      "addr:street": "East Missouri Avenue",
+      "description": "18 hole Par 71",
+      "golf:course": "18_hole",
+      "golf:par": "71",
+      "leisure": "golf_course",
+      "name": "Arizona Biltmore Links Course",
+      "phone": "+1-602-955-9655",
+      "type": "multipolygon",
+      "website": "https://www.azbiltmoregc.com/golf-course/links-course/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 11488570,
+     "center": {
+      "lat": 33.5896503,
+      "lon": -111.9565341
+     },
+     "tags": {
+      "addr:city": "Scottsdale",
+      "addr:housenumber": "10601",
+      "addr:postcode": "85254",
+      "addr:state": "AZ",
+      "addr:street": "North 56th St.",
+      "description": "18 hole Par 72",
+      "golf:course": "18_hole",
+      "golf:par": "72",
+      "leisure": "golf_course",
+      "name": "Orange Tree Golf Resort",
+      "phone": "+1-480-948-3730",
+      "type": "multipolygon",
+      "website": "https://orangetreegolfcourse.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 33011519,
+     "center": {
+      "lat": 33.4844991,
+      "lon": -112.0598826
+     },
+     "tags": {
+      "addr:city": "Phoenix",
+      "addr:country": "US",
+      "addr:housenumber": "2901",
+      "addr:postcode": "85014",
+      "addr:state": "AZ",
+      "addr:street": "North 7th Street",
+      "description": "18 hole Par 71",
+      "email": "PCC@phoenixcc.org",
+      "golf:course": "18_hole",
+      "golf:par": "71",
+      "leisure": "golf_course",
+      "name": "Phoenix Country Club",
+      "phone": "+1-602-263-5208",
+      "website": "http://www.phoenixcc.org/",
+      "wikidata": "Q15690523"
+     }
+    },
+    {
+     "type": "way",
+     "id": 61414903,
+     "center": {
+      "lat": 33.530844,
+      "lon": -111.9039428
+     },
+     "tags": {
+      "addr:city": "Scottsdale",
+      "addr:country": "US",
+      "addr:housenumber": "7605",
+      "addr:postcode": "85250",
+      "addr:state": "AZ",
+      "addr:street": "East Indian Bend Road",
+      "description": "18 hole Par 70",
+      "golf:course": "18_hole",
+      "golf:par": "70",
+      "leisure": "golf_course",
+      "name": "Silverado Golf Club",
+      "phone": "+1-480-778-0100",
+      "website": "https://www.scottsdalesilveradogolfclub.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 61499695,
+     "center": {
+      "lat": 33.5660221,
+      "lon": -111.9465689
+     },
+     "tags": {
+      "addr:city": "Paradise Valley",
+      "addr:country": "US",
+      "addr:housenumber": "7847",
+      "addr:postcode": "85253",
+      "addr:state": "AZ",
+      "addr:street": "North Mockingbird Lane",
+      "description": "18 hole Par 72 Padre Course & 18 hole Par 71 Ambiente Course",
+      "golf:course": "36_hole",
+      "golf:par": "72 + 71",
+      "leisure": "golf_course",
+      "name": "Camelback Golf Club",
+      "phone": "+1-480-596-7050",
+      "website": "https://camelbackgolf.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 84679163,
+     "center": {
+      "lat": 33.570901,
+      "lon": -111.9168402
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "Scottsdale",
+      "addr:country": "US",
+      "addr:housenumber": "7600",
+      "addr:postcode": "85258",
+      "addr:state": "AZ",
+      "addr:street": "Gainey Club Drive",
+      "description": "9 hole Par 36 Lakes Course & 9 hole Par 36 Dunes Course & 9 hole Par 36 Arroyo Course",
+      "golf:course": "27_hole",
+      "golf:par": "36 + 36 + 36",
+      "leisure": "golf_course",
+      "name": "Gainey Ranch Golf Club",
+      "phone": "+1-480-951-0022",
+      "website": "https://www.gaineyranchcc.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 156824815,
+     "center": {
+      "lat": 33.5175432,
+      "lon": -112.0214108
+     },
+     "tags": {
+      "addr:city": "Phoenix",
+      "addr:country": "US",
+      "addr:housenumber": "2400",
+      "addr:postcode": "85016",
+      "addr:state": "AZ",
+      "addr:street": "East Missouri Avenue",
+      "description": "18 hole Par 71",
+      "golf:course": "18_hole",
+      "golf:par": "71",
+      "leisure": "golf_course",
+      "name": "Arizona Biltmore Estates Course",
+      "phone": "+1-602-955-9655",
+      "website": "https://azbiltmoregc.com/phoenix-estates-golf-course/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 262279510,
+     "center": {
+      "lat": 33.4752151,
+      "lon": -112.097765
+     },
+     "tags": {
+      "addr:city": "Phoenix",
+      "addr:country": "US",
+      "addr:housenumber": "2300",
+      "addr:postcode": "85007",
+      "addr:state": "AZ",
+      "addr:street": "North 17th Avenue",
+      "description": "9 hole Par 27",
+      "gnis:feature_id": "2669904",
+      "golf:course": "9_hole",
+      "golf:par": "27",
+      "leisure": "golf_course",
+      "name": "Encanto 9 Hole Executive Golf Course",
+      "operator": "City of Phoenix",
+      "phone": "+1-602-262-6870"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1563341996,
+     "center": {
+      "lat": 33.5333313,
+      "lon": -111.9366867
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "operator": "private"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1563349880,
+     "center": {
+      "lat": 33.5408658,
+      "lon": -111.9321852
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "operator": "private"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1563350757,
+     "center": {
+      "lat": 33.5429287,
+      "lon": -111.9340547
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "operator": "private"
+     }
+    }
+   ]
+  },
+  "CA": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-CA\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(37.685637,-122.537055,37.757986,-122.446201);nwr[\"leisure\"=\"golf_course\"](area.s)(32.872535,-117.29178,32.944885,-117.20618);nwr[\"leisure\"=\"golf_course\"](area.s)(32.860961,-117.290442,32.933311,-117.204852);nwr[\"leisure\"=\"golf_course\"](area.s)(34.009133,-118.545571,34.081483,-118.45884);nwr[\"leisure\"=\"golf_course\"](area.s)(34.160828,-118.276292,34.233178,-118.189405);nwr[\"leisure\"=\"golf_course\"](area.s)(38.396337,-122.635714,38.468687,-122.543972););out center tags;",
+   "elements": [
+    {
+     "type": "relation",
+     "id": 2626831,
+     "center": {
+      "lat": 38.4325122,
+      "lon": -122.5898428
+     },
+     "tags": {
+      "addr:city": "Santa Rosa",
+      "addr:housenumber": "7025",
+      "addr:postcode": "95409",
+      "addr:state": "CA",
+      "addr:street": "Oakmont Drive",
+      "description": "18 hole Par 72 West Course & 18 hole Par 63 East Course",
+      "gnis:feature_id": "1799545",
+      "leisure": "golf_course",
+      "name": "Oakmont Golf Club",
+      "phone": "+1-707-539-0415",
+      "type": "multipolygon",
+      "website": "https://www.oakmontgc.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3569062,
+     "center": {
+      "lat": 34.2161823,
+      "lon": -118.1859772
+     },
+     "tags": {
+      "addr:city": "La Cañada Flintridge",
+      "addr:housenumber": "5500",
+      "addr:postcode": "91011",
+      "addr:state": "CA",
+      "addr:street": "Godbey Drive",
+      "description": "18 hole Par 70",
+      "leisure": "golf_course",
+      "name": "La Cañada Flintridge Country Club",
+      "phone": "+1-818-790-0611",
+      "type": "multipolygon",
+      "website": "https://lcfcountryclub.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3573537,
+     "center": {
+      "lat": 37.7090626,
+      "lon": -122.4936757
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "San Francisco",
+      "addr:housenumber": "599",
+      "addr:postcode": "94132",
+      "addr:state": "CA",
+      "addr:street": "Skyline Boulevard",
+      "leisure": "golf_course",
+      "name": "Olympic Club Golf Course",
+      "note": "18 hole Par 71 Ocean Course & 18 hole Par 71 Lakes Course & 9 hole par 27 Cliffs course",
+      "phone": "+1-415-404-4300",
+      "type": "multipolygon",
+      "website": "https://www.olyclub.com/",
+      "wikidata": "Q2416259"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 11797664,
+     "center": {
+      "lat": 32.9388124,
+      "lon": -117.1975957
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "way",
+     "id": 16753068,
+     "center": {
+      "lat": 37.7218116,
+      "lon": -122.4916277
+     },
+     "tags": {
+      "addr:city": "San Francisco",
+      "addr:housenumber": "99",
+      "addr:postcode": "94132",
+      "addr:state": "CA",
+      "addr:street": "Harding Road",
+      "description": "18 hole Par 72 Harding Park Course & 9 hole Par 30 Fleming Course",
+      "golf:course": "27_hole",
+      "golf:par": "72 + 30",
+      "leisure": "golf_course",
+      "name": "TPC Harding Park",
+      "phone": "+1-415-664-4690",
+      "website": "https://tpc.com/tpc-harding-park-golf",
+      "wikidata": "Q3512308"
+     }
+    },
+    {
+     "type": "way",
+     "id": 16753994,
+     "center": {
+      "lat": 37.7097025,
+      "lon": -122.4777811
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "San Francisco",
+      "addr:housenumber": "1310",
+      "addr:postcode": "94132",
+      "addr:state": "CA",
+      "addr:street": "Junipero Serra Boulevard",
+      "leisure": "golf_course",
+      "name": "San Francisco Golf Club",
+      "wikidata": "Q19881568",
+      "wikipedia": "en:San Francisco Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 16754218,
+     "center": {
+      "lat": 37.6989002,
+      "lon": -122.4754996
+     },
+     "tags": {
+      "ALAND": "542264",
+      "AREAID": "110413861632",
+      "AWATER": "0",
+      "COUNTYFP": "081",
+      "MTFCC": "K2561",
+      "STATEFP": "06",
+      "Tiger:MTFCC": "K2561",
+      "addr:city": "Daly City",
+      "addr:housenumber": "2300",
+      "addr:postcode": "94015",
+      "addr:state": "CA",
+      "addr:street": "Junipero Serra Blvd.",
+      "leisure": "golf_course",
+      "name": "Lake Merced Golf and Country Club",
+      "phone": "+1-650-755-2233",
+      "source": "Bing Aerial",
+      "website": "https://www.lmgc.org/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 35679009,
+     "center": {
+      "lat": 32.9087097,
+      "lon": -117.2489801
+     },
+     "tags": {
+      "addr:city": "La Jolla",
+      "addr:housenumber": "11480",
+      "addr:postcode": "92037",
+      "addr:state": "CA",
+      "addr:street": "N Torrey Pines Rd",
+      "leisure": "golf_course",
+      "name": "Torrey Pines North Course",
+      "website": "https://www.torreypines.com/torrey-pines-north-course/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 35679036,
+     "center": {
+      "lat": 32.8971363,
+      "lon": -117.247647
+     },
+     "tags": {
+      "addr:city": "La Jolla",
+      "addr:housenumber": "11480",
+      "addr:postcode": "92037",
+      "addr:state": "CA",
+      "addr:street": "N Torrey Pines Rd",
+      "leisure": "golf_course",
+      "name": "Torrey Pines South Course",
+      "website": "https://www.torreypines.com/torrey-pines-south-course/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 44652700,
+     "center": {
+      "lat": 34.0453082,
+      "lon": -118.5022055
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "Pacific Palisades",
+      "addr:housenumber": "1250",
+      "addr:postcode": "90272",
+      "addr:state": "CA",
+      "addr:street": "Capri Drive",
+      "club": "yes",
+      "description": "18 hole Par 71",
+      "ele": "104",
+      "gnis:feature_id": "1664196",
+      "leisure": "golf_course",
+      "name": "Riviera Country Club",
+      "phone": "+1-310-454-6591",
+      "source": "Bing, OSM",
+      "website": "https://www.therivieracountryclub.com/",
+      "wikidata": "Q7338863",
+      "wikipedia": "en:Riviera Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 44652708,
+     "center": {
+      "lat": 34.0471295,
+      "lon": -118.4804425
+     },
+     "tags": {
+      "gnis:feature_id": "253362",
+      "leisure": "golf_course",
+      "name": "Brentwood Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 196873161,
+     "center": {
+      "lat": 34.1596883,
+      "lon": -118.1984153
+     },
+     "tags": {
+      "addr:city": "Glendale",
+      "addr:housenumber": "3800",
+      "addr:postcode": "91206",
+      "addr:state": "CA",
+      "addr:street": "East Glenoaks Boulevard",
+      "leisure": "golf_course",
+      "name": "Scholl Canyon Golf Course",
+      "phone": "+1-818-243-4100",
+      "website": "https://www.schollcanyongc.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 219614958,
+     "center": {
+      "lat": 34.1726437,
+      "lon": -118.2022814
+     },
+     "tags": {
+      "addr:city": "Glendale",
+      "addr:housenumber": "3067",
+      "addr:postcode": "91206",
+      "addr:state": "CA",
+      "addr:street": "E Chevy Chase Dr.",
+      "gnis:feature_id": "1654592",
+      "leisure": "golf_course",
+      "name": "Chevy Chase Country Club",
+      "phone": "+1-818-246-5566",
+      "website": "https://www.chevychasecc.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 369572200,
+     "center": {
+      "lat": 34.1970033,
+      "lon": -118.2328482
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Oakmont Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 863987351,
+     "center": {
+      "lat": 32.9388124,
+      "lon": -117.1975957
+     },
+     "tags": {
+      "golf:course": "18_hole",
+      "leisure": "golf_course",
+      "name": "The Grand Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1137888320,
+     "center": {
+      "lat": 32.9445441,
+      "lon": -117.2089859
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1137888322,
+     "center": {
+      "lat": 32.9448005,
+      "lon": -117.2052384
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1137888324,
+     "center": {
+      "lat": 32.9438505,
+      "lon": -117.2089003
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1137888325,
+     "center": {
+      "lat": 32.9426989,
+      "lon": -117.2110385
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1154408118,
+     "center": {
+      "lat": 34.0649667,
+      "lon": -118.4644411
+     },
+     "tags": {
+      "addr:city": "Los Angeles",
+      "addr:housenumber": "11301",
+      "addr:postcode": "90073",
+      "addr:state": "CA",
+      "addr:street": "Wilshire Boulevard",
+      "addr:unit": "329",
+      "leisure": "golf_course",
+      "name": "Heroes Golf Course",
+      "operator": "The Bandini Foundation",
+      "phone": "+1-310-473-0710",
+      "website": "https://heroesgolfcourse.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1417078425,
+     "center": {
+      "lat": 37.7104327,
+      "lon": -122.4923835
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "San Francisco",
+      "addr:housenumber": "599",
+      "addr:postcode": "94132",
+      "addr:state": "CA",
+      "addr:street": "Skyline Boulevard",
+      "area": "yes",
+      "leisure": "golf_course",
+      "name": "Olympic Club Lake Course",
+      "note": "18 hole Par 71 Lakes Course",
+      "phone": "+1-415-404-4300",
+      "type": "multipolygon",
+      "website": "https://www.olyclub.com/"
+     }
+    }
+   ]
+  },
+  "CT": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-CT\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(41.369873,-73.520644,41.442223,-73.424829););out center tags;",
+   "elements": [
+    {
+     "type": "way",
+     "id": 43434044,
+     "center": {
+      "lat": 41.406048,
+      "lon": -73.4727367
+     },
+     "tags": {
+      "addr:city": "Danbury",
+      "addr:housenumber": "119",
+      "addr:postcode": "06811",
+      "addr:state": "CT",
+      "addr:street": "Franklin Street",
+      "leisure": "golf_course",
+      "name": "Ridgewood Country Club",
+      "phone": "+1-203-743-4491",
+      "website": "https://www.ridgewoodcc.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 43434973,
+     "center": {
+      "lat": 41.4123925,
+      "lon": -73.5191124
+     },
+     "tags": {
+      "addr:city": "Danbury",
+      "addr:housenumber": "100",
+      "addr:postcode": "06811",
+      "addr:state": "CT",
+      "addr:street": "Aunt Hack Road",
+      "gnis:feature_id": "1942999",
+      "golf:course": "18",
+      "golf:par": "71",
+      "leisure": "golf_course",
+      "name": "Richter Park Golf Course",
+      "old_name": "Stanley Lasker Richter Municipal Golf Course",
+      "phone": "+1-203-792-2550",
+      "website": "https://richterpark.com/"
+     }
+    }
+   ]
+  },
+  "FL": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-FL\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(27.941716,-82.595458,28.014066,-82.514083);nwr[\"leisure\"=\"golf_course\"](area.s)(29.220621,-81.09974,29.292971,-81.017368);nwr[\"leisure\"=\"golf_course\"](area.s)(25.693292,-80.317567,25.765641,-80.237793);nwr[\"leisure\"=\"golf_course\"](area.s)(26.854126,-80.122758,26.926475,-80.042181);nwr[\"leisure\"=\"golf_course\"](area.s)(26.797853,-80.294214,26.870203,-80.213677););out center tags;",
+   "elements": [
+    {
+     "type": "relation",
+     "id": 2692826,
+     "center": {
+      "lat": 26.9067734,
+      "lon": -80.087497
+     },
+     "tags": {
+      "addr:city": "Jupiter",
+      "addr:housenumber": "200",
+      "addr:postcode": "33477",
+      "addr:street": "Admirals Cove Boulevard",
+      "leisure": "golf_course",
+      "name": "The Club at Admirals Cove - East Course",
+      "operator": "The Club at Admirals Cove",
+      "phone": "+1-561-744-1700",
+      "type": "multipolygon",
+      "website": "https://www.admiralscove.net/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 2692827,
+     "center": {
+      "lat": 26.9209384,
+      "lon": -80.119376
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 2692828,
+     "center": {
+      "lat": 26.9217436,
+      "lon": -80.0864811
+     },
+     "tags": {
+      "addr:city": "Jupiter",
+      "addr:housenumber": "16823",
+      "addr:postcode": "33477",
+      "addr:state": "FL",
+      "addr:street": "Captain Kirle Drive",
+      "leisure": "golf_course",
+      "mobile": "+1 561-747-7600",
+      "name": "Jonathan's Landing Golf Club",
+      "type": "multipolygon",
+      "website": "https://www.jonathanslanding.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 2694786,
+     "center": {
+      "lat": 26.847234,
+      "lon": -80.0484895
+     },
+     "tags": {
+      "addr:city": "North Palm Beach",
+      "addr:housenumber": "11520",
+      "addr:postcode": "33408",
+      "addr:street": "Lost Tree Way",
+      "description": "Private member club. Guests appear unwelcome.",
+      "leisure": "golf_course",
+      "name": "Lost Tree Club",
+      "type": "multipolygon",
+      "website": "https://www.losttreeclub.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 2694787,
+     "center": {
+      "lat": 26.849694,
+      "lon": -80.1198958
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "Palm Beach Gardens",
+      "addr:housenumber": "11889",
+      "addr:postcode": "33418",
+      "addr:state": "FL",
+      "addr:street": "Old Palm Drive",
+      "description": "18 hole Par 72",
+      "golf:course": "18_hole",
+      "golf:par": "72",
+      "leisure": "golf_course",
+      "mobile": "+1 561-472-5100",
+      "name": "Old Palm Golf Club",
+      "type": "multipolygon",
+      "website": "http://oldpalmgolfclub.com/",
+      "wikidata": "Q14686316"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 2694849,
+     "center": {
+      "lat": 26.800016,
+      "lon": -80.223773
+     },
+     "tags": {
+      "description": "18-hole, 72-par, 6.694 yard PGA golf course.",
+      "leisure": "golf_course",
+      "name": "PGA The Estates",
+      "type": "multipolygon",
+      "website": "https://www.pgaresort.com/golf/pga-estates-golf-course"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 3255965,
+     "center": {
+      "lat": 25.7294665,
+      "lon": -80.2776797
+     },
+     "tags": {
+      "addr:city": "Ormond Beach",
+      "addr:housenumber": "500",
+      "addr:postcode": "32174",
+      "addr:state": "FL",
+      "addr:street": "Calle Grande Avenue",
+      "golf:course": "18_hole",
+      "golf:par": "71",
+      "leisure": "golf_course",
+      "name": "Riviera Country Club",
+      "phone": "+1-386-677-2464",
+      "type": "multipolygon",
+      "website": "https://www.rivcc.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 4062340,
+     "center": {
+      "lat": 26.8903005,
+      "lon": -80.0824694
+     },
+     "tags": {
+      "addr:city": "Jupiter",
+      "addr:housenumber": "250",
+      "addr:postcode": "33477",
+      "addr:state": "FL",
+      "addr:street": "Bears Club Drive",
+      "leisure": "golf_course",
+      "name": "The Bears Club",
+      "phone": "+1 561-626-2327",
+      "type": "multipolygon",
+      "website": "https://www.thebearsclub.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 4062341,
+     "center": {
+      "lat": 26.8900893,
+      "lon": -80.0907206
+     },
+     "tags": {
+      "addr:city": "Jupiter",
+      "addr:housenumber": "115",
+      "addr:postcode": "33477",
+      "addr:state": "FL",
+      "addr:street": "Eagle Tree Terrace",
+      "leisure": "golf_course",
+      "name": "Trump National Jupiter",
+      "phone": "+1-561-691-8700",
+      "type": "multipolygon",
+      "website": "https://www.trumpnationaljupiter.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 7350808,
+     "center": {
+      "lat": 29.2983077,
+      "lon": -81.0450299
+     },
+     "tags": {
+      "addr:city": "Ormond Beach",
+      "addr:housenumber": "75",
+      "addr:postcode": "32176",
+      "addr:state": "FL",
+      "addr:street": "North Halifax Avenue",
+      "leisure": "golf_course",
+      "name": "Oceanside Country Club",
+      "phone": "+1 386 677 7200",
+      "type": "multipolygon",
+      "website": "https://occ1907.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 17513998,
+     "center": {
+      "lat": 26.8340277,
+      "lon": -80.2539452
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Panther National",
+      "type": "multipolygon",
+      "website": "https://panthernational.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 21154927,
+     "center": {
+      "lat": 25.7394885,
+      "lon": -80.2792778
+     },
+     "tags": {
+      "addr:city": "Coral Gables",
+      "addr:housenumber": "1210",
+      "addr:postcode": "33134",
+      "addr:state": "FL",
+      "addr:street": "Anastasia Avenue",
+      "description": "18 hole",
+      "leisure": "golf_course",
+      "name": "Biltmore Golf Course",
+      "phone": "+1 305 460 5364",
+      "type": "multipolygon",
+      "website": "https://www.biltmorehotel.com/golf/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 90551509,
+     "center": {
+      "lat": 26.8757328,
+      "lon": -80.0875033
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Frenchman's Creek Beach and Country Club",
+      "wikidata": "Q5502706"
+     }
+    },
+    {
+     "type": "way",
+     "id": 91832727,
+     "center": {
+      "lat": 26.8620108,
+      "lon": -80.0876146
+     },
+     "tags": {
+      "addr:city": "Palm Beach Gardens",
+      "addr:housenumber": "3370",
+      "addr:postcode": "33410",
+      "addr:street": "Grande Corniche",
+      "description": "\"18-hole, 6,855-yard, par-72 Arnold Palmer Signature Golf CourseComplete with a driving range, 2 putting greens and a chipping area.\"",
+      "leisure": "golf_course",
+      "name": "Frenchman's Reserve",
+      "operator": "Frenchman’s Reserve Country Club",
+      "source:description": "website",
+      "website": "https://www.frenchmansreservecc.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 98965416,
+     "center": {
+      "lat": 27.9778908,
+      "lon": -82.5547703
+     },
+     "tags": {
+      "addr:city": "Tampa",
+      "addr:housenumber": "4151",
+      "addr:postcode": "33634",
+      "addr:state": "FL",
+      "addr:street": "Dana Shores Drive",
+      "contact:facebook": "https://www.facebook.com/RockyPointGolfCourse",
+      "contact:website": "https://www.rockypointgolf.net/",
+      "leisure": "golf_course",
+      "name": "Rocky Point Golf Course",
+      "operator": "Tampa Sports Authority",
+      "phone": "+1-813-673-4316",
+      "website": "https://www.rockypointgolf.net/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 105418598,
+     "center": {
+      "lat": 25.7509881,
+      "lon": -80.2756002
+     },
+     "tags": {
+      "addr:city": "Coral Gables",
+      "addr:housenumber": "2001",
+      "addr:postcode": "33134",
+      "addr:state": "FL",
+      "addr:street": "Granada Boulevard",
+      "description": "9 hole Par 36",
+      "leisure": "golf_course",
+      "name": "Granada Golf Course",
+      "phone": "+1-305-446-6800",
+      "website": "https://www.coralgables.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 125329140,
+     "center": {
+      "lat": 26.8629794,
+      "lon": -80.0512471
+     },
+     "tags": {
+      "addr:city": "Juno Beach",
+      "addr:housenumber": "901",
+      "addr:postcode": "33408",
+      "addr:street": "Seminole Boulevard",
+      "description": "18-hole, par 72, 6787 yard course. Appears not to have a website nor allow guests witout a member accomanying.",
+      "leisure": "golf_course",
+      "mobile": "+1 561-626-0280",
+      "name": "Seminole Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 125704238,
+     "center": {
+      "lat": 26.8885419,
+      "lon": -80.1234602
+     },
+     "tags": {
+      "addr:city": "Jupiter",
+      "addr:housenumber": "105",
+      "addr:postcode": "33458",
+      "addr:state": "FL",
+      "addr:street": "Barbados Drive",
+      "leisure": "golf_course",
+      "name": "Abacoa Golf Club",
+      "website": "https://abacoagolfclub.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 200536281,
+     "center": {
+      "lat": 26.8185934,
+      "lon": -80.2187974
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Sandhill Crane Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 301871116,
+     "center": {
+      "lat": 29.2567962,
+      "lon": -81.0585538
+     },
+     "tags": {
+      "addr:city": "Ormond Beach",
+      "addr:housenumber": "300",
+      "addr:postcode": "32174",
+      "addr:street": "Calle Grande Avenue",
+      "description": "18 hole Par 71",
+      "gnis:feature_id": "289715",
+      "golf:course": "18_hole",
+      "golf:par": "71",
+      "leisure": "golf_course",
+      "name": "Riviera Country Club (Ormond Beach)",
+      "phone": "+1-386-677-2464",
+      "website": "https://www.rivcc.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 568778908,
+     "center": {
+      "lat": 26.8811828,
+      "lon": -80.1078476
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 738679644,
+     "center": {
+      "lat": 26.9041577,
+      "lon": -80.0988805
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1273392040,
+     "center": {
+      "lat": 26.8236893,
+      "lon": -80.225465
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "The Nest Par 3 Golf Course"
+     }
+    }
+   ]
+  },
+  "GA": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-GA\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(33.847125,-84.366536,33.919475,-84.27997););out center tags;",
+   "elements": [
+    {
+     "type": "way",
+     "id": 34772908,
+     "center": {
+      "lat": 33.8650368,
+      "lon": -84.349231
+     },
+     "tags": {
+      "LandPro08:reviewed": "no",
+      "addr:city": "Atlanta",
+      "addr:housenumber": "53",
+      "addr:postcode": "30319",
+      "addr:state": "GA",
+      "addr:street": "West Brookhaven Drive Northeast",
+      "leisure": "golf_course",
+      "name": "Capital City Club - Brookhaven Country Club",
+      "phone": "+1-404-233-2121",
+      "source": "LandPro08",
+      "website": "https://www.capitalcityclub.org/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 34772911,
+     "center": {
+      "lat": 33.8832997,
+      "lon": -84.3232527
+     },
+     "tags": {
+      "LandPro08:reviewed": "no",
+      "addr:city": "NE  Suite 2800",
+      "addr:housenumber": "999",
+      "addr:postcode": "30309",
+      "addr:state": "GA",
+      "addr:street": "Peachtree Street",
+      "leisure": "golf_course",
+      "mobile": "+1-404-817-0999",
+      "name": "Peachtree Golf Club",
+      "source": "LandPro08",
+      "website": "https://www.peachtreeclub.com/"
+     }
+    }
+   ]
+  },
+  "IL": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-IL\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(41.928875,-88.093117,42.001225,-87.996467););out center tags;",
+   "elements": [
+    {
+     "type": "relation",
+     "id": 2950446,
+     "center": {
+      "lat": 41.9480878,
+      "lon": -87.9959756
+     },
+     "tags": {
+      "ele": "210",
+      "gnis:feature_id": "1771859",
+      "leisure": "golf_course",
+      "name": "Maple Meadows Golf Club",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "way",
+     "id": 23131167,
+     "center": {
+      "lat": 41.9740344,
+      "lon": -88.0050777
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Itasca Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 143789356,
+     "center": {
+      "lat": 41.9650503,
+      "lon": -88.044792
+     },
+     "tags": {
+      "addr:city": "Medinah",
+      "addr:housenumber": "6N001",
+      "addr:postcode": "60157",
+      "addr:state": "IL",
+      "addr:street": "Medinah Road",
+      "email": "info@medinahcc.org",
+      "leisure": "golf_course",
+      "name": "Medinah Country Club",
+      "phone": "+1-630-773-1700",
+      "website": "https://www.medinahcc.org/club/scripts/section/section.asp?NS=HP"
+     }
+    },
+    {
+     "type": "way",
+     "id": 143789570,
+     "center": {
+      "lat": 41.9600528,
+      "lon": -88.0370607
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Eaglewood Resort and Spa"
+     }
+    },
+    {
+     "type": "way",
+     "id": 190496965,
+     "center": {
+      "lat": 41.9454947,
+      "lon": -88.0960448
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Hilton Chicago/Indian Lakes Resort"
+     }
+    },
+    {
+     "type": "way",
+     "id": 195920264,
+     "center": {
+      "lat": 41.9869891,
+      "lon": -87.9959818
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Salt Creek Golf Club",
+      "phone": "+1-630-773-0184"
+     }
+    },
+    {
+     "type": "way",
+     "id": 229953714,
+     "center": {
+      "lat": 41.9436566,
+      "lon": -88.0108278
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Links & Tees Golf Facility",
+      "operator": "Addison Park District",
+      "website": "https://www.addisonparks.org/golf/golf-course.htm"
+     }
+    },
+    {
+     "type": "way",
+     "id": 776803168,
+     "center": {
+      "lat": 41.9510868,
+      "lon": -88.0581911
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Bloomingdale Golf Club"
+     }
+    }
+   ]
+  },
+  "MO": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-MO\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(38.683554,-90.673617,38.755904,-90.581508););out center tags;",
+   "elements": [
+    {
+     "type": "relation",
+     "id": 20346860,
+     "center": {
+      "lat": 38.7197293,
+      "lon": -90.6275624
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Whitmoor Country Club - North Course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "way",
+     "id": 157522177,
+     "center": {
+      "lat": 38.7566018,
+      "lon": -90.628643
+     },
+     "tags": {
+      "addr:housenumber": "1",
+      "addr:street": "Dye Club Drive",
+      "leisure": "golf_course",
+      "name": "Old Hickory Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 564144286,
+     "center": {
+      "lat": 38.6940408,
+      "lon": -90.675399
+     },
+     "tags": {
+      "addr:city": "St. Charles",
+      "addr:housenumber": "18",
+      "addr:postcode": "63304",
+      "addr:street": "Research Park Circle",
+      "leisure": "golf_course",
+      "name": "Missouri Bluffs Golf Club",
+      "website": "https://mobluffs.com/"
+     }
+    }
+   ]
+  },
+  "NJ": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-NJ\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(40.662198,-74.380841,40.734547,-74.286052);nwr[\"leisure\"=\"golf_course\"](area.s)(40.557307,-74.432966,40.629656,-74.338326);nwr[\"leisure\"=\"golf_course\"](area.s)(40.562741,-74.439599,40.635091,-74.34495);nwr[\"leisure\"=\"golf_course\"](area.s)(40.906547,-74.126882,40.978897,-74.031742););out center tags;",
+   "elements": [
+    {
+     "type": "node",
+     "id": 5181045735,
+     "lat": 40.9444376,
+     "lon": -74.0695578,
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Players Club Virtual Golf"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 223730,
+     "center": {
+      "lat": 40.6103911,
+      "lon": -74.3661357
+     },
+     "tags": {
+      "addr:city": "Scotch Plains",
+      "addr:housenumber": "1210",
+      "addr:postcode": "07076",
+      "addr:street": "Raritan Road",
+      "leisure": "golf_course",
+      "name": "Ash Brook Golf Course",
+      "phone": "+1 907 756 0414",
+      "source": "NJ2002LULC",
+      "type": "multipolygon",
+      "website": "https://www.ashbrookgolfcourse.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 227731,
+     "center": {
+      "lat": 40.6851578,
+      "lon": -74.2825631
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Galloping Hill Golf Course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 21375375,
+     "center": {
+      "lat": 40.7357467,
+      "lon": -74.3581944
+     },
+     "tags": {
+      "addr:city": "Summit",
+      "addr:housenumber": "1108",
+      "addr:postcode": "07901",
+      "addr:state": "NJ",
+      "addr:street": "Morris Turnpike",
+      "leisure": "golf_course",
+      "name": "Canoe Brook Country Club",
+      "type": "multipolygon",
+      "website": "https://www.canoebrook.org/",
+      "wikidata": "Q16955526"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39648762,
+     "center": {
+      "lat": 40.9709464,
+      "lon": -74.0368053
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Hackensack Golf Club",
+      "source": "NJ2002LULC"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39680283,
+     "center": {
+      "lat": 40.6275663,
+      "lon": -74.3517437
+     },
+     "tags": {
+      "addr:city": "Scotch Plains",
+      "addr:country": "US",
+      "addr:housenumber": "100",
+      "addr:postcode": "07076",
+      "addr:state": "NJ",
+      "addr:street": "Tillinghast Turn",
+      "contact:website": "https://www.shackamaxoncc.com/",
+      "leisure": "golf_course",
+      "name": "Shackamaxon Country Club",
+      "source": "NJ2002LULC"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39680490,
+     "center": {
+      "lat": 40.7257138,
+      "lon": -74.2804278
+     },
+     "tags": {
+      "access": "permissive",
+      "leisure": "golf_course",
+      "name": "Maplewood Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39680545,
+     "center": {
+      "lat": 40.5595883,
+      "lon": -74.3648657
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Metuchen Golf and Country Club",
+      "start_date": "1915",
+      "website": "https://www.metuchengolf.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39680957,
+     "center": {
+      "lat": 40.7336016,
+      "lon": -74.3614416
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Canoe Brook Country Club South Course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39835869,
+     "center": {
+      "lat": 40.6983726,
+      "lon": -74.3334465
+     },
+     "tags": {
+      "addr:city": "Springfield",
+      "addr:housenumber": "201",
+      "addr:postcode": "07081",
+      "addr:street": "Shunpike Road",
+      "leisure": "golf_course",
+      "name": "Baltusrol Golf Course",
+      "wikidata": "Q4853011"
+     }
+    },
+    {
+     "type": "way",
+     "id": 39847755,
+     "center": {
+      "lat": 40.5934815,
+      "lon": -74.3856459
+     },
+     "tags": {
+      "addr:city": "Edison",
+      "addr:housenumber": "1591",
+      "addr:postcode": "08820",
+      "addr:state": "NJ",
+      "addr:street": "Woodland Avenue",
+      "leisure": "golf_course",
+      "name": "Plainfield Country Club",
+      "phone": "+1 908 757 1800",
+      "source": "NJ2002LULC",
+      "website": "https://www.plainfieldcc.com/",
+      "wikidata": "Q7200685"
+     }
+    },
+    {
+     "type": "way",
+     "id": 40164768,
+     "center": {
+      "lat": 40.5989159,
+      "lon": -74.3922744
+     },
+     "tags": {
+      "addr:city": "Edison",
+      "addr:state": "NJ",
+      "leisure": "golf_course",
+      "name": "Plainfield West Nine",
+      "operator": "Plainfield Country Club",
+      "phone": "+1-908-769-3672",
+      "website": "https://www.castnergolf.com/plainfield-west-9/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 41914877,
+     "center": {
+      "lat": 40.9278616,
+      "lon": -74.0825827
+     },
+     "tags": {
+      "addr:city": "Paramus",
+      "addr:postcode": "07653",
+      "addr:street": "Paramus Road",
+      "leisure": "golf_course",
+      "name": "Arcola Country Club",
+      "phone": "+1 201-843-3990",
+      "source": "NJ2002LULC",
+      "website": "https://www.arcolacc.org/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 44108513,
+     "center": {
+      "lat": 40.952685,
+      "lon": -74.0874103
+     },
+     "tags": {
+      "addr:city": "Paramus",
+      "addr:country": "US",
+      "addr:housenumber": "404",
+      "addr:postcode": "07652",
+      "addr:state": "NJ",
+      "addr:street": "Paramus Road",
+      "leisure": "golf_course",
+      "name": "Orchard Hills Golf Course",
+      "phone": "+1 201 447 3782",
+      "source": "Yahoo",
+      "website": "https://golfbergencounty.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 44108676,
+     "center": {
+      "lat": 40.946108,
+      "lon": -74.088453
+     },
+     "tags": {
+      "addr:city": "Paramus",
+      "addr:housenumber": "314",
+      "addr:postcode": "07652",
+      "addr:state": "NJ",
+      "addr:street": "Paramus Road",
+      "leisure": "golf_course",
+      "name": "Paramus Golf Course",
+      "phone": "+1-201-447-6079",
+      "source": "Yahoo",
+      "website": "https://www.paramusgolfcourse.com/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 44108723,
+     "center": {
+      "lat": 40.9427219,
+      "lon": -74.079312
+     },
+     "tags": {
+      "addr:city": "Paramus",
+      "addr:housenumber": "96",
+      "addr:postcode": "07652",
+      "addr:street": "West Midland Avenue",
+      "leisure": "golf_course",
+      "name": "The Ridgewood Country Club",
+      "phone": "+1 201-599-3900",
+      "source": "Yahoo",
+      "website": "https://www.rcc1890.com/",
+      "wikidata": "Q14705856"
+     }
+    },
+    {
+     "type": "way",
+     "id": 518193862,
+     "center": {
+      "lat": 40.6730739,
+      "lon": -74.3384735
+     },
+     "tags": {
+      "leisure": "golf_course"
+     }
+    }
+   ]
+  },
+  "NY": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-NY\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(40.71248,-73.493183,40.78483,-73.398322);nwr[\"leisure\"=\"golf_course\"](area.s)(40.710127,-73.501052,40.782477,-73.406194);nwr[\"leisure\"=\"golf_course\"](area.s)(40.93297,-73.810125,41.00532,-73.714948);nwr[\"leisure\"=\"golf_course\"](area.s)(40.926284,-73.801441,40.998633,-73.706273);nwr[\"leisure\"=\"golf_course\"](area.s)(41.000402,-73.847858,41.072752,-73.752583);nwr[\"leisure\"=\"golf_course\"](area.s)(40.916203,-72.228121,40.988553,-72.132968);nwr[\"leisure\"=\"golf_course\"](area.s)(40.821095,-73.631094,40.893445,-73.536077);nwr[\"leisure\"=\"golf_course\"](area.s)(40.735971,-73.743765,40.808321,-73.64887););out center tags;",
+   "elements": [
+    {
+     "type": "node",
+     "id": 2854158382,
+     "lat": 40.7486553,
+     "lon": -73.4457528,
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Bethpage Black"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 6747457,
+     "center": {
+      "lat": 40.8705871,
+      "lon": -73.6103912
+     },
+     "tags": {
+      "addr:city": "Glen Cove",
+      "addr:housenumber": "30",
+      "addr:postcode": "11542",
+      "addr:street": "Saint Andrews Lane",
+      "leisure": "golf_course",
+      "name": "Nassau Country Club",
+      "phone": "+1-516-676-0554",
+      "source": "Yahoo",
+      "type": "multipolygon",
+      "website": "http://www.nassaucc.com/"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 16312913,
+     "center": {
+      "lat": 40.7556906,
+      "lon": -73.7144988
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 16341397,
+     "center": {
+      "lat": 40.775717,
+      "lon": -73.7082968
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Fresh Meadow Course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 16342371,
+     "center": {
+      "lat": 40.772146,
+      "lon": -73.6963172
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Deepdale Golf Club",
+      "source": "http://www.nassaucountyny.gov/mynassauproperty/map/",
+      "sport": "golf",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 16347463,
+     "center": {
+      "lat": 40.7762838,
+      "lon": -73.6808685
+     },
+     "tags": {
+      "addr:housenumber": "200",
+      "addr:postcode": "11030",
+      "addr:street": "Long Island Expressway North Service Road",
+      "leisure": "golf_course",
+      "name": "North Hills Country Club",
+      "source": "http://www.nassaucountyny.gov/mynassauproperty/map/",
+      "type": "multipolygon",
+      "website": "https://www.northhillscc.com/",
+      "wikidata": "Q7055636"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 16351420,
+     "center": {
+      "lat": 40.7828741,
+      "lon": -73.6599924
+     },
+     "tags": {
+      "fixme": "Unglue area/landuse from centerline of roadway.",
+      "leisure": "golf_course",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 19559552,
+     "center": {
+      "lat": 40.9831075,
+      "lon": -72.1336752
+     },
+     "tags": {
+      "addr:city": "Amagansett",
+      "addr:housenumber": "730",
+      "addr:state": "NY",
+      "addr:street": "Old Stone Highway",
+      "leisure": "golf_course",
+      "name": "South Fork Country Club",
+      "source": "Bing",
+      "sport": "golf",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "way",
+     "id": 29468839,
+     "center": {
+      "lat": 40.7463019,
+      "lon": -73.453623
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Bethpage State Park Golf Courses"
+     }
+    },
+    {
+     "type": "way",
+     "id": 30432711,
+     "center": {
+      "lat": 40.7524246,
+      "lon": -73.7325397
+     },
+     "tags": {
+      "addr:city": "Douglaston",
+      "addr:housenumber": "6320",
+      "addr:postcode": "11363",
+      "addr:state": "NY",
+      "addr:street": "Marathon Pkwy",
+      "leisure": "golf_course",
+      "name": "Douglaston Golf Course",
+      "phone": "+1-718-224-6566",
+      "website": "https://www.golfnyc.com/douglaston-course/",
+      "wikidata": "Q5302202"
+     }
+    },
+    {
+     "type": "way",
+     "id": 49207716,
+     "center": {
+      "lat": 40.7439334,
+      "lon": -73.3899157
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "East Farmingdale",
+      "addr:housenumber": "1",
+      "addr:postcode": "11787",
+      "addr:street": "Long Island Avenue",
+      "leisure": "golf_course",
+      "name": "Colonial Springs Golf Club",
+      "operator": "Colonial Springs Golf Course, Inc.",
+      "phone": "+1-631-643-1050",
+      "website": "https://www.colonialspringsgolf.com/",
+      "wheelchair": "yes"
+     }
+    },
+    {
+     "type": "way",
+     "id": 60925271,
+     "center": {
+      "lat": 40.7309707,
+      "lon": -73.6451477
+     },
+     "tags": {
+      "access": "private",
+      "addr:city": "Garden City",
+      "addr:housenumber": "315",
+      "addr:postcode": "11530",
+      "addr:state": "NY",
+      "addr:street": "Stewart Avenue",
+      "leisure": "golf_course",
+      "name": "Garden City Golf Club",
+      "nysgissam:nysaddresspointid": "NASS189393",
+      "wikidata": "Q255354"
+     }
+    },
+    {
+     "type": "way",
+     "id": 62197332,
+     "center": {
+      "lat": 40.7654071,
+      "lon": -73.7132854
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Lake Success Golf Club",
+      "operator": "Incorporated Village of Lake Success"
+     }
+    },
+    {
+     "type": "way",
+     "id": 83206441,
+     "center": {
+      "lat": 40.8206765,
+      "lon": -73.6354694
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Engineers Country Club",
+      "wikidata": "Q5377915",
+      "wikipedia": "en:Engineers Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 83735422,
+     "center": {
+      "lat": 40.9908992,
+      "lon": -72.1671283
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "East Hampton Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 88444197,
+     "center": {
+      "lat": 40.8457382,
+      "lon": -73.622164
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Glen Head Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 94895737,
+     "center": {
+      "lat": 40.843396,
+      "lon": -73.5916836
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Brookville Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734558,
+     "center": {
+      "lat": 40.9988297,
+      "lon": -73.7689114
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Fenway Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734578,
+     "center": {
+      "lat": 40.9691452,
+      "lon": -73.7625363
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Quaker Ridge Golf Club",
+      "wikidata": "Q7268563"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734591,
+     "center": {
+      "lat": 40.9624585,
+      "lon": -73.7538567
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Winged Foot Golf Club",
+      "wikidata": "Q8025167"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734637,
+     "center": {
+      "lat": 40.9468776,
+      "lon": -73.7886089
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Wykagyl Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734665,
+     "center": {
+      "lat": 40.9537892,
+      "lon": -73.7668067
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Bonnie Briar Country Club",
+      "wikidata": "Q19460607"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734824,
+     "center": {
+      "lat": 40.9699524,
+      "lon": -73.8124719
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Leewood Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734825,
+     "center": {
+      "lat": 40.9685176,
+      "lon": -73.8030484
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Lake Isle Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122734959,
+     "center": {
+      "lat": 40.9413004,
+      "lon": -73.8106372
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Siwanoy Country Club",
+      "wikidata": "Q7532535"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122736840,
+     "center": {
+      "lat": 41.0109746,
+      "lon": -73.8019185
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Scarsdale Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122737510,
+     "center": {
+      "lat": 41.0104132,
+      "lon": -73.819293
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Sunningdale Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122737511,
+     "center": {
+      "lat": 41.0075571,
+      "lon": -73.739178
+     },
+     "tags": {
+      "addr:city": "White Plains",
+      "addr:housenumber": "401",
+      "addr:postcode": "10605",
+      "addr:street": "Ridgeway Road",
+      "leisure": "golf_course",
+      "name": "Westchester Hills Golf Club",
+      "phone": "+1-914-948-5020",
+      "website": "https://www.westchesterhills.org/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122737551,
+     "center": {
+      "lat": 41.0077413,
+      "lon": -73.7239148
+     },
+     "tags": {
+      "addr:city": "White Plains",
+      "addr:housenumber": "1128",
+      "addr:postcode": "10605",
+      "addr:state": "NY",
+      "addr:street": "North Street",
+      "leisure": "golf_course",
+      "name": "Maple Moor Golf Course",
+      "nysgissam:nysaddresspointid": "WEST215209",
+      "operator": "Westchester County",
+      "phone": "+1-914-995-9200",
+      "website": "https://golf.westchestergov.com/maple-moor-golf-course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122752830,
+     "center": {
+      "lat": 40.9890314,
+      "lon": -73.7027346
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Harrison Meadows Country Club",
+      "operator": "Troon Golf"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122853432,
+     "center": {
+      "lat": 40.9839367,
+      "lon": -73.7583748
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Saxon Woods Golf Course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 122888214,
+     "center": {
+      "lat": 40.9356224,
+      "lon": -73.7395587
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Hampshire Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 138263843,
+     "center": {
+      "lat": 41.0553842,
+      "lon": -73.802883
+     },
+     "tags": {
+      "addr:city": "Elmsford",
+      "addr:housenumber": "200",
+      "addr:postcode": "10523",
+      "addr:street": "Knollwood Road Extension",
+      "leisure": "golf_course",
+      "name": "Knollwood Country Club",
+      "phone": "+1-914-592-7411",
+      "source": "Bing",
+      "website": "http://www.kccclub.org/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 138359390,
+     "center": {
+      "lat": 41.0365771,
+      "lon": -73.8002207
+     },
+     "tags": {
+      "addr:city": "White Plains",
+      "addr:housenumber": "289",
+      "addr:postcode": "10607",
+      "addr:street": "Dobbs Ferry Road",
+      "leisure": "golf_course",
+      "name": "Metropolis Country Club",
+      "phone": "+1-914-949-4840",
+      "source": "Bing",
+      "website": "https://www.metropoliscc.org/"
+     }
+    },
+    {
+     "type": "way",
+     "id": 141818807,
+     "center": {
+      "lat": 40.9892789,
+      "lon": -72.158134
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "East Hampton Golf Club",
+      "source": "Bing",
+      "sport": "golf"
+     }
+    },
+    {
+     "type": "way",
+     "id": 189760641,
+     "center": {
+      "lat": 40.8532835,
+      "lon": -73.5555935
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Mill River Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 189760646,
+     "center": {
+      "lat": 40.8408865,
+      "lon": -73.5551399
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "The Muttontown Club",
+      "source": "Bing",
+      "sport": "golf"
+     }
+    },
+    {
+     "type": "way",
+     "id": 680262068,
+     "center": {
+      "lat": 40.8937667,
+      "lon": -73.6220024
+     },
+     "tags": {
+      "email": "jgrella@glencoveny.gov",
+      "leisure": "golf_course",
+      "name": "Glen Cove Golf Club",
+      "operator": "City of Glen Cove",
+      "operator:type": "government",
+      "operator:wikidata": "Q1006668",
+      "phone": "+1 516-676-0550",
+      "website": "https://glencoveny.gov/municipal-golf-course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 955922341,
+     "center": {
+      "lat": 40.8949562,
+      "lon": -73.5978497
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Creek Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 967422877,
+     "center": {
+      "lat": 40.9523781,
+      "lon": -72.1805444
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Maidstone Club",
+      "wikidata": "Q6735515"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1072066296,
+     "center": {
+      "lat": 40.85727,
+      "lon": -73.5835857
+     },
+     "tags": {
+      "fixme": "Incorrect golf course boundary. Boundary line should follow natural features.",
+      "leisure": "golf_course",
+      "name": "Piping Rock Club",
+      "wikidata": "Q7197421",
+      "wikipedia": "en:Piping Rock Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1441532032,
+     "center": {
+      "lat": 40.9989386,
+      "lon": -73.7045611
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Westchester Country Club"
+     }
+    }
+   ]
+  },
+  "PA": {
+   "query": "[out:json][timeout:180];area[\"ISO3166-2\"=\"US-PA\"][admin_level=4]->.s;(nwr[\"leisure\"=\"golf_course\"](area.s)(40.025476,-75.334246,40.097825,-75.240348);nwr[\"leisure\"=\"golf_course\"](area.s)(40.492873,-79.872247,40.565222,-79.777697););out center tags;",
+   "elements": [
+    {
+     "type": "relation",
+     "id": 6174192,
+     "center": {
+      "lat": 40.5290475,
+      "lon": -79.824972
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Oakmont Country Club",
+      "name:ja": "オークモントカントリークラブ",
+      "source": "bing",
+      "type": "multipolygon",
+      "wikidata": "Q3347853"
+     }
+    },
+    {
+     "type": "relation",
+     "id": 19573563,
+     "center": {
+      "lat": 40.0917319,
+      "lon": -75.2369599
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Whitemarsh Valley Country Club",
+      "type": "multipolygon"
+     }
+    },
+    {
+     "type": "way",
+     "id": 82573084,
+     "center": {
+      "lat": 40.0771551,
+      "lon": -75.3396336
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Gulph Mills Golf Course"
+     }
+    },
+    {
+     "type": "way",
+     "id": 108526456,
+     "center": {
+      "lat": 40.0841523,
+      "lon": -75.3128243
+     },
+     "tags": {
+      "golf": "driving_range",
+      "landuse": "grass",
+      "leisure": "golf_course",
+      "name": "Tee's Golf Center"
+     }
+    },
+    {
+     "type": "way",
+     "id": 141910237,
+     "center": {
+      "lat": 40.0934767,
+      "lon": -75.2698491
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Green Valley Country Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 256927812,
+     "center": {
+      "lat": 40.5238582,
+      "lon": -79.8786102
+     },
+     "tags": {
+      "addr:city": "Pittsburgh",
+      "addr:housenumber": "426",
+      "addr:postcode": "15238",
+      "addr:street": "Fox Chapel Road",
+      "leisure": "golf_course",
+      "name": "Fox Chapel Golf Club"
+     }
+    },
+    {
+     "type": "way",
+     "id": 770035691,
+     "center": {
+      "lat": 40.0714802,
+      "lon": -75.2575956
+     },
+     "tags": {
+      "addr:city": "Lafayette Hill",
+      "addr:country": "US",
+      "addr:housenumber": "800",
+      "addr:postcode": "19444",
+      "addr:state": "PA",
+      "addr:street": "Ridge Pike",
+      "leisure": "golf_course",
+      "name": "Union League Liberty Hill",
+      "operator": "Union League of Philadelphia"
+     }
+    },
+    {
+     "type": "way",
+     "id": 770036100,
+     "center": {
+      "lat": 40.0616504,
+      "lon": -75.2872967
+     },
+     "tags": {
+      "leisure": "golf_course",
+      "name": "Philadelphia Country Club",
+      "source": "Mapbox",
+      "wikidata": "Q7182660"
+     }
+    },
+    {
+     "type": "way",
+     "id": 1467061820,
+     "center": {
+      "lat": 40.0295701,
+      "lon": -75.2597621
+     },
+     "tags": {
+      "access": "private",
+      "leisure": "golf_course",
+      "surface": "grass"
+     }
+    }
+   ]
+  }
+ }
+}

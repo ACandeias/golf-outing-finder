@@ -1,0 +1,177 @@
+---
+import {
+  COURSE_TYPE_FILTERS,
+  COURSE_TYPE_FILTER_LABELS,
+  DISTANCE_MILES,
+  FORMAT_FILTERS,
+  type ListingFilters,
+} from "@gof/shared/filters";
+import { FORMAT_LABELS } from "../lib/format.ts";
+
+interface Props {
+  filters: ListingFilters;
+  /** The unfiltered page path (form action and "Clear filters"). */
+  action: string;
+  showDistance?: boolean;
+  /** "from Mamaroneck" */
+  distanceFrom?: string;
+  total: number;
+  shown: number;
+}
+
+const { filters: f, action, showDistance = false, distanceFrom = "", total, shown } = Astro.props;
+---
+
+<details class="filters" open>
+  <summary>Filter outings</summary>
+  <form method="get" action={action} data-filter-form>
+    <fieldset>
+      <legend>Course type</legend>
+      {
+        COURSE_TYPE_FILTERS.map((t) => (
+          <label class="check">
+            <input type="checkbox" name="course_type" value={t} checked={f.courseTypes.includes(t)} />
+            {COURSE_TYPE_FILTER_LABELS[t]}
+          </label>
+        ))
+      }
+    </fieldset>
+    <div class="row">
+      <label class="check">
+        <input type="checkbox" name="charity" value="1" checked={f.charityOnly} />
+        Charity outings only
+      </label>
+      <label class="check">
+        <input type="checkbox" name="singles" value="1" checked={f.singlesWelcome} />
+        Singles welcome (a single price is listed)
+      </label>
+    </div>
+    <div class="row">
+      <label>
+        Max price per player ($)
+        <input
+          type="number"
+          name="max_price"
+          min="0"
+          max="25000"
+          step="1"
+          inputmode="numeric"
+          value={f.maxPriceCents === null ? "" : String(Math.floor(f.maxPriceCents / 100))}
+        />
+      </label>
+      <label>
+        From
+        <input type="date" name="from" value={f.from ?? ""} />
+      </label>
+      <label>
+        To
+        <input type="date" name="to" value={f.to ?? ""} />
+      </label>
+      {
+        showDistance && (
+          <label>
+            Distance {distanceFrom}
+            <select name="distance">
+              <option value="">Any distance</option>
+              {DISTANCE_MILES.map((d) => (
+                <option value={String(d)} selected={f.distanceMiles === d}>
+                  Within {d} miles
+                </option>
+              ))}
+            </select>
+          </label>
+        )
+      }
+      <label>
+        Format
+        <select name="format">
+          <option value="">Any format</option>
+          {
+            FORMAT_FILTERS.map((x) => (
+              <option value={x} selected={f.format === x}>
+                {FORMAT_LABELS[x]}
+              </option>
+            ))
+          }
+        </select>
+      </label>
+    </div>
+    <div class="row actions">
+      <button class="button" type="submit">Apply filters</button>
+      <a href={action}>Clear filters</a>
+    </div>
+  </form>
+</details>
+<p class="small muted" aria-live="polite" data-filter-count>
+  {shown === total ? `${total} ${total === 1 ? "outing" : "outings"}` : `Showing ${shown} of ${total} outings`}
+</p>
+
+<style>
+  .filters {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0 0.5rem;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.4rem 0;
+  }
+  fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0.5rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+  }
+  legend {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    padding: 0;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin: 0.75rem 0;
+    align-items: end;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.95rem;
+  }
+  label.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 32px;
+  }
+  input[type="number"],
+  input[type="date"],
+  select {
+    font: inherit;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--muted);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 40px;
+  }
+  input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .actions {
+    align-items: center;
+  }
+</style>
+
+<script>
+  import { initFilters } from "../scripts/filters.ts";
+  initFilters();
+</script>

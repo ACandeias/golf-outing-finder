@@ -10,7 +10,13 @@
     "./dates": "./src/dates.ts",
     "./schemas": "./src/schemas.ts",
     "./env": "./src/env.ts",
-    "./budget": "./src/budget.ts"
+    "./budget": "./src/budget.ts",
+    "./places": "./src/places.ts",
+    "./labels": "./src/labels.ts",
+    "./ids": "./src/ids.ts",
+    "./jsonld": "./src/jsonld.ts",
+    "./filters": "./src/filters.ts",
+    "./filter-params": "./src/filter-params.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -1,0 +1,100 @@
+---
+import { countUpcomingByState, listExpectedOutings, listUpcomingOutings } from "@gof/db/queries";
+import { buildItemListJsonLd } from "@gof/shared/jsonld";
+import { US_STATES } from "@gof/shared/places";
+import Base from "../../layouts/Base.astro";
+import OutingCard from "../../components/OutingCard.astro";
+import { getDb } from "../../lib/db.ts";
+import { listToday } from "../../lib/clock.ts";
+import { TTL } from "../../lib/cache.ts";
+import { setCache } from "../../lib/page.ts";
+import { absoluteUrl, outingPath, statePath } from "../../lib/urls.ts";
+
+export const prerender = false;
+
+const db = getDb();
+const today = listToday();
+const [soonest, counts, expected] = await Promise.all([
+  listUpcomingOutings(db, { today, limit: 24 }),
+  countUpcomingByState(db, today),
+  listExpectedOutings(db, { limit: 500 }),
+]);
+const countBy = new Map(counts.map((c) => [c.state, c.count]));
+const expectedBy = new Map<string, number>();
+for (const o of expected) expectedBy.set(o.course.state, (expectedBy.get(o.course.state) ?? 0) + 1);
+const total = counts.reduce((n, c) => n + c.count, 0);
+const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
+const withOutings = states.filter(([c]) => countBy.has(c) || expectedBy.has(c));
+
+setCache(Astro, TTL.list);
+---
+
+<Base
+  title="Golf Outings and Charity Tournaments by State | Golf Outing Finder"
+  description={`${total} upcoming golf outings across ${counts.length} states, plus outings expected to return. Find charity scrambles, school fundraisers and open tournaments by state and city.`}
+  path="/golf-outings"
+  crumbs={[{ name: "Golf outings", path: "/golf-outings" }]}
+  jsonLd={[buildItemListJsonLd(soonest.map((o) => absoluteUrl(outingPath(o.slug))))]}
+>
+  <h1>Golf outings across the US</h1>
+  <p>
+    {total} upcoming {total === 1 ? "outing" : "outings"} in {counts.length} {counts.length === 1 ? "state" : "states"}, and
+    {expected.length} more expected to return on their usual dates. Pick a state to see outings by month and city.
+  </p>
+
+  <section aria-labelledby="by-state">
+    <h2 id="by-state">States with outings</h2>
+    <table class="states">
+      <thead>
+        <tr><th scope="col">State</th><th scope="col">Upcoming</th><th scope="col">Expected</th></tr>
+      </thead>
+      <tbody>
+        {
+          withOutings.map(([code, name]) => (
+            <tr>
+              <th scope="row"><a href={statePath(code)}>{name}</a></th>
+              <td>{countBy.get(code) ?? 0}</td>
+              <td>{expectedBy.get(code) ?? 0}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="soonest">
+    <h2 id="soonest">Soonest outings</h2>
+    <div class="cards">
+      {soonest.map((o) => <OutingCard outing={o} />)}
+    </div>
+  </section>
+
+  <section aria-labelledby="all-states">
+    <h2 id="all-states">All states</h2>
+    <ul class="grid-links">
+      {states.map(([code, name]) => <li><a href={statePath(code)}>{name}</a></li>)}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 1rem;
+  }
+  .states {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 520px;
+  }
+  .states th,
+  .states td {
+    text-align: left;
+    padding: 0.4rem 0.75rem 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .states tbody th {
+    font-weight: 400;
+  }
+</style>

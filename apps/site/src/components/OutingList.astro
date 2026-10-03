@@ -1,0 +1,52 @@
+---
+import type { OutingListItem } from "@gof/db/queries";
+import type { ListingFilters } from "@gof/shared/filters";
+import type { LatLng } from "@gof/shared/places";
+import OutingCard from "./OutingCard.astro";
+import { groupByMonth, isVisible } from "../lib/listing.ts";
+
+interface Props {
+  dated: OutingListItem[];
+  expected?: OutingListItem[];
+  filters: ListingFilters;
+  center?: LatLng | null;
+  /** Month headings (state and city pages). */
+  byMonth?: boolean;
+  emptyText?: string;
+}
+
+const { dated, expected = [], filters, center = null, byMonth = true, emptyText = "No outings listed here yet." } = Astro.props;
+const groups = byMonth
+  ? groupByMonth(dated, expected)
+  : [{ key: "all", heading: "", outings: [...dated, ...expected] }];
+const total = dated.length + expected.length;
+const shown = [...dated, ...expected].filter((o) => isVisible(o, filters, center)).length;
+---
+
+{total === 0 && <p>{emptyText}</p>}
+<p class="note" data-filter-empty hidden={!(total > 0 && shown === 0)}>
+  No outings match these filters. Try a wider date range or another course type.
+</p>
+{
+  groups.map((g) => {
+    const anyVisible = g.outings.some((o) => isVisible(o, filters, center));
+    return (
+      <section data-filter-group hidden={!anyVisible} aria-labelledby={g.heading ? `m-${g.key}` : undefined}>
+        {g.heading && <h2 id={`m-${g.key}`}>{g.heading}</h2>}
+        <div class="cards">
+          {g.outings.map((o) => (
+            <OutingCard outing={o} center={center} hidden={!isVisible(o, filters, center)} />
+          ))}
+        </div>
+      </section>
+    );
+  })
+}
+
+<style>
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 1rem;
+  }
+</style>

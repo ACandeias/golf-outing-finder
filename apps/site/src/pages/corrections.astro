@@ -1,0 +1,22 @@
+---
+import Base from "../layouts/Base.astro";
+import { correctionsEmail } from "../lib/contact.ts";
+
+export const prerender = true;
+const email = correctionsEmail(Astro);
+---
+
+<Base title="Corrections and removals | Golf Outing Finder" description="How organizers can correct or remove a listing on Golf Outing Finder." path="/corrections" noindex crumbs={[{ name: "Corrections", path: "/corrections" }]}>
+  <h1>Corrections and removals</h1>
+  <p>
+    If a listing has the wrong date, price, course or details, or you run an outing and would rather it not be listed, email
+    <a href={`mailto:${email}`}>{email}</a>.
+  </p>
+  <p>Please include:</p>
+  <ul>
+    <li>the link to the listing on this site,</li>
+    <li>what should change, or that you'd like it removed,</li>
+    <li>and how we can confirm you're with the organizer (an email from the organization's domain is ideal).</li>
+  </ul>
+  <p>Removals take effect on the next nightly update. Corrected details also refresh automatically when the organizer's own page changes.</p>
+</Base>

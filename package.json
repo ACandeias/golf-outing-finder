@@ -13,23 +13,30 @@
     "build": "pnpm --filter @gof/site build",
     "deploy": "pnpm --filter @gof/site deploy",
     "lint": "eslint .",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm -r typecheck && tsc -p tests/e2e",
     "test": "vitest run",
-    "test:e2e": "pnpm --filter @gof/site test:e2e",
+    "test:e2e": "playwright test",
     "db:migrate:local": "pnpm --filter @gof/site db:migrate:local",
     "db:migrate:remote": "pnpm --filter @gof/site db:migrate:remote",
     "seed": "pnpm --filter @gof/pipeline start:seed",
+    "seed:course-types": "pnpm --filter @gof/pipeline start:seed-course-types",
+    "courses:import": "pnpm --filter @gof/pipeline start:courses-import",
+    "places:build": "pnpm --filter @gof/pipeline start:places-build",
+    "places:load": "pnpm --filter @gof/pipeline start:places-load",
     "pipeline": "pnpm --filter @gof/pipeline start",
     "test:live-extract": "pnpm --filter @gof/pipeline start:live-extract",
     "format": "prettier --write .",
     "docker:up": "docker compose up --build site"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^22.10.0",
     "eslint": "^9.13.0",
     "prettier": "^3.3.3",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.10.0",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "zod": "^3.23.8"
   }
 }

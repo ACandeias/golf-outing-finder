@@ -1,0 +1,14 @@
+---
+import { serializeJsonLd } from "@gof/shared/jsonld";
+
+interface Props {
+  data: unknown;
+}
+
+// serializeJsonLd escapes <, >, & and the line separators, so no value from the
+// database can close this element or start markup. This is the only set:html in
+// the site, and it only ever receives that escaped JSON.
+const json = serializeJsonLd(Astro.props.data);
+---
+
+<script type="application/ld+json" is:inline set:html={json} />
