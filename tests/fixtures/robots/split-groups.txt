@@ -1,0 +1,5 @@
+user-agent: golfoutingfinderbot
+disallow: /a
+
+User-agent: GolfOutingFinderBot/1.0
+Disallow: /b

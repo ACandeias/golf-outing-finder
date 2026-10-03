@@ -1,0 +1,11 @@
+# A site with a group for us and a group for everyone else.
+User-agent: *
+Disallow: /
+
+User-agent: GolfOutingFinderBot
+Disallow: /members/
+Allow: /members/events/
+Disallow: /*.pdf$
+Crawl-delay: 12
+
+Sitemap: https://example.org/sitemap.xml
