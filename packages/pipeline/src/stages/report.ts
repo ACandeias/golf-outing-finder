@@ -123,7 +123,7 @@ export const report: ReportStage = (_ctx, input) => {
   lines.push("");
   if (shown.length === 0) lines.push("None.");
   for (const e of shown.slice(0, 50))
-    lines.push(`- ${mdCell(e.stage)} (${e.kind}): ${mdCell(e.message)}`);
+    lines.push(`- ${mdCell(e.stage)} (${e.kind}): ${mdCell(e.message)}${e.url ? ` (${mdCell(e.url)})` : ""}`);
   if (shown.length > 50) lines.push(`- ... and ${shown.length - 50} more`);
   lines.push("");
 

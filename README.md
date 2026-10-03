@@ -2,7 +2,7 @@
 
 A nationwide directory of golf outings that anyone can pay to enter, at municipal, public, semi-private, private and resort courses. It's free to use, earns money only from display ads, and runs unattended. The build spec is [`SPEC.md`](SPEC.md) (v1.1) and the working rules for contributors and agents are in [`CLAUDE.md`](CLAUDE.md).
 
-Status: **Phase 2** in progress. Workstream A (pipeline skeleton) is done: stage contracts, overrides loader, budget guard, runs accounting, CLI, D1 edge and the golden-test harness; see [`packages/pipeline/README.md`](packages/pipeline/README.md). Phase 1 delivered every site route from seed data; Phase 0 the scaffold, schema, CI, Docker and seed fixtures.
+Status: **Phase 2** (pipeline) is wired end to end: every nightly stage runs on fixtures with zero network calls in CI (`pnpm run pipeline --dry-run --strict`), and the live path is ready but has not run yet (owner steps below). See [`packages/pipeline/README.md`](packages/pipeline/README.md). Phase 1 delivered every site route from seed data; Phase 0 the scaffold, schema, CI, Docker and seed fixtures.
 
 ## Run locally in Docker
 
@@ -51,6 +51,7 @@ pnpm db:migrate:remote        # apply migrations to production D1 (CI only)
 pnpm run seed                 # load places, courses and seed/outings.json into local D1 (see below)
 pnpm run pipeline --dry-run   # full pipeline on fixtures, zero network calls
 pnpm run pipeline --live --budget=nightly   # real run; used by nightly.yml
+pnpm run pipeline --live --budget=smoke     # first live run: every cap at 5 to 10
 pnpm test:live-extract        # re-record LLM fixtures (costs money, asks first)
 pnpm build && pnpm deploy     # deploy the Worker (CI only)
 pnpm docker:up                # build and run the site in Docker
@@ -86,6 +87,31 @@ curl http://localhost:8787/health
 ```
 
 Never call a paid API (DataForSEO, Claude) outside `pnpm run pipeline --live` or `pnpm test:live-extract`. Every other command uses fixtures.
+
+## Pipeline (Phase 2)
+
+**How the nightly runs.** `nightly.yml` starts at 07:15 UTC in the `production` environment, restores `.cache/irs` (the IRS lookup database, keyed `irs-YYYY-MM`) and `.cache/http-validators.json` (ETag and Last-Modified per URL) from the Actions cache, and runs `pnpm run pipeline --live --budget=nightly --strict`. The run exports the remote D1 to a local SQLite snapshot, writes its `runs` row, then runs discover, fetch, normalize, extract (Message Batches: submit, poll every 60 seconds for up to 45 minutes, a batch still running is collected by the next night), classify, match, dedupe-upsert, publish (with IndexNow pings) and recheck/roll-forward, writing to D1 after every stage with `wrangler d1 execute --remote --file`. The report goes to the job summary: stage statuses, counts, holds by reason across `sources` and `outings`, budget hits, errors and the estimated cost. The job fails, and GitHub emails the owner, when a stage throws or more than 20% of fetches fail with a network error or a 5xx. `monthly.yml` runs courses, IRS and course types on the 1st. Both share the `pipeline` concurrency group.
+
+**Dry run and smoke run.**
+
+```bash
+PIPELINE_NOW=2026-09-28 pnpm run pipeline --dry-run --strict                              # what CI runs
+PIPELINE_NOW=2026-09-28 MAX_SERP_QUERIES_PER_RUN=5 pnpm run pipeline --dry-run --strict   # search stops at 5, the rest completes
+PIPELINE_NOW=2026-09-28 pnpm run pipeline --dry-run --fail-stage=fetch                    # exits 1, runs row keeps the error
+pnpm run pipeline --live --budget=smoke                                                   # first live run (secrets required)
+```
+
+The dry run uses an in-memory D1 loaded with the fixture places and courses, the recorded seed pages in `tests/fixtures/raw` (and the hand-written stand-ins in `tests/fixtures/pages/*.synthetic.json`), the LLM results in `tests/fixtures/llm`, the SERP and listing fixtures, and the IRS subset. On the pinned date it creates and publishes 9 outings from 14 pages, excludes gc1 and holds 3 calendar entries whose course isn't in the fixtures. The smoke profile caps every count at 5 to 10 (5 searches, 10 fetches, 10 extractions); in Actions, run the nightly workflow by hand and choose `smoke`.
+
+**Fixture layout.** `tests/fixtures/pages/{id}.json` (normalized seed pages) and `raw/{id}.html` (the HTML the dry run serves), `pages/{id}.synthetic.json` (hand-written stand-ins for gc1 and gc5), `llm/{id}.json` (Message Batches results for gc1 to gc8; hand-written with `recorded: false` until `pnpm test:live-extract` re-records them), `discovery/` and `serp/` (listing pages, sitemaps and DataForSEO responses), `course-types/` (monthly dry run), `courses.json` (recorded Overpass subset), `irs-subset.csv` (synthetic IRS rows). `MISSING.md` lists what couldn't be recorded.
+
+### Before the first live run (owner)
+
+1. **Cloudflare D1.** `pnpm --filter @gof/site exec wrangler d1 create gof`, then put the id in `apps/site/wrangler.toml` (`database_id`, replacing `REPLACE_WITH_D1_DATABASE_ID`) and commit it. A live run refuses to start while the placeholder is there, or when it differs from `D1_DATABASE_ID`. Run `pnpm db:migrate:remote` (or let `deploy.yml` do it) and load the courses once (the monthly workflow, run by hand).
+2. **Secrets** in the GitHub `production` environment: `ANTHROPIC_API_KEY` (with a monthly spend limit set in the Claude Console), `SERP_API_KEY` (DataForSEO `login:password`), `CLOUDFLARE_API_TOKEN` (D1 edit on this database and Worker deploy only), `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`, and optionally `INDEXNOW_KEY`. Set the `PUBLIC_SITE_URL` Actions variable; the crawler's user agent uses it. A live run checks all of these with the shared zod schema and refuses to start, naming what's missing, without them.
+3. **DataForSEO.** Open the account and make the minimum deposit, then add its credentials as `SERP_API_KEY`. A live nightly or smoke run refuses to start without it.
+4. **Listing sources.** In `data/overrides/platforms.yaml` every platform and directory has `allowed: false`. Read each site's terms of use, then set `allowed: true` and `terms_checked: <date>` for the ones that permit reading public listings. Nothing with `allowed: false` is fetched; robots.txt is honored either way.
+5. **First run.** Run the nightly workflow by hand with `smoke`. Check the job summary and the `runs` row (`est_cost_cents`), then let the schedule take over.
 
 ## Layout
 
@@ -160,7 +186,7 @@ These are blocking steps only the owner can do (plan Part 3):
 | Before the first Cloudflare deploy | Run `npx wrangler login` on this machine, or export `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Subscribe to Workers Paid ($5/month). Run `pnpm --filter @gof/site exec wrangler d1 create gof`, put the `database_id` in `apps/site/wrangler.toml`, and add `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `D1_DATABASE_ID` to the GitHub `production` environment. The next push to `main` migrates and deploys; check that the workers.dev URL returns 200 on `/` and `/health`. |
 | Before the Phase 1 remote seed | Nothing extra. Once logged in, the agent runs `pnpm db:migrate:remote` and the remote seed. |
 | Before Phase 2 fixture recording | Create an Anthropic API key with a monthly spend limit and export `ANTHROPIC_API_KEY`. Approve the one-time `pnpm test:live-extract` (about $0.50). |
-| Before the first live nightly | Open a DataForSEO account (minimum deposit applies). Add `SERP_API_KEY`, `ANTHROPIC_API_KEY`, `CLOUDFLARE_*`, `D1_DATABASE_ID` and `INDEXNOW_KEY` to the GitHub `production` environment, and set the `PUBLIC_SITE_URL` Actions variable. |
+| Before the first live nightly | See [Before the first live run](#before-the-first-live-run-owner): the D1 id in `wrangler.toml`, the secrets and `PUBLIC_SITE_URL`, DataForSEO, the `allowed` flags in `platforms.yaml`, then one `smoke` run. |
 | Phase 3 | Choose the domain and attach it to the Worker so edge caching works. Verify Search Console and Bing. |
 | Ongoing | Merge Dependabot PRs. A public repo's scheduled workflows are disabled after 60 days without a commit; re-enable them from the Actions tab if that happens. |
 

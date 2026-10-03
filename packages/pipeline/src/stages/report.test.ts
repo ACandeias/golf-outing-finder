@@ -53,7 +53,7 @@ describe("report stage", () => {
     expect(output.markdown).toContain("| course_unmatched | 3 | 0 |");
     expect(output.markdown).toContain("| no_date | 0 | 1 |");
     expect(output.markdown).toContain("- `MAX_SERP_QUERIES_PER_RUN` (limit 5) in discover");
-    expect(output.markdown).toContain("- fetch (network): ECONNRESET \\| &lt;script&gt;");
+    expect(output.markdown).toContain("- fetch (network): ECONNRESET \\| &lt;script&gt; (https://x.org)");
     expect(output.markdown).not.toContain("stage not implemented: match");
   });
 
