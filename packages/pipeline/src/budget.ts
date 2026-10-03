@@ -202,6 +202,10 @@ export class BudgetGuard implements BudgetCheck {
     this.outputTokens += n;
   }
 
+  outputTokensSpent(): number {
+    return this.outputTokens;
+  }
+
   /** This run's estimated cost so far, in cents (SPEC.md 14 rates). */
   estCostCents(): number {
     return estimateCostCents({
