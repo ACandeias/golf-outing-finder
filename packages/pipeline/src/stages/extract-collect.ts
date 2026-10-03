@@ -201,7 +201,15 @@ export const extractCollect: ExtractCollectStage = (ctx, input) => {
       continue;
     }
     if (r.result.type !== "succeeded") {
-      fail(r.custom_id, `batch result ${r.result.type}`, m.page_url);
+      const why =
+        r.result.type === "errored" &&
+        typeof r.result.error === "object" &&
+        r.result.error !== null &&
+        "type" in r.result.error &&
+        typeof r.result.error.type === "string"
+          ? ` (${r.result.error.type})`
+          : "";
+      fail(r.custom_id, `batch result ${r.result.type}${why}`, m.page_url);
       continue;
     }
     const msg = r.result.message;

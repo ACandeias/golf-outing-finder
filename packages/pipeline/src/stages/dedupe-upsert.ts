@@ -492,7 +492,8 @@ export const dedupeUpsert: DedupeUpsertStage = (ctx, input) => {
   result.counters.outings_new = inserted;
   result.counters.outings_updated = updated;
   result.counters.outings_held = held;
-  if (excluded > 0) result.counters.events_excluded = excluded;
+  // events_excluded is classify's counter; counting the same events here would double it in the run summary.
+  if (excluded > 0) ctx.log.debug("excluded events dropped", { excluded });
   for (const o of outcomes)
     if (o.action === "held" && o.hold_reason)
       result.holds.push({ scope: "source", key: o.source_url, reason: o.hold_reason, event_index: o.event_index });

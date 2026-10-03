@@ -9,7 +9,7 @@ import { writeSqlFiles } from "../lib/wrangler.ts";
 import type { UpsertPlan } from "../stages/types.ts";
 import { planToStatements } from "./plan-sql.ts";
 import type { ApplyReport, D1Port, Snapshot } from "./port.ts";
-import { loadDump, openSqlite, snapshotOver } from "./sqlite.ts";
+import { loadDump, openSqlite, snapshotOver, type Sqlite } from "./sqlite.ts";
 
 const run = promisify(execFile);
 
@@ -107,11 +107,17 @@ export function executeArgs(
  * literal SQL files of at most 1,000 statements and executes each. Credentials
  * come from CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the environment and
  * are never passed on the command line. Tests never call this class.
+ *
+ * The snapshot is a working copy: every plan `apply` sends to D1 is also run on
+ * the open snapshot file (`writeThrough`), so later stages in the same run
+ * (publish, recheck) read the rows earlier stages wrote, exactly as they would
+ * against the in-memory port.
  */
 export class WranglerD1 implements D1Port {
   readonly target: "remote" | "local";
   private readonly o: WranglerD1Options;
   private applyCount = 0;
+  private local: Sqlite | null = null;
 
   constructor(o: WranglerD1Options) {
     this.o = o;
@@ -149,7 +155,11 @@ export class WranglerD1 implements D1Port {
     await this.wrangler(exportArgs(this.o, dump));
     const db = openSqlite(file);
     loadDump(db, await readFile(dump, "utf8"));
-    return snapshotOver(db);
+    this.local = db;
+    return snapshotOver(db, () => {
+      if (this.local === db) this.local = null;
+      db.close();
+    });
   }
 
   async apply(plan: UpsertPlan): Promise<ApplyReport> {
@@ -159,6 +169,22 @@ export class WranglerD1 implements D1Port {
     const dir = join(this.o.workDir, `apply-${String(this.applyCount).padStart(3, "0")}`);
     const files = await writeSqlFiles(statements, dir, "plan");
     for (const f of files) await this.wrangler(executeArgs(this.o, f));
+    if (this.local) writeThrough(this.local, statements);
     return { statements: statements.length, files: files.length };
+  }
+}
+
+/** Runs statements D1 already accepted on the run's snapshot copy, in one transaction. */
+export function writeThrough(db: Sqlite, statements: readonly string[]): void {
+  if (statements.length === 0) return;
+  db.exec("BEGIN;");
+  try {
+    for (const s of statements) db.exec(s);
+    db.exec("COMMIT;");
+  } catch (err) {
+    db.exec("ROLLBACK;");
+    throw new Error(
+      `D1 accepted the write but the local snapshot copy failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 }

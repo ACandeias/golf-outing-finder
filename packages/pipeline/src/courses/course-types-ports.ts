@@ -3,12 +3,11 @@ import { join } from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { REPO_ROOT } from "../lib/paths.ts";
+import { AnthropicBatchClient } from "../llm/batch-client.ts";
 import {
   batchResultSchema,
-  batchStateSchema,
   type BatchClient,
   type BatchResult,
-  type BatchState,
   type BudgetCheck,
   type ExtractionRequest,
   type FetchedPage,
@@ -106,33 +105,13 @@ export async function fixtureBatchClient(
 }
 
 /**
- * Live Message Batches client (SPEC.md 8.4 mechanics, used here for the monthly
- * course-type batch). Reads the key from ANTHROPIC_API_KEY through the SDK; only
- * constructed by `pnpm run pipeline --live`. Results are validated with zod.
+ * Live Message Batches client for the monthly course-type batch. It is the same
+ * client the nightly extraction uses (src/llm/batch-client.ts), so both call
+ * sites share one implementation: the key comes from ANTHROPIC_API_KEY through
+ * the SDK, results are validated with zod, and only `pnpm run pipeline --live`
+ * constructs it. A live run passes its one shared instance in `ports.batch`;
+ * this factory is the fallback when none is wired.
  */
 export function anthropicBatchClient(client: Anthropic = new Anthropic()): BatchClient {
-  const state = (b: { id: string; processing_status: string }): BatchState =>
-    batchStateSchema.parse({ batch_id: b.id, status: b.processing_status });
-  return {
-    async submit(requests) {
-      const batch = await client.messages.batches.create({
-        requests: requests.map((r) => ({
-          custom_id: r.custom_id,
-          params: r.params as unknown as Anthropic.Messages.MessageCreateParamsNonStreaming,
-        })),
-      });
-      return state(batch);
-    },
-    async poll(batchId) {
-      return state(await client.messages.batches.retrieve(batchId));
-    },
-    async results(batchId) {
-      const out: BatchResult[] = [];
-      for await (const r of await client.messages.batches.results(batchId)) {
-        const parsed = batchResultSchema.safeParse(JSON.parse(JSON.stringify(r)));
-        if (parsed.success) out.push(parsed.data);
-      }
-      return out;
-    },
-  };
+  return new AnthropicBatchClient(client);
 }
