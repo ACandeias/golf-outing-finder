@@ -1,0 +1,21 @@
+# Registration and donation platform hosts a registration_url may point to
+# (SPEC.md section 8.4, amendment A5). A registration_url is kept when its
+# registrable domain equals the page's or its host is on this list; otherwise
+# it is dropped and the card shows "See site". The owner may add hosts.
+hosts:
+  - golfstatus.com
+  - tourneylinks.com
+  - golfgenius.com
+  - birdease.com
+  - givesmart.com
+  - onecause.com
+  - classy.org
+  - gofundme.com
+  - networkforgood.com
+  - eventbrite.com
+  - zeffy.com
+  - givebutter.com
+  - qgiv.com
+  - donorbox.org
+  - bloomerang.co
+  - givecampus.com

@@ -1,37 +1,87 @@
-# Golf Outing Finder dev toolchain.
-# One image that owns Node 22, pnpm and wrangler, so contributors and CI
-# don't need to install any of those on the host.
+# syntax=docker/dockerfile:1
 #
-# Build:  docker compose build
-# Dev:    docker compose up dev         # Astro at http://localhost:4321
-# Worker: docker compose up worker      # Real workerd at http://localhost:8787
-# Test:   docker compose run --rm test
-# Lint:   docker compose run --rm lint
+# Golf Outing Finder images.
+#
+#   target dev     Node 22 + pnpm toolchain for the dev/test/lint services
+#   target builder installs the workspace and runs `pnpm build`
+#   target runner  node:22-bookworm-slim with wrangler only; serves the built Worker
+#                  with `wrangler dev --local` against a D1 file on /data
+#
+# `docker compose up --build site` builds and runs the runner (the default target).
 
-FROM node:22-bookworm-slim
+ARG NODE_IMAGE=node:22-bookworm-slim
 
-# Wrangler and the Cloudflare adapter need a handful of native deps.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates git curl \
+# ---------------------------------------------------------------- base
+FROM ${NODE_IMAGE} AS base
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-
-# Enable Corepack so pnpm@<packageManager> resolves without a global install.
-ENV COREPACK_ENABLE_STRICT=0
+ENV COREPACK_ENABLE_STRICT=0 \
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
+    WRANGLER_SEND_METRICS=false
 RUN corepack enable
-
 WORKDIR /workspace
 
-# Prime the pnpm store in a separate cached layer.
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml .npmrc ./
+# ---------------------------------------------------------------- dev
+FROM base AS dev
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git curl \
+    && rm -rf /var/lib/apt/lists/*
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/site/package.json ./apps/site/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/db/package.json ./packages/db/
 COPY packages/pipeline/package.json ./packages/pipeline/
-RUN pnpm install --prefer-frozen-lockfile || pnpm install
-
-# Then the source. Bind mounts in compose overlay this at runtime.
+RUN pnpm install --frozen-lockfile
 COPY . .
-
 EXPOSE 4321 8787
-
 CMD ["pnpm", "dev"]
+
+# ---------------------------------------------------------------- builder
+FROM base AS builder
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/site/package.json ./apps/site/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/db/package.json ./packages/db/
+COPY packages/pipeline/package.json ./packages/pipeline/
+RUN pnpm install --frozen-lockfile
+COPY . .
+ARG BUILD_VERSION=docker
+ENV BUILD_VERSION=${BUILD_VERSION}
+RUN pnpm build \
+    && node -p "require('./apps/site/node_modules/wrangler/package.json').version" > /tmp/wrangler-version
+
+# ---------------------------------------------------------------- runner
+FROM ${NODE_IMAGE} AS runner
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates tini \
+    && rm -rf /var/lib/apt/lists/*
+ENV NODE_ENV=development \
+    WRANGLER_SEND_METRICS=false \
+    PUBLIC_SITE_URL=http://localhost:8787 \
+    D1_PERSIST_DIR=/data
+WORKDIR /app
+
+# wrangler at the exact version the lockfile resolved, and nothing else.
+COPY --from=builder /tmp/wrangler-version /tmp/wrangler-version
+RUN npm install -g "wrangler@$(cat /tmp/wrangler-version)" \
+    && npm cache clean --force \
+    && wrangler --version
+
+# Same relative layout as the repo, so the generated config's paths resolve.
+COPY --from=builder /workspace/apps/site/wrangler.toml ./apps/site/wrangler.toml
+COPY --from=builder /workspace/apps/site/dist ./apps/site/dist
+COPY --from=builder /workspace/apps/site/.wrangler/deploy ./apps/site/.wrangler/deploy
+COPY --from=builder /workspace/packages/db/migrations ./packages/db/migrations
+# Seed loader and data (the loader is a Phase 1 item; the entrypoint skips a stub).
+COPY --from=builder /workspace/packages/pipeline/src/seed.ts ./packages/pipeline/src/seed.ts
+COPY --from=builder /workspace/seed/outings.json ./seed/outings.json
+COPY docker/entrypoint.sh /usr/local/bin/gof-entrypoint
+
+RUN mkdir -p /data && chown -R node:node /data /app/apps/site
+USER node
+VOLUME ["/data"]
+EXPOSE 8787
+HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
+  CMD node -e "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/gof-entrypoint"]

@@ -1,10 +1,11 @@
+import type { BudgetProfile } from "@gof/shared/budget";
 import type { BudgetGuard, Meter } from "./budget.ts";
 
 export type PipelineMode = "dry-run" | "live";
 
 export interface RunOptions {
   mode: PipelineMode;
-  budget: string;
+  budget: BudgetProfile;
   stages: string[] | null;
   guard: BudgetGuard;
 }

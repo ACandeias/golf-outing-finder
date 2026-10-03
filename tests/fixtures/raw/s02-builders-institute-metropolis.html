@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+
+<!--[if lt IE 7 ]> <html class="ie ie6 ie-lt10 ie-lt9 ie-lt8 ie-lt7 no-js" lang="en-US"> <![endif]-->
+<!--[if IE 7 ]>    <html class="ie ie7 ie-lt10 ie-lt9 ie-lt8 no-js" lang="en-US"> <![endif]-->
+<!--[if IE 8 ]>    <html class="ie ie8 ie-lt10 ie-lt9 no-js" lang="en-US"> <![endif]-->
+<!--[if IE 9 ]>    <html class="ie ie9 ie-lt10 no-js" lang="en-US"> <![endif]-->
+<!--[if gt IE 9]><!--><html class="no-js" lang="en-US"><!--<![endif]-->
+<!-- the "no-js" class is for Modernizr. -->
+
+<head data-template-set="BRI-Wordpress-Theme">
+
+	<meta charset="UTF-8">
+<script>
+//----------------------------------------------------------
+//------ JAVASCRIPT HOOK FUNCTIONS FOR GRAVITY FORMS -------
+//----------------------------------------------------------
+
+if ( ! gform ) {
+	document.addEventListener( 'gform_main_scripts_loaded', function() { gform.scriptsLoaded = true; } );
+	document.addEventListener( 'gform/theme/scripts_loaded', function() { gform.themeScriptsLoaded = true; } );
+	window.addEventListener( 'DOMContentLoaded', function() { gform.domLoaded = true; } );
+
+	var gform = {
+		domLoaded: false,
+		scriptsLoaded: false,
+		themeScriptsLoaded: false,
+		isFormEditor: () => typeof InitializeEditor === 'function',
+
+		/**
+		 * @deprecated 2.9 the use of initializeOnLoaded in the form editor context is deprecated.
+		 * @remove-in 4.0 this function will not check for gform.isFormEditor().
+		 */
+		callIfLoaded: function ( fn ) {
+			if ( gform.domLoaded && gform.scriptsLoaded && ( gform.themeScriptsLoaded || gform.isFormEditor() ) ) {
+				if ( gform.isFormEditor() ) {
+					console.warn( 'The use of gform.initializeOnLoaded() is deprecated in the form editor context and will be removed in Gravity Forms 3.1.' );
+				}
+				fn();
+				return true;
+			}
+			return false;
+		},
+
+		/**
+		 * Call a function when all scripts are loaded
+		 *
+		 * @param function fn the callback function to call when all scripts are loaded
+		 *
+		 * @returns void
+		 */
+		initializeOnLoaded: function( fn ) {
+			if ( ! gform.callIfLoaded( fn ) ) {
+				document.addEventListener( 'gform_main_scripts_loaded', () => { gform.scriptsLoaded = true; gform.callIfLoaded( fn ); } );
+				document.addEventListener( 'gform/theme/scripts_loaded', () => { gform.themeScriptsLoaded = true; gform.callIfLoaded( fn ); } );
+				window.addEventListener( 'DOMContentLoaded', () => { gform.domLoaded = true; gform.callIfLoaded( fn ); } );
+			}
+		},
+
+		hooks: { action: {}, filter: {} },
+		addAction: function( action, callable, priority, tag ) {
+			gform.addHook( 'action', action, callable, priority, tag );
+		},
+		addFilter: function( action, callable, priority, tag ) {
+			gform.addHook( 'filter', action, callable, priority, tag );
+		},
+		doAction: function( action ) {
+			gform.doHook( 'action', action, arguments );
+		},
+		applyFilters: function( action ) {
+			return gform.doHook( 'filter', action, arguments );
+		},
+		removeAction: function( action, tag ) {
+			gform.removeHook( 'action', action, tag );
+		},
+		removeFilter: function( action, priority, tag ) {
+			gform.removeHook( 'filter', action, priority, tag );
+		},
+		addHook: function( hookType, action, callable, priority, tag ) {
+			if ( undefined == gform.hooks[hookType][action] ) {
+				gform.hooks[hookType][action] = [];
+			}
+			var hooks = gform.hooks[hookType][action];
+			if ( undefined == tag ) {
+				tag = action + '_' + hooks.length;
+			}
+			if( priority == undefined ){
+				priority = 10;
+			}
+
+			gform.hooks[hookType][action].push( { tag:tag, callable:callable, priority:priority } );
+		},
+		doHook: function( hookType, action, args ) {
+
+			// splice args from object into array and remove first index which is the hook name
+			args = Array.prototype.slice.call(args, 1);
+
+			if ( undefined != gform.hooks[hookType][action] ) {
+				var hooks = gform.hooks[hookType][action], hook;
+				//sort by priority
+				hooks.sort(function(a,b){return a["priority"]-b["priority"]});
+
+				hooks.forEach( function( hookItem ) {
+					hook = hookItem.callable;
+
+					if(typeof hook != 'function')
+						hook = window[hook];
+					if ( 'action' == hookType ) {
+						hook.apply(null, args);
+					} else {
+						args[0] = hook.apply(null, args);
+					}
+				} );
+			}
+			if ( 'filter'==hookType ) {
+				return args[0];
+			}
+		},
+		removeHook: function( hookType, action, priority, tag ) {
+			if ( undefined != gform.hooks[hookType][action] ) {
+				var hooks = gform.hooks[hookType][action];
+				hooks = hooks.filter( function(hook, index, arr) {
+					var removeHook = (undefined==tag||tag==hook.tag) && (undefined==priority||priority==hook.priority);
+					return !removeHook;
+				} );
+				gform.hooks[hookType][action] = hooks;
+			}
+		}
+	};
+}
+</script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+	<!-- force latest IE rendering engine -->
+	<!--[if IE ]>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<![endif]-->
+
+	
+	<title>Annual Golf Outing - The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region</title>
+
+	<meta name="title" content="Annual Golf Outing - The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region">
+	<meta name="description" content="" /> <!--used in Google -->
+	
+	<meta name="Copyright" content="Copyright &copy; The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region 2026. All Rights Reserved.">
+	<!--<meta name="author" content="Jennifer B. Hampton, The Builders Institute, LLP"/>-->
+
+	<meta name="mobile-web-app-capable" content="yes"><link rel="shortcut icon" sizes="360x360" href="https://www.buildersinstitute.org/wp-content/uploads/2019/10/favicon.png" /><link rel="shortcut apple-touch-icon" href="https://www.buildersinstitute.org/wp-content/uploads/2019/10/apple-touch-icon-precomposed.png" />
+	<!--Font Stylesheet Inclusion-->
+	<link href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700|Source+Sans+Pro:300,300i,400,400i,600,600i,700,700i,900,900i&display=swap" rel="stylesheet" data-noprefix>
+
+	<link rel="profile" href="http://gmpg.org/xfn/11" />
+	<link rel="pingback" href="" />
+
+	
+	<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+
+	<!-- This site is optimized with the Yoast SEO plugin v28.6 - https://yoast.com/product/yoast-seo-wordpress/ -->
+	<link rel="canonical" href="https://www.buildersinstitute.org/annual-golf-outing/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Annual Golf Outing - The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region" />
+	<meta property="og:description" content="Wednesday, October 7, 2026 | 10:30 AM &#8211; 7:30 PMMetropolis Country Club&nbsp;289 Dobbs Ferry Rd&nbsp;White Plains, NY 10607Join us on Wednesday, October 7, 2026 for our Annual Golf Outing!&nbsp;Don&#8217;t miss out on a day of golfing under the sun, networking and connecting with industry professionals, dinner [&hellip;]" />
+	<meta property="og:url" content="https://www.buildersinstitute.org/annual-golf-outing/" />
+	<meta property="og:site_name" content="The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region" />
+	<meta property="article:modified_time" content="2026-08-12T19:05:50+00:00" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:label1" content="Est. reading time" />
+	<meta name="twitter:data1" content="1 minute" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https:\/\/schema.org","@graph":[{"@type":"WebPage","@id":"https:\/\/www.buildersinstitute.org\/annual-golf-outing\/","url":"https:\/\/www.buildersinstitute.org\/annual-golf-outing\/","name":"Annual Golf Outing - The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region","isPartOf":{"@id":"https:\/\/www.buildersinstitute.org\/#website"},"datePublished":"2026-07-17T18:36:10+00:00","dateModified":"2026-08-12T19:05:50+00:00","breadcrumb":{"@id":"https:\/\/www.buildersinstitute.org\/annual-golf-outing\/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/www.buildersinstitute.org\/annual-golf-outing\/"]}]},{"@type":"BreadcrumbList","@id":"https:\/\/www.buildersinstitute.org\/annual-golf-outing\/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https:\/\/www.buildersinstitute.org\/"},{"@type":"ListItem","position":2,"name":"Events","item":"https:\/\/www.buildersinstitute.org\/events\/"},{"@type":"ListItem","position":3,"name":"Annual Golf Outing"}]},{"@type":"WebSite","@id":"https:\/\/www.buildersinstitute.org\/#website","url":"https:\/\/www.buildersinstitute.org\/","name":"The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region","description":"","publisher":{"@id":"https:\/\/www.buildersinstitute.org\/#organization"},"potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/www.buildersinstitute.org\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US"},{"@type":"Organization","@id":"https:\/\/www.buildersinstitute.org\/#organization","name":"The Builders Institute | The Building & Realty Institute of Westchester & the Mid-Hudson Region","url":"https:\/\/www.buildersinstitute.org\/","logo":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/www.buildersinstitute.org\/#\/schema\/logo\/image\/","url":"https:\/\/www.buildersinstitute.org\/wp-content\/uploads\/2019\/10\/logo.png","contentUrl":"https:\/\/www.buildersinstitute.org\/wp-content\/uploads\/2019\/10\/logo.png","width":392,"height":42,"caption":"The Builders Institute | The Building & Realty Institute of Westchester & the Mid-Hudson Region"},"image":{"@id":"https:\/\/www.buildersinstitute.org\/#\/schema\/logo\/image\/"}}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel='dns-prefetch' href='//kit.fontawesome.com' />
+<link rel='dns-prefetch' href='//cdn.jsdelivr.net' />
+<link rel='dns-prefetch' href='//stackpath.bootstrapcdn.com' />
+<link rel='dns-prefetch' href='//cdnjs.cloudflare.com' />
+<link rel='dns-prefetch' href='//unpkg.com' />
+<link rel='dns-prefetch' href='//www.google.com' />
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel="alternate" type="application/rss+xml" title="The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region &raquo; Feed" href="https://www.buildersinstitute.org/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Builders Institute | The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region &raquo; Comments Feed" href="https://www.buildersinstitute.org/comments/feed/" />
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://www.buildersinstitute.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.buildersinstitute.org%2Fannual-golf-outing%2F" />
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://www.buildersinstitute.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.buildersinstitute.org%2Fannual-golf-outing%2F&#038;format=xml" />
+<style id="wp-img-auto-sizes-contain-inline-css">
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<link rel='stylesheet' id='gform_basic-css' href='https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/css/dist/basic.min.css?ver=3.1.3' media='all' />
+<link rel='stylesheet' id='gform_theme_components-css' href='https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/css/dist/theme-components.min.css?ver=3.1.3' media='all' />
+<link rel='stylesheet' id='gform_theme-css' href='https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/css/dist/theme.min.css?ver=3.1.3' media='all' />
+<style id="wp-emoji-styles-inline-css">
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+/*# sourceURL=wp-emoji-styles-inline-css */
+</style>
+<style id="wp-block-library-inline-css">
+/**
+ * Colors
+ */
+/**
+ * Typography
+ */
+/**
+ * SCSS Variables.
+ *
+ * Please use variables from this sheet to ensure consistency across the UI.
+ * Don't add to this sheet unless you're pretty sure the value will be reused in many places.
+ * For example, don't add rules to this sheet that affect block visuals. It's purely for UI.
+ */
+/**
+ * Fonts & basic variables.
+ */
+/**
+ * Typography
+ */
+/**
+ * Grid System.
+ * https://make.wordpress.org/design/2019/10/31/proposal-a-consistent-spacing-system-for-wordpress/
+ */
+/**
+ * Radius scale.
+ */
+/**
+ * Elevation scale.
+ */
+/**
+ * Dimensions.
+ */
+/**
+ * Mobile specific styles
+ */
+/**
+ * Editor styles.
+ */
+/**
+ * Block & Editor UI.
+ */
+/**
+ * Block paddings.
+ */
+/**
+ * React Native specific.
+ * These variables do not appear to be used anywhere else.
+ */
+/**
+ * Breakpoints & Media Queries
+ */
+/**
+*  Converts a hex value into the rgb equivalent.
+*
+* @param {string} hex - the hexadecimal value to convert
+* @return {string} comma separated rgb values
+*/
+/**
+ * Long content fade mixin
+ *
+ * Creates a fading overlay to signify that the content is longer
+ * than the space allows.
+ */
+/**
+ * Breakpoint mixins
+ */
+/**
+ * Focus styles.
+ */
+/**
+ * Standard focus rings for the WordPress Design System.
+ *
+ * Apply `outset-ring__focus` inside the relevant pseudo-class at the call site,
+ * e.g. `&:focus { @include outset-ring__focus(); }`.
+ */
+/**
+ * Applies editor left position to the selector passed as argument
+ */
+/**
+ * Styles that are reused verbatim in a few places
+ */
+/**
+ * Allows users to opt-out of animations via OS-level preferences.
+ */
+/**
+ * Reset default styles for JavaScript UI based pages.
+ * This is a WP-admin agnostic reset
+ */
+/**
+ * Reset the WP Admin page styles for Gutenberg-like pages.
+ */
+/**
+ * Creates a checkerboard pattern background to indicate transparency.
+ * @param {String} $size - The size of the squares in the checkerboard pattern. Default is 12px.
+ */
+:root {
+  --wp-block-synced-color: #7a00df;
+  --wp-block-synced-color--rgb: 122, 0, 223;
+  --wp-bound-block-color: var(--wp-block-synced-color);
+  --wp-editor-canvas-background: #ddd;
+  --wp-admin-theme-color: #007cba;
+  --wp-admin-theme-color--rgb: 0, 124, 186;
+  --wp-admin-theme-color-darker-10: rgb(0, 107, 160.5);
+  --wp-admin-theme-color-darker-10--rgb: 0, 107, 160.5;
+  --wp-admin-theme-color-darker-20: #005a87;
+  --wp-admin-theme-color-darker-20--rgb: 0, 90, 135;
+  --wp-admin-border-width-focus: 2px;
+}
+@media (min-resolution: 192dpi) {
+  :root {
+    --wp-admin-border-width-focus: 1.5px;
+  }
+}
+
+/**
+ * Element styles.
+ */
+.wp-element-button {
+  cursor: pointer;
+}
+
+:root .has-very-light-gray-background-color {
+  background-color: #eee;
+}
+:root .has-very-dark-gray-background-color {
+  background-color: #313131;
+}
+:root .has-very-light-gray-color {
+  color: #eee;
+}
+:root .has-very-dark-gray-color {
+  color: #313131;
+}
+:root {
+  /* stylelint-disable @stylistic/function-comma-space-after -- We can not use spacing because of WP multi site kses rule. */
+}
+:root .has-vivid-green-cyan-to-vivid-cyan-blue-gradient-background {
+  background: linear-gradient(135deg, rgb(0, 208, 132) 0%, rgb(6, 147, 227) 100%);
+}
+:root .has-purple-crush-gradient-background {
+  background: linear-gradient(135deg, rgb(52, 226, 228) 0%, rgb(71, 33, 251) 50%, rgb(171, 29, 254) 100%);
+}
+:root .has-hazy-dawn-gradient-background {
+  background: linear-gradient(135deg, rgb(250, 172, 168) 0%, rgb(218, 208, 236) 100%);
+}
+:root .has-subdued-olive-gradient-background {
+  background: linear-gradient(135deg, rgb(250, 250, 225) 0%, rgb(103, 166, 113) 100%);
+}
+:root .has-atomic-cream-gradient-background {
+  background: linear-gradient(135deg, rgb(253, 215, 154) 0%, rgb(0, 74, 89) 100%);
+}
+:root .has-nightshade-gradient-background {
+  background: linear-gradient(135deg, rgb(51, 9, 104) 0%, rgb(49, 205, 207) 100%);
+}
+:root .has-midnight-gradient-background {
+  background: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
+}
+:root {
+  /* stylelint-enable @stylistic/function-comma-space-after */
+  --wp--preset--font-size--normal: 16px;
+  --wp--preset--font-size--huge: 42px;
+}
+
+.has-regular-font-size {
+  font-size: 1em;
+}
+
+.has-larger-font-size {
+  font-size: 2.625em;
+}
+
+.has-normal-font-size {
+  font-size: var(--wp--preset--font-size--normal);
+}
+
+.has-huge-font-size {
+  font-size: var(--wp--preset--font-size--huge);
+}
+
+:root .has-text-align-center {
+  text-align: center;
+}
+
+:root .has-text-align-left {
+  /*rtl:ignore*/
+  text-align: left;
+}
+
+:root .has-text-align-right {
+  /*rtl:ignore*/
+  text-align: right;
+}
+
+.has-fit-text {
+  white-space: nowrap !important;
+}
+
+#end-resizable-editor-section {
+  display: none;
+}
+
+.aligncenter {
+  clear: both;
+}
+
+.items-justified-left {
+  justify-content: flex-start;
+}
+
+.items-justified-center {
+  justify-content: center;
+}
+
+.items-justified-right {
+  justify-content: flex-end;
+}
+
+.items-justified-space-between {
+  justify-content: space-between;
+}
+
+.screen-reader-text {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  word-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.screen-reader-text:focus {
+  background-color: #ddd;
+  clip-path: none;
+  color: #444;
+  display: block;
+  font-size: 1em;
+  height: auto;
+  left: 5px;
+  line-height: normal;
+  padding: 15px 23px 14px;
+  text-decoration: none;
+  top: 5px;
+  width: auto;
+  z-index: 100000;
+}
+
+/**
+ * The following provide a simple means of applying a default border style when
+ * a user first makes a selection in the border block support panel.
+ * This prevents issues such as where the user could set a border width
+ * and see no border due there being no border style set.
+ *
+ * This is intended to be removed once intelligent defaults can be set while
+ * making border selections via the block support.
+ *
+ * See: https://github.com/WordPress/gutenberg/pull/33743
+ */
+html :where(.has-border-color) {
+  border-style: solid;
+}
+
+html :where([style^=border-color],
+[style*=";border-color"],
+[style*="; border-color"]) {
+  border-style: solid;
+}
+
+html :where([style^=border-top-color],
+[style*=";border-top-color"],
+[style*="; border-top-color"]) {
+  border-top-style: solid;
+}
+
+html :where([style^=border-right-color],
+[style*=";border-right-color"],
+[style*="; border-right-color"]) {
+  /*rtl:ignore*/
+  border-right-style: solid;
+}
+
+html :where([style^=border-bottom-color],
+[style*=";border-bottom-color"],
+[style*="; border-bottom-color"]) {
+  border-bottom-style: solid;
+}
+
+html :where([style^=border-left-color],
+[style*=";border-left-color"],
+[style*="; border-left-color"]) {
+  /*rtl:ignore*/
+  border-left-style: solid;
+}
+
+html :where([style^=border-width],
+[style*=";border-width"],
+[style*="; border-width"]) {
+  border-style: solid;
+}
+
+html :where([style^=border-top-width],
+[style*=";border-top-width"],
+[style*="; border-top-width"]) {
+  border-top-style: solid;
+}
+
+html :where([style^=border-right-width],
+[style*=";border-right-width"],
+[style*="; border-right-width"]) {
+  /*rtl:ignore*/
+  border-right-style: solid;
+}
+
+html :where([style^=border-bottom-width],
+[style*=";border-bottom-width"],
+[style*="; border-bottom-width"]) {
+  border-bottom-style: solid;
+}
+
+html :where([style^=border-left-width],
+[style*=";border-left-width"],
+[style*="; border-left-width"]) {
+  /*rtl:ignore*/
+  border-left-style: solid;
+}
+
+/**
+ * Provide baseline responsiveness for images.
+ */
+html :where(img[class*=wp-image-]) {
+  height: auto;
+  max-width: 100%;
+}
+
+/**
+ * Reset user agent styles for figure element margins.
+ */
+:where(figure) {
+  margin: 0 0 1em 0;
+}
+
+html :where(.is-position-sticky) {
+  --wp-admin--admin-bar--position-offset: var(--wp-admin--admin-bar--height, 0px);
+}
+
+@media screen and (max-width: 600px) {
+  html :where(.is-position-sticky) {
+    --wp-admin--admin-bar--position-offset: 0px;
+  }
+}
+
+/*# sourceURL=/wp-includes/css/dist/block-library/common.css */
+</style>
+<style id="classic-theme-styles-inline-css">
+/**
+ * These rules are needed for backwards compatibility.
+ * They should match the button element rules in the base theme.json file.
+ */
+.wp-block-button__link {
+	color: #ffffff;
+	background-color: #32373c;
+	border-radius: 9999px; /* 100% causes an oval, but any explicit but really high value retains the pill shape. */
+
+	/* This needs a low specificity so it won't override the rules from the button element if defined in theme.json. */
+	box-shadow: none;
+	text-decoration: none;
+
+	/* The extra 2px are added to size solids the same as the outline versions.*/
+	padding: calc(0.667em + 2px) calc(1.333em + 2px);
+
+	font-size: 1.125em;
+}
+
+.wp-block-file__button {
+	background: #32373c;
+	color: #ffffff;
+	text-decoration: none;
+}
+
+/*# sourceURL=/wp-includes/css/classic-themes.css */
+</style>
+
+<style id="global-styles-inline-css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--wpada-black: #000000;--wp--preset--color--wpada-red: #cf2e2e;--wp--preset--color--wpada-burnt-orange: #BD4F00;--wp--preset--color--wpada-dark-azurer: #003366;--wp--preset--color--wpada-navy-blue: #000080;--wp--preset--color--wpada-green: #006600;--wp--preset--color--wpada-sky-blue: #007E9E;--wp--preset--color--wpada-dark-purple: #610061;--wp--preset--color--wpada-purple: #800080;--wp--preset--color--wpada-gray: #757575;--wp--preset--color--wpada-dark-gray: #313131;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--font-size--wpada-small-percent: 14px;--wp--preset--font-size--wpada-regular-percent: 16px;--wp--preset--font-size--wpada-large-percent: 25px;--wp--preset--font-size--wpada-larger-percent: 32px;--wp--preset--font-size--wpada-largest-percent: 37px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}.wp-block-button{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;--wp--preset--dimension--75: 75%;--wp--preset--dimension--100: 100%;}:where(body) { margin: 0; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{padding-top: 0px;padding-right: 0px;padding-bottom: 0px;padding-left: 0px;}:root :where(.wp-element-button, .wp-block-button__link){background-color: #32373c;border-width: 0;color: #fff;font-family: inherit;font-size: inherit;font-style: inherit;font-weight: inherit;letter-spacing: inherit;line-height: inherit;padding-top: calc(0.667em + 2px);padding-right: calc(1.333em + 2px);padding-bottom: calc(0.667em + 2px);padding-left: calc(1.333em + 2px);text-decoration: none;text-transform: inherit;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-wpada-black-color{color: var(--wp--preset--color--wpada-black) !important;}.has-wpada-red-color{color: var(--wp--preset--color--wpada-red) !important;}.has-wpada-burnt-orange-color{color: var(--wp--preset--color--wpada-burnt-orange) !important;}.has-wpada-dark-azurer-color{color: var(--wp--preset--color--wpada-dark-azurer) !important;}.has-wpada-navy-blue-color{color: var(--wp--preset--color--wpada-navy-blue) !important;}.has-wpada-green-color{color: var(--wp--preset--color--wpada-green) !important;}.has-wpada-sky-blue-color{color: var(--wp--preset--color--wpada-sky-blue) !important;}.has-wpada-dark-purple-color{color: var(--wp--preset--color--wpada-dark-purple) !important;}.has-wpada-purple-color{color: var(--wp--preset--color--wpada-purple) !important;}.has-wpada-gray-color{color: var(--wp--preset--color--wpada-gray) !important;}.has-wpada-dark-gray-color{color: var(--wp--preset--color--wpada-dark-gray) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-wpada-black-background-color{background-color: var(--wp--preset--color--wpada-black) !important;}.has-wpada-red-background-color{background-color: var(--wp--preset--color--wpada-red) !important;}.has-wpada-burnt-orange-background-color{background-color: var(--wp--preset--color--wpada-burnt-orange) !important;}.has-wpada-dark-azurer-background-color{background-color: var(--wp--preset--color--wpada-dark-azurer) !important;}.has-wpada-navy-blue-background-color{background-color: var(--wp--preset--color--wpada-navy-blue) !important;}.has-wpada-green-background-color{background-color: var(--wp--preset--color--wpada-green) !important;}.has-wpada-sky-blue-background-color{background-color: var(--wp--preset--color--wpada-sky-blue) !important;}.has-wpada-dark-purple-background-color{background-color: var(--wp--preset--color--wpada-dark-purple) !important;}.has-wpada-purple-background-color{background-color: var(--wp--preset--color--wpada-purple) !important;}.has-wpada-gray-background-color{background-color: var(--wp--preset--color--wpada-gray) !important;}.has-wpada-dark-gray-background-color{background-color: var(--wp--preset--color--wpada-dark-gray) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-wpada-black-border-color{border-color: var(--wp--preset--color--wpada-black) !important;}.has-wpada-red-border-color{border-color: var(--wp--preset--color--wpada-red) !important;}.has-wpada-burnt-orange-border-color{border-color: var(--wp--preset--color--wpada-burnt-orange) !important;}.has-wpada-dark-azurer-border-color{border-color: var(--wp--preset--color--wpada-dark-azurer) !important;}.has-wpada-navy-blue-border-color{border-color: var(--wp--preset--color--wpada-navy-blue) !important;}.has-wpada-green-border-color{border-color: var(--wp--preset--color--wpada-green) !important;}.has-wpada-sky-blue-border-color{border-color: var(--wp--preset--color--wpada-sky-blue) !important;}.has-wpada-dark-purple-border-color{border-color: var(--wp--preset--color--wpada-dark-purple) !important;}.has-wpada-purple-border-color{border-color: var(--wp--preset--color--wpada-purple) !important;}.has-wpada-gray-border-color{border-color: var(--wp--preset--color--wpada-gray) !important;}.has-wpada-dark-gray-border-color{border-color: var(--wp--preset--color--wpada-dark-gray) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}.has-wpada-small-percent-font-size{font-size: var(--wp--preset--font-size--wpada-small-percent) !important;}.has-wpada-regular-percent-font-size{font-size: var(--wp--preset--font-size--wpada-regular-percent) !important;}.has-wpada-large-percent-font-size{font-size: var(--wp--preset--font-size--wpada-large-percent) !important;}.has-wpada-larger-percent-font-size{font-size: var(--wp--preset--font-size--wpada-larger-percent) !important;}.has-wpada-largest-percent-font-size{font-size: var(--wp--preset--font-size--wpada-largest-percent) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<link rel='stylesheet' id='ctct_form_styles-css' href='https://www.buildersinstitute.org/wp-content/plugins/constant-contact-forms/assets/css/style.css?ver=2.14.2' media='all' />
+<link rel='stylesheet' id='dashicons-css' href='https://www.buildersinstitute.org/wp-includes/css/dashicons.css?ver=7.1.2' media='all' />
+<link rel='stylesheet' id='theme-my-login-css' href='https://www.buildersinstitute.org/wp-content/plugins/theme-my-login/assets/styles/theme-my-login.css?ver=7.2.2' media='all' />
+<link rel='stylesheet' id='bootstrap-css-css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css?ver=all' media='all' integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+<link rel='stylesheet' id='bri-reset-css' href='https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/css/reset.css' media='all' />
+<link rel='stylesheet' id='bri-admin-style-css' href='https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/css/admin.css' media='all' />
+<link rel='stylesheet' id='slicknav-css-css' href='https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/slicknav/slicknav.min.css?ver=1.0.10' media='screen' />
+<link rel='stylesheet' id='fancybox-css-css' href='https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.6/jquery.fancybox.min.css?ver=3.5.6' media='screen' />
+<link rel='stylesheet' id='bxslider-css-css' href='https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.css?ver=4.2.15' media='screen' />
+<link rel='stylesheet' id='aos-css-css' href='https://unpkg.com/aos@next/dist/aos.css?ver=3.0.0' media='screen' />
+<link rel='stylesheet' id='select2-css' href='https://www.buildersinstitute.org/wp-content/plugins/advanced-custom-fields-pro/assets/inc/select2/4/select2.css?ver=4.0' media='all' />
+<link rel='stylesheet' id='bri-style-css' href='https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/css/style.css?ver=1791043400' media='all' />
+<link rel='stylesheet' id='bri-tml-css' href='https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/css/theme-my-login.css?ver=1791043400' media='all' />
+<link rel='stylesheet' id='bri-print-css' href='https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/css/print.css' media='print' />
+<link rel='stylesheet' id='alert-me-font-css' href='//fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800&#038;display=swap&#038;ver=1791043400' media='all' />
+<link rel='stylesheet' id='alert-me-css' href='https://www.buildersinstitute.org/wp-content/plugins/alertme/assets/css/alert_me.css?ver=1791043400' media='all' />
+<link rel='stylesheet' id='wp-ada-compliance-styles-css' href='https://www.buildersinstitute.org/wp-content/plugins/wp-ada-compliance/styles.css?ver=1709939206' media='all' />
+<script id="jquery-core-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/jquery.js?ver=3.7.1"></script>
+<script id="jquery-migrate-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/jquery-migrate.js?ver=3.4.1"></script>
+<script id="gform_json-js" defer='defer' src="https://www.buildersinstitute.org/wp-content/plugins/gravityforms/js/jquery.json.js?ver=3.1.3"></script>
+<script id="gform_gravityforms-js-extra">
+var gf_global = {"gf_currency_config":{"name":"U.S. Dollar","symbol_left":"$","symbol_right":"","symbol_padding":"","thousand_separator":",","decimal_separator":".","decimals":2,"code":"USD"},"base_url":"https://www.buildersinstitute.org/wp-content/plugins/gravityforms","number_formats":[],"version_hash":"52ac1eb0d9bd279fdd21e2364063e33d","countries":{"AF":"Afghanistan","AX":"\u00c5land Islands","AL":"Albania","DZ":"Algeria","AS":"American Samoa","AD":"Andorra","AO":"Angola","AI":"Anguilla","AQ":"Antarctica","AG":"Antigua and Barbuda","AR":"Argentina","AM":"Armenia","AW":"Aruba","AU":"Australia","AT":"Austria","AZ":"Azerbaijan","BS":"Bahamas","BH":"Bahrain","BD":"Bangladesh","BB":"Barbados","BY":"Belarus","BE":"Belgium","BZ":"Belize","BJ":"Benin","BM":"Bermuda","BT":"Bhutan","BO":"Bolivia","BQ":"Bonaire, Sint Eustatius and Saba","BA":"Bosnia and Herzegovina","BW":"Botswana","BV":"Bouvet Island","BR":"Brazil","IO":"British Indian Ocean Territory","BN":"Brunei Darussalam","BG":"Bulgaria","BF":"Burkina Faso","BI":"Burundi","CV":"Cabo Verde","KH":"Cambodia","CM":"Cameroon","CA":"Canada","KY":"Cayman Islands","CF":"Central African Republic","TD":"Chad","CL":"Chile","CN":"China","CX":"Christmas Island","CC":"Cocos Islands","CO":"Colombia","KM":"Comoros","CD":"Congo, Democratic Republic of the","CG":"Congo","CK":"Cook Islands","CR":"Costa Rica","CI":"C\u00f4te d'Ivoire","HR":"Croatia","CU":"Cuba","CW":"Cura\u00e7ao","CY":"Cyprus","CZ":"Czechia","DK":"Denmark","DJ":"Djibouti","DM":"Dominica","DO":"Dominican Republic","EC":"Ecuador","EG":"Egypt","SV":"El Salvador","GQ":"Equatorial Guinea","ER":"Eritrea","EE":"Estonia","SZ":"Eswatini","ET":"Ethiopia","FK":"Falkland Islands","FO":"Faroe Islands","FJ":"Fiji","FI":"Finland","FR":"France","GF":"French Guiana","PF":"French Polynesia","TF":"French Southern Territories","GA":"Gabon","GM":"Gambia","GE":"Georgia","DE":"Germany","GH":"Ghana","GI":"Gibraltar","GR":"Greece","GL":"Greenland","GD":"Grenada","GP":"Guadeloupe","GU":"Guam","GT":"Guatemala","GG":"Guernsey","GN":"Guinea","GW":"Guinea-Bissau","GY":"Guyana","HT":"Haiti","HM":"Heard Island and McDonald Islands","VA":"Holy See","HN":"Honduras","HK":"Hong Kong","HU":"Hungary","IS":"Iceland","IN":"India","ID":"Indonesia","IR":"Iran","IQ":"Iraq","IE":"Ireland","IM":"Isle of Man","IL":"Israel","IT":"Italy","JM":"Jamaica","JP":"Japan","JE":"Jersey","JO":"Jordan","KZ":"Kazakhstan","KE":"Kenya","KI":"Kiribati","KP":"Korea, Democratic People's Republic of","KR":"Korea, Republic of","KW":"Kuwait","KG":"Kyrgyzstan","LA":"Lao People's Democratic Republic","LV":"Latvia","LB":"Lebanon","LS":"Lesotho","LR":"Liberia","LY":"Libya","LI":"Liechtenstein","LT":"Lithuania","LU":"Luxembourg","MO":"Macao","MG":"Madagascar","MW":"Malawi","MY":"Malaysia","MV":"Maldives","ML":"Mali","MT":"Malta","MH":"Marshall Islands","MQ":"Martinique","MR":"Mauritania","MU":"Mauritius","YT":"Mayotte","MX":"Mexico","FM":"Micronesia","MD":"Moldova","MC":"Monaco","MN":"Mongolia","ME":"Montenegro","MS":"Montserrat","MA":"Morocco","MZ":"Mozambique","MM":"Myanmar","NA":"Namibia","NR":"Nauru","NP":"Nepal","NL":"Netherlands","NC":"New Caledonia","NZ":"New Zealand","NI":"Nicaragua","NE":"Niger","NG":"Nigeria","NU":"Niue","NF":"Norfolk Island","MK":"North Macedonia","MP":"Northern Mariana Islands","NO":"Norway","OM":"Oman","PK":"Pakistan","PW":"Palau","PS":"Palestine, State of","PA":"Panama","PG":"Papua New Guinea","PY":"Paraguay","PE":"Peru","PH":"Philippines","PN":"Pitcairn","PL":"Poland","PT":"Portugal","PR":"Puerto Rico","QA":"Qatar","RE":"R\u00e9union","RO":"Romania","RU":"Russian Federation","RW":"Rwanda","BL":"Saint Barth\u00e9lemy","SH":"Saint Helena, Ascension and Tristan da Cunha","KN":"Saint Kitts and Nevis","LC":"Saint Lucia","MF":"Saint Martin","PM":"Saint Pierre and Miquelon","VC":"Saint Vincent and the Grenadines","WS":"Samoa","SM":"San Marino","ST":"Sao Tome and Principe","SA":"Saudi Arabia","SN":"Senegal","RS":"Serbia","SC":"Seychelles","SL":"Sierra Leone","SG":"Singapore","SX":"Sint Maarten","SK":"Slovakia","SI":"Slovenia","SB":"Solomon Islands","SO":"Somalia","ZA":"South Africa","GS":"South Georgia and the South Sandwich Islands","SS":"South Sudan","ES":"Spain","LK":"Sri Lanka","SD":"Sudan","SR":"Suriname","SJ":"Svalbard and Jan Mayen","SE":"Sweden","CH":"Switzerland","SY":"Syria Arab Republic","TW":"Taiwan","TJ":"Tajikistan","TZ":"Tanzania, the United Republic of","TH":"Thailand","TL":"Timor-Leste","TG":"Togo","TK":"Tokelau","TO":"Tonga","TT":"Trinidad and Tobago","TN":"Tunisia","TR":"T\u00fcrkiye","TM":"Turkmenistan","TC":"Turks and Caicos Islands","TV":"Tuvalu","UG":"Uganda","UA":"Ukraine","AE":"United Arab Emirates","GB":"United Kingdom","US":"United States","UY":"Uruguay","UM":"US Minor Outlying Islands","UZ":"Uzbekistan","VU":"Vanuatu","VE":"Venezuela","VN":"Viet Nam","VG":"Virgin Islands, British","VI":"Virgin Islands, U.S.","WF":"Wallis and Futuna","EH":"Western Sahara","YE":"Yemen","ZM":"Zambia","ZW":"Zimbabwe"},"strings":{"newRowAdded":"New row added.","rowRemoved":"Row removed","formSaved":"The form has been saved.  The content contains the link to return and complete the form."}};
+var gform_i18n = {"datepicker":{"wdOffset":0,"helpTextShort":"Press F1 for help","helpText":"Press the arrow keys to navigate by day, PageUp and PageDown to navigate by month, Alt+PageUp and Alt+PageDown to navigate by year, or Escape to cancel.","openOnFocusHelpText":"Press Down arrow to browse the calendar, or Escape to close.","tooltipTxt":"Press Escape to cancel","disabledTxt":"Disabled","markedTxt":"Selected","prevTxt":"Previous","nextTxt":"Next","monthTxt":"Month","yearTxt":"Year","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"days":[{"s":"S","l":"Sunday"},{"s":"M","l":"Monday"},{"s":"T","l":"Tuesday"},{"s":"W","l":"Wednesday"},{"s":"T","l":"Thursday"},{"s":"F","l":"Friday"},{"s":"S","l":"Saturday"}]}};
+var gf_legacy_multi = {"8":""};
+var gform_gravityforms = {"strings":{"invalid_file_extension":"This type of file is not allowed. Must be one of the following:","file_uploaded":"File uploaded","delete_file":"Delete this file","in_progress":"in progress","file_exceeds_limit":"File exceeds size limit","illegal_extension":"This type of file is not allowed.","max_reached":"Maximum number of files reached","unknown_error":"There was a problem while saving the file on the server","currently_uploading":"Please wait for the uploading to complete","cancel":"Cancel","cancel_upload":"Cancel this upload","cancelled":"Cancelled","error":"Error","message":"Message"},"vars":{"images_url":"https://www.buildersinstitute.org/wp-content/plugins/gravityforms/images"}};
+//# sourceURL=gform_gravityforms-js-extra
+</script>
+<script id="gform_gravityforms-js-before">
+//# sourceURL=gform_gravityforms-js-before
+</script>
+<script id="gform_gravityforms-js" defer='defer' src="https://www.buildersinstitute.org/wp-content/plugins/gravityforms/js/gravityforms.js?ver=3.1.3"></script>
+<script id="gform_gravityforms_utils-js" defer='defer' src="https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/js/dist/utils.min.js?ver=d7e103405223e60d2719f4c330fd11cf"></script>
+<script id="fontawesome-js" src="https://kit.fontawesome.com/9eb5ad94f1.js" crossorigin="anonymous"></script>
+<script id="popper-js-js" src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js?ver=1.16.0" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script id="bootstrap-js-js" src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js?ver=4.4.1" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script id="modernizr-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/modernizr.custom.min.js?ver=3.5.0"></script>
+<script id="prefixfree-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/prefixfree.min.js?ver=1.0.7"></script>
+<script id="prefixfree-jquery-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/prefixfree.jquery.js?ver=1.0.7"></script>
+<script id="slicknav-js-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/slicknav/jquery.slicknav.min.js?ver=1.0.10"></script>
+<script id="bxslider-js-js" src="https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.js?ver=4.2.15"></script>
+<script id="fancybox-js-js" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.6/jquery.fancybox.min.js?ver=3.5.6"></script>
+<script id="floatpanel-js-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/float-panel.js?ver=v2016.10.28"></script>
+<script id="aos-js-js" src="https://unpkg.com/aos@next/dist/aos.js?ver=3.0.0"></script>
+<script id="classlist-js-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/classList.js?ver=v2019.08.30"></script>
+<script id="backstretch-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/jquery.backstretch.min.js"></script>
+<script id="select2-js" src="https://www.buildersinstitute.org/wp-content/plugins/advanced-custom-fields-pro/assets/inc/select2/4/select2.full.js?ver=4.0"></script>
+<script id="alert-me-js-js" src="https://www.buildersinstitute.org/wp-content/plugins/alertme/assets/js/alertme.js?ver=1791043400"></script>
+
+<!-- Google tag (gtag.js) snippet added by Site Kit -->
+
+<!-- Google Analytics snippet added by Site Kit -->
+<script id="google_gtagjs-js" src="https://www.googletagmanager.com/gtag/js?id=GT-PZX64DK" async></script>
+<script id="google_gtagjs-js-after">
+window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}
+gtag("set","linker",{"domains":["www.buildersinstitute.org"]});
+gtag("js", new Date());
+gtag("set", "developer_id.dZTNiMT", true);
+gtag("config", "GT-PZX64DK");
+ window._googlesitekit = window._googlesitekit || {}; window._googlesitekit.throttledEvents = []; window._googlesitekit.gtagEvent = (name, data) => { var key = JSON.stringify( { name, data } ); if ( !! window._googlesitekit.throttledEvents[ key ] ) { return; } window._googlesitekit.throttledEvents[ key ] = true; setTimeout( () => { delete window._googlesitekit.throttledEvents[ key ]; }, 5 ); gtag( "event", name, { ...data, event_source: "site-kit" } ); } 
+//# sourceURL=google_gtagjs-js-after
+</script>
+
+<!-- End Google tag (gtag.js) snippet added by Site Kit -->
+<link rel="https://api.w.org/" href="https://www.buildersinstitute.org/wp-json/" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://www.buildersinstitute.org/xmlrpc.php?rsd" />
+<meta name="generator" content="WordPress 7.1.2" />
+<link rel='shortlink' href='https://www.buildersinstitute.org/?p=12741' />
+<script type="text/javascript">
+           var ajaxurl = "https://www.buildersinstitute.org/wp-admin/admin-ajax.php";
+         </script><meta name="generator" content="Site Kit by Google 1.146.0" /><!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T2XKPF6YYQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-T2XKPF6YYQ');
+</script><meta name="generator" content="Elementor 3.20.3; features: e_optimized_assets_loading, e_optimized_css_loading, e_font_icon_svg, additional_custom_breakpoints, block_editor_assets_optimize, e_image_loading_optimization; settings: css_print_method-external, google_font-enabled, font_display-swap">
+<link rel="icon" href="https://www.buildersinstitute.org/wp-content/uploads/2022/09/cropped-BRI-Logo-32x32.png" sizes="32x32" />
+<link rel="icon" href="https://www.buildersinstitute.org/wp-content/uploads/2022/09/cropped-BRI-Logo-192x192.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://www.buildersinstitute.org/wp-content/uploads/2022/09/cropped-BRI-Logo-180x180.png" />
+<meta name="msapplication-TileImage" content="https://www.buildersinstitute.org/wp-content/uploads/2022/09/cropped-BRI-Logo-270x270.png" />
+<style>.shorten_url { 
+	   padding: 10px 10px 10px 10px ; 
+	   border: 1px solid #AAAAAA ; 
+	   background-color: #EEEEEE ;
+}</style>
+	<!-- LoHud Tracking -->
+	<script type="text/javascript" src="//cdn.rlets.com/capture_configs/1e3/72b/bfa/c324a2aa3e4ac6c92e21168.js" async="async"></script>
+
+<style id="core-block-supports-inline-css">
+/**
+ * Core styles: block-supports
+ */
+
+/*# sourceURL=core-block-supports-inline-css */
+</style>
+<link rel='stylesheet' id='eo_front-css' href='https://www.buildersinstitute.org/wp-content/plugins/event-organiser/css/eventorganiser-front-end.css?ver=3.12.5' media='all' />
+
+</head>
+
+<body class="wp-singular event-template-default single single-event postid-12741 wp-embed-responsive wp-theme-builders-institute ctct-builders-institute elementor-default elementor-kit-11270">
+<div id="wrapper" class="position-relative"><!--Open Wrapper-->
+
+<div class="skipnav link-blue to-underline" aria-label="Link to skip to main content" role="navigation"><a class="bg-white" href="#container">Skip to main content</a></div>
+
+<header id="header" role="banner">
+	<nav id="nav-mobile" role="navigation">
+		<ul id="nav-menu-mobile" class=""><li id="menu-item-198" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-198"><a href="https://www.buildersinstitute.org/about/">About</a>
+<ul class="sub-menu">
+	<li id="menu-item-6158" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-6158"><a href="https://www.buildersinstitute.org/about/mission-statement/">Mission Statement</a></li>
+	<li id="menu-item-10259" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10259"><a href="https://www.buildersinstitute.org/staff/">Staff Directory</a></li>
+	<li id="menu-item-228" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-228"><a href="https://www.buildersinstitute.org/about/our-history/">Our History</a></li>
+	<li id="menu-item-229" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-229"><a href="https://www.buildersinstitute.org/about/message-from-the-president/">Message from the President</a></li>
+	<li id="menu-item-230" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-230"><a href="https://www.buildersinstitute.org/about/message-from-the-chairman/">Message from the Chairwoman</a></li>
+	<li id="menu-item-231" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-231"><a href="https://www.buildersinstitute.org/about/officers-board-of-trustees/">Officers &#038; Board of Trustees</a></li>
+	<li id="menu-item-232" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-232"><a href="https://www.buildersinstitute.org/about/realty-councils/">Realty Councils</a>
+	<ul class="sub-menu">
+		<li id="menu-item-4350" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4350"><a href="https://www.buildersinstitute.org/about/realty-councils/aoac/">Apartment Owners Advisory Council (AOAC)</a></li>
+		<li id="menu-item-4351" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4351"><a href="https://www.buildersinstitute.org/about/realty-councils/ccac/">Cooperative and Condominium Advisory Council (CCAC)</a></li>
+		<li id="menu-item-4349" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4349"><a href="https://www.buildersinstitute.org/about/realty-councils/acma/">Advisory Council of Managing Agents (ACMA)</a></li>
+	</ul>
+</li>
+	<li id="menu-item-4355" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4355"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/sspac/">Suppliers/Service Providers Advisory Council (SSPAC)</a></li>
+	<li id="menu-item-4467" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4467"><a href="https://www.buildersinstitute.org/baci/">Building and Allied Construction Industries</a></li>
+</ul>
+</li>
+<li id="menu-item-199" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-199"><a href="https://www.buildersinstitute.org/membership/">Membership</a>
+<ul class="sub-menu">
+	<li id="menu-item-302" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-302"><a href="https://www.buildersinstitute.org/membership/">Membership Overview</a></li>
+	<li id="menu-item-299" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-299"><a href="https://www.buildersinstitute.org/membership/member-benefits/">Member Benefits</a></li>
+	<li id="menu-item-298" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-298"><a href="https://www.buildersinstitute.org/membership/workers-compensation/">Workers Compensation</a></li>
+	<li id="menu-item-9791" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9791"><a href="https://www.buildersinstitute.org/membership/retirementplan/">Retirement Plan</a></li>
+	<li id="menu-item-300" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-300"><a href="https://www.buildersinstitute.org/membership/become-a-member/">Become A Member</a>
+	<ul class="sub-menu">
+		<li id="menu-item-4665" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4665"><a href="https://www.buildersinstitute.org/membership/become-a-member/builders/">Builders, Developers or Remodeler as a Primary Business</a></li>
+		<li id="menu-item-10846" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10846"><a href="https://web.buildersinstitute.org/atlas/forms/1">Owner/Landlord of one or more buildings</a></li>
+		<li id="menu-item-4666" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4666"><a href="https://www.buildersinstitute.org/membership/become-a-member/sspac/">Suppliers/Service Firms/Sub-Contractors</a></li>
+		<li id="menu-item-4668" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4668"><a href="https://www.buildersinstitute.org/membership/become-a-member/ccac/">President, Officer or other Board Member of a CO-OP/Condo/HOA</a></li>
+		<li id="menu-item-4669" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4669"><a href="https://www.buildersinstitute.org/membership/become-a-member/acma/">Residential/Commercial Property Managers</a></li>
+		<li id="menu-item-5896" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5896"><a href="https://www.buildersinstitute.org/membership/become-a-member/baci/">BACI Membership</a></li>
+	</ul>
+</li>
+	<li id="menu-item-10103" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10103"><a href="http://web.buildersinstitute.org/portal">Members-Only Portal</a></li>
+</ul>
+</li>
+<li id="menu-item-9830" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-9830"><a href="https://web.buildersinstitute.org/search">Member Directory</a></li>
+<li id="menu-item-201" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-201"><a href="https://www.buildersinstitute.org/events/">Events</a></li>
+<li id="menu-item-210" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-210"><a>News &#038; Media</a>
+<ul class="sub-menu">
+	<li id="menu-item-206" class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-206"><a href="https://www.buildersinstitute.org/news/">BRI News</a></li>
+	<li id="menu-item-202" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-202"><a href="https://www.buildersinstitute.org/impact/">IMPACT News</a></li>
+	<li id="menu-item-11049" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11049"><a href="https://podcasts.apple.com/us/podcast/building-knowledge/id1723916222">&#8220;Building Knowledge&#8221; Podcast</a></li>
+	<li id="menu-item-203" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-203"><a href="https://www.buildersinstitute.org/radio/">Radio Shows</a>
+	<ul class="sub-menu">
+		<li id="menu-item-204" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-204"><a href="https://www.buildersinstitute.org/radio/westchester-show/">Westchester Show</a></li>
+		<li id="menu-item-205" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-205"><a href="https://www.buildersinstitute.org/radio/nyc-show/">NYC Show</a></li>
+	</ul>
+</li>
+</ul>
+</li>
+<li id="menu-item-207" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-207"><a href="https://www.buildersinstitute.org/resources/">Resources</a>
+<ul class="sub-menu">
+	<li id="menu-item-10094" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10094"><a href="https://www.buildersinstitute.org/about/realty-councils/aoac/">2025-26 Westchester Rent Guidelines</a></li>
+	<li id="menu-item-12476" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12476"><a href="https://www.buildersinstitute.org/ice/">ICE FAQ/Resources</a></li>
+	<li id="menu-item-227" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-227"><a href="https://www.buildersinstitute.org/resources/stars-stripes-pac/">Stars &#038; Stripes PAC</a></li>
+	<li id="menu-item-226" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-226"><a href="https://www.buildersinstitute.org/resources/state-local-representatives/">State &#038; Local Representatives</a></li>
+	<li id="menu-item-4466" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4466"><a href="https://www.buildersinstitute.org/take-action/">Take Action</a></li>
+	<li id="menu-item-10045" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10045"><a href="https://www.buildersinstitute.org/resources/brief-summary-tenatative-agreement-between-bri-32bj-2022/">2022-2026 BRI &#038; 32BJ Agreement</a></li>
+	<li id="menu-item-4437" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4437"><a target="_blank" href="https://www.buildersinstitute.org/wp-content/uploads/2024/03/Impact-Ad-Specs-Sheet.pdf">Advertising Rates &#038; Spec Sheet</a></li>
+	<li id="menu-item-6075" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-6075"><a href="https://www.buildersinstitute.org/wp-content/uploads/2020/08/Impact_AdCntract_20200813.pdf">Advertising Insertion Contract</a></li>
+	<li id="menu-item-4424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-privacy-policy menu-item-4424"><a rel="privacy-policy" href="https://www.buildersinstitute.org/policies/">Privacy/Refund Policies</a></li>
+</ul>
+</li>
+<li id="menu-item-11713" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11713"><a href="http://www.welcomehomewestchester.org/">Welcome Home Westchester</a></li>
+<li id="menu-item-9825" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9825"><a href="https://www.buildersinstitute.org/take-action/">Take Action</a></li>
+</ul>	</nav>
+	<nav id="nav-fixed" role="navigation" class="d-none d-md-block float-panel compensate-for-scrollbar head-nav border-blue" data-top="0" data-scroll="100">
+		<div class="container">
+			<div class="row">
+				<!-- Sticky Logo -->
+				<div id="head-fixed-logo" class="col-2 align-self-center"><a class="logo" href="https://www.buildersinstitute.org/"><img width="300" height="300" src="https://www.buildersinstitute.org/wp-content/uploads/2019/11/BRI-Logo.png" class="attachment-full size-full" alt="" decoding="async" srcset="https://www.buildersinstitute.org/wp-content/uploads/2019/11/BRI-Logo.png 300w, https://www.buildersinstitute.org/wp-content/uploads/2019/11/BRI-Logo-180x180.png 180w, https://www.buildersinstitute.org/wp-content/uploads/2019/11/BRI-Logo-150x150.png 150w, https://www.buildersinstitute.org/wp-content/uploads/2019/11/BRI-Logo-240x240.png 240w" sizes="(max-width: 300px) 100vw, 300px" /></a></div>			
+				<!-- Sticky Menu -->
+				<ul id="nav-menu-fixed" class="nav-menu dd-nav d-flex col justify-content-between align-items-center link-blue to-orange font-size-16 font-weight-bold link-noline"><li id="menu-item-4213" class="d-none d-xl-inline-block menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-4213 top-level"><a href="https://www.buildersinstitute.org/">Home</a></li>
+<li id="menu-item-4214" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4214 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/about/">About</a>
+<ul class="sub-menu">
+	<li id="menu-item-4215" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4215"><a href="https://www.buildersinstitute.org/about/our-history/">Our History</a></li>
+	<li id="menu-item-4216" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4216"><a href="https://www.buildersinstitute.org/about/message-from-the-president/">Message from the President</a></li>
+	<li id="menu-item-4217" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4217"><a href="https://www.buildersinstitute.org/about/message-from-the-chairman/">Message from the Chairwoman</a></li>
+	<li id="menu-item-4218" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4218"><a href="https://www.buildersinstitute.org/about/officers-board-of-trustees/">Officers &#038; Board of Trustees</a></li>
+	<li id="menu-item-4219" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4219" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/about/realty-councils/">Realty Councils</a>
+	<ul class="sub-menu">
+		<li id="menu-item-4387" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4387"><a href="https://www.buildersinstitute.org/about/realty-councils/aoac/">Apartment Owners Advisory Council (AOAC)</a></li>
+		<li id="menu-item-4388" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4388"><a href="https://www.buildersinstitute.org/about/realty-councils/ccac/">Cooperative and Condominium Advisory Council (CCAC)</a></li>
+		<li id="menu-item-4386" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4386"><a href="https://www.buildersinstitute.org/about/realty-councils/acma/">Advisory Council of Managing Agents (ACMA)</a></li>
+	</ul>
+</li>
+	<li id="menu-item-4220" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4220" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/">Builder &#038; Remodeler Councils</a>
+	<ul class="sub-menu">
+		<li id="menu-item-4390" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4390"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/hbac/">Home Builders Advisory Council (HBAC)</a></li>
+		<li id="menu-item-4389" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4389"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/cbac/">Commercial Builders Advisory Council (CBAC)</a></li>
+		<li id="menu-item-4391" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4391"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/rac/">Remodelers Advisory Council (RAC)</a></li>
+		<li id="menu-item-4392" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4392"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/sspac/">Suppliers/Service Providers Advisory Council (SSPAC)</a></li>
+	</ul>
+</li>
+	<li id="menu-item-4473" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4473"><a href="https://www.buildersinstitute.org/baci/">Building and Allied Construction Industries</a></li>
+</ul>
+</li>
+<li id="menu-item-4221" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4221 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/membership/">Membership</a>
+<ul class="sub-menu">
+	<li id="menu-item-4227" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4227"><a href="https://www.buildersinstitute.org/membership/">Membership Overview</a></li>
+	<li id="menu-item-4222" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4222"><a href="https://www.buildersinstitute.org/membership/member-services/">Member Services</a></li>
+	<li id="menu-item-4223" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4223"><a href="https://www.buildersinstitute.org/membership/workers-compensation/">Workers Compensation</a></li>
+	<li id="menu-item-4224" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4224"><a href="https://www.buildersinstitute.org/membership/member-benefits/">Member Benefits</a></li>
+	<li id="menu-item-4225" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4225" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/membership/become-a-member/">Become A Member</a>
+	<ul class="sub-menu">
+		<li id="menu-item-4676" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4676"><a href="https://www.buildersinstitute.org/membership/become-a-member/builders/">Builders, Developers or Remodeler as a Primary Business</a></li>
+		<li id="menu-item-4677" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4677"><a href="https://www.buildersinstitute.org/membership/become-a-member/sspac/">Suppliers/Service Firms/Sub-Contractors</a></li>
+		<li id="menu-item-4678" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4678"><a href="https://www.buildersinstitute.org/membership/become-a-member/aoac/">Owners/Landlord of one or more Apartment Buildings</a></li>
+		<li id="menu-item-4679" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4679"><a href="https://www.buildersinstitute.org/membership/become-a-member/ccac/">President, Officer or other Board Member of a CO-OP/Condo/HOA</a></li>
+		<li id="menu-item-4680" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4680"><a href="https://www.buildersinstitute.org/membership/become-a-member/acma/">Residential/Commercial Property Managers</a></li>
+		<li id="menu-item-5898" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5898"><a href="https://www.buildersinstitute.org/membership/become-a-member/baci/">BACI Membership</a></li>
+	</ul>
+</li>
+</ul>
+</li>
+<li id="menu-item-4417" class="d-none d-lg-inline-block menu-item menu-item-type-post_type menu-item-object-page menu-item-4417 top-level"><a href="https://www.buildersinstitute.org/baci/">BACI</a></li>
+<li id="menu-item-4229" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4229 top-level"><a href="https://www.buildersinstitute.org/events/">Events</a></li>
+<li id="menu-item-4230" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-4230 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a>News &#038; Media</a>
+<ul class="sub-menu">
+	<li id="menu-item-4235" class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-4235"><a href="https://www.buildersinstitute.org/news/">BRI News</a></li>
+	<li id="menu-item-4231" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4231"><a href="https://www.buildersinstitute.org/impact/">IMPACT News</a></li>
+	<li id="menu-item-4232" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4232" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/radio/">Radio Shows</a>
+	<ul class="sub-menu">
+		<li id="menu-item-4233" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4233"><a href="https://www.buildersinstitute.org/radio/westchester-show/">Westchester Show</a></li>
+		<li id="menu-item-4234" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4234"><a href="https://www.buildersinstitute.org/radio/nyc-show/">NYC Show</a></li>
+	</ul>
+</li>
+</ul>
+</li>
+<li id="menu-item-4236" class="d-none d-lg-inline-block menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4236 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/resources/">Resources</a>
+<ul class="sub-menu">
+	<li id="menu-item-4472" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4472"><a href="https://www.buildersinstitute.org/take-action/">Take Action</a></li>
+	<li id="menu-item-4237" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4237"><a href="https://www.buildersinstitute.org/resources/stars-stripes-pac/">Stars &#038; Stripes PAC</a></li>
+	<li id="menu-item-4238" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4238"><a href="https://www.buildersinstitute.org/resources/state-local-representatives/">State &#038; Local Representatives</a></li>
+	<li id="menu-item-4432" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4432"><a target="_blank" rel="noopener noreferrer" href="https://www.buildersinstitute.org/wp-content/uploads/2019/12/Impact_AdSpecs_20200817.pdf">Advertising Rates &#038; Spec Sheet</a></li>
+	<li id="menu-item-4433" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4433"><a target="_blank" rel="noopener noreferrer" href="https://www.buildersinstitute.org/wp-content/uploads/2019/12/IMPACT-Insertion-Order.pdf">Advertising Insertion Order</a></li>
+	<li id="menu-item-4426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-privacy-policy menu-item-4426"><a href="https://www.buildersinstitute.org/policies/">Privacy/Refund Policies</a></li>
+</ul>
+</li>
+<li id="menu-item-4239" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4239 top-level"><a href="https://www.buildersinstitute.org/contact-us/">Contact</a></li>
+</ul>					
+			</div>
+		</div>
+	</nav>
+	<div id="head-wrap" class="container position-relative pt-20 pb-10">
+		<div class="row align-items-center">
+			<!-- Logo 1 -->
+			<div id="head-logo" class="col-12 col-xl-4 d-md-none d-xl-block mb-xl-1"><a class="logo mx-auto mx-md-0" href="https://www.buildersinstitute.org/"><img width="339" height="134" src="https://www.buildersinstitute.org/wp-content/uploads/2019/10/logo.svg" class="attachment-full size-full" alt="BRI - The Building &amp; Realty Institute of the Hudson Valley" decoding="async" /></a></div>
+			<div id="head-wrap-inner" class="col-12 col-xl-8 d-none d-md-block">
+				<div class="d-flex justify-content-between align-items-center">
+					<!-- Logo 2 -->
+					<div id="head-logo-alt" class="d-none d-md-block d-xl-none flex-fill"><a class="logo" href="https://www.buildersinstitute.org/"><img width="339" height="134" src="https://www.buildersinstitute.org/wp-content/uploads/2019/10/logo.svg" class="attachment-full size-full" alt="BRI - The Building &amp; Realty Institute of the Hudson Valley" decoding="async" /></a></div>
+					<div class="flex-fill d-xl-flex justify-content-end align-items-center text-right">					
+						<!-- Social -->
+						<div id="head-social" class="mr-xl-4"><ul class="social social-btn"><li><a class="link-blue to-orange" href="https://www.facebook.com/buildingandrealtyinstitute/" target="_blank"><span class="faico fab fa-facebook-f "></span></a></li><li><a class="link-blue to-orange" href="https://twitter.com/briwestchester" target="_blank"><span class="faico fab fa-twitter "></span></a></li><li><a class="link-blue to-orange" href="https://sg.linkedin.com/company/building-and-realty-institute-of-westchester-bri" target="_blank"><span class="faico fab fa-linkedin-in "></span></a></li><li><a class="link-blue to-orange" href="https://www.youtube.com/channel/UCA9h-s6BtZiMALs_-nxbbwg/null" target="_blank"><span class="faico fab fa-youtube "></span></a></li><li><a class="link-blue to-orange" href="https://www.instagram.com/briwestchester/" target="_blank"><span class="faico fab fa-instagram "></span></a></li></ul></div>
+						<!-- Top Nav -->
+						<nav id="nav-top" role="navigation" class="head-nav blue-lt">
+							<ul id="nav-menu-top" class="nav-menu text-right link-blue-lt to-orange link-noline"><li id="menu-item-213" class="d-none d-lg-inline-block menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-213"><a href="https://www.buildersinstitute.org/">Home</a></li>
+<li id="menu-item-303" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-303"><a href="https://www.buildersinstitute.org/membership/become-a-member/">Become A Member</a></li>
+<li id="menu-item-304" class="newsletter-trigger menu-item menu-item-type-custom menu-item-object-custom menu-item-304"><a target="_blank" href="#">Subscribe to Our Email List</a></li>
+<li id="menu-item-9824" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9824"><a href="https://www.buildersinstitute.org/baci/">BACI</a></li>
+<li id="menu-item-10376" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10376"><a href="https://www.buildersinstitute.org/bris-collective-bargaining-group-page/">Collective Bargaining Group</a></li>
+<li id="menu-item-211" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-211"><a href="https://www.buildersinstitute.org/contact-us/">Contact Us</a></li>
+</ul>						</nav>
+					</div>
+				</div>
+				<!-- Main Header Nav -->
+				<nav id="nav" role="navigation" class="head-nav mt-1 mt-xl-0">
+					<ul id="nav-menu" class="nav-menu dd-nav d-flex justify-content-between align-items-center font-weight-bold link-blue to-orange link-noline"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-198 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/about/">About</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-6158"><a href="https://www.buildersinstitute.org/about/mission-statement/">Mission Statement</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10259"><a href="https://www.buildersinstitute.org/staff/">Staff Directory</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-228"><a href="https://www.buildersinstitute.org/about/our-history/">Our History</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-229"><a href="https://www.buildersinstitute.org/about/message-from-the-president/">Message from the President</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-230"><a href="https://www.buildersinstitute.org/about/message-from-the-chairman/">Message from the Chairwoman</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-231"><a href="https://www.buildersinstitute.org/about/officers-board-of-trustees/">Officers &#038; Board of Trustees</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-232" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/about/realty-councils/">Realty Councils</a>
+	<ul class="sub-menu">
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4350"><a href="https://www.buildersinstitute.org/about/realty-councils/aoac/">Apartment Owners Advisory Council (AOAC)</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4351"><a href="https://www.buildersinstitute.org/about/realty-councils/ccac/">Cooperative and Condominium Advisory Council (CCAC)</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4349"><a href="https://www.buildersinstitute.org/about/realty-councils/acma/">Advisory Council of Managing Agents (ACMA)</a></li>
+	</ul>
+</li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4355"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/sspac/">Suppliers/Service Providers Advisory Council (SSPAC)</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4467"><a href="https://www.buildersinstitute.org/baci/">Building and Allied Construction Industries</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-199 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/membership/">Membership</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-302"><a href="https://www.buildersinstitute.org/membership/">Membership Overview</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-299"><a href="https://www.buildersinstitute.org/membership/member-benefits/">Member Benefits</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-298"><a href="https://www.buildersinstitute.org/membership/workers-compensation/">Workers Compensation</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9791"><a href="https://www.buildersinstitute.org/membership/retirementplan/">Retirement Plan</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-300" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/membership/become-a-member/">Become A Member</a>
+	<ul class="sub-menu">
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4665"><a href="https://www.buildersinstitute.org/membership/become-a-member/builders/">Builders, Developers or Remodeler as a Primary Business</a></li>
+		<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10846"><a href="https://web.buildersinstitute.org/atlas/forms/1">Owner/Landlord of one or more buildings</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4666"><a href="https://www.buildersinstitute.org/membership/become-a-member/sspac/">Suppliers/Service Firms/Sub-Contractors</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4668"><a href="https://www.buildersinstitute.org/membership/become-a-member/ccac/">President, Officer or other Board Member of a CO-OP/Condo/HOA</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4669"><a href="https://www.buildersinstitute.org/membership/become-a-member/acma/">Residential/Commercial Property Managers</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5896"><a href="https://www.buildersinstitute.org/membership/become-a-member/baci/">BACI Membership</a></li>
+	</ul>
+</li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10103"><a href="http://web.buildersinstitute.org/portal">Members-Only Portal</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-9830 top-level"><a href="https://web.buildersinstitute.org/search">Member Directory</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-201 top-level"><a href="https://www.buildersinstitute.org/events/">Events</a></li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-210 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a>News &#038; Media</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-206"><a href="https://www.buildersinstitute.org/news/">BRI News</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-202"><a href="https://www.buildersinstitute.org/impact/">IMPACT News</a></li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11049"><a href="https://podcasts.apple.com/us/podcast/building-knowledge/id1723916222">&#8220;Building Knowledge&#8221; Podcast</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-203" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/radio/">Radio Shows</a>
+	<ul class="sub-menu">
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-204"><a href="https://www.buildersinstitute.org/radio/westchester-show/">Westchester Show</a></li>
+		<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-205"><a href="https://www.buildersinstitute.org/radio/nyc-show/">NYC Show</a></li>
+	</ul>
+</li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-207 top-level" aria-haspopup="true" aria-expanded="false" tabindex="-1"><a href="https://www.buildersinstitute.org/resources/">Resources</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10094"><a href="https://www.buildersinstitute.org/about/realty-councils/aoac/">2025-26 Westchester Rent Guidelines</a></li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12476"><a href="https://www.buildersinstitute.org/ice/">ICE FAQ/Resources</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-227"><a href="https://www.buildersinstitute.org/resources/stars-stripes-pac/">Stars &#038; Stripes PAC</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-226"><a href="https://www.buildersinstitute.org/resources/state-local-representatives/">State &#038; Local Representatives</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4466"><a href="https://www.buildersinstitute.org/take-action/">Take Action</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10045"><a href="https://www.buildersinstitute.org/resources/brief-summary-tenatative-agreement-between-bri-32bj-2022/">2022-2026 BRI &#038; 32BJ Agreement</a></li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4437"><a target="_blank" rel="noopener noreferrer" href="https://www.buildersinstitute.org/wp-content/uploads/2024/03/Impact-Ad-Specs-Sheet.pdf">Advertising Rates &#038; Spec Sheet</a></li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-6075"><a href="https://www.buildersinstitute.org/wp-content/uploads/2020/08/Impact_AdCntract_20200813.pdf">Advertising Insertion Contract</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-privacy-policy menu-item-4424"><a href="https://www.buildersinstitute.org/policies/">Privacy/Refund Policies</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11713 top-level"><a href="http://www.welcomehomewestchester.org/">Welcome Home Westchester</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-9825 top-level"><a href="https://www.buildersinstitute.org/take-action/">Take Action</a></li>
+</ul>				</nav>
+			</div>			
+		</div>
+	</div>
+</header>
+
+<!--Begin Content Section-->
+<div id="container" class="position-relative">
+<div class="page-title position-relative bg-white blue"><div class="page-title-overlay" style="background-image:url('https://www.buildersinstitute.org/wp-content/uploads/2022/09/Untitled-design-8-wecompress.com_.png');background-position:center;opacity:0.75;"></div><div class="page-title-inner position-relative"><div class="container"><h1>Events</h1></div></div></div>
+<div class="main-wrap">
+
+	<article aria-label="Information about the event" class="post-12741 event type-event status-publish hentry" id="post-12741"><div class="container py-60">
+
+		<div class="row justify-content-between">
+			
+			<div class="entry-wrap col-12 col-lg-8">
+				<section aria-label="Description and details of the event" class="content">
+					<!-- Title -->
+					<h2 class="section-title">Annual Golf Outing</h2>
+						
+
+					
+					
+<div class="event-meta">
+	<!-- Choose a different date format depending on whether we want to include time -->
+		<hr>
+
+	<!-- Event details -->
+	<h3 class="blue">Event Details</h3>
+
+	
+	<ul class="eo-event-meta">
+
+				<li><strong>Date/Time:</strong>&nbsp;Wednesday, October 7th, 2026 from 10:30 am to 7:30 pm</li>
+	
+	
+
+		
+	
+		
+		
+		
+	</ul>
+
+			<hr>
+	
+</div><!-- .entry-meta -->
+
+					<div class="cf"><div id="wc-eventDetailDateAndLocation" class="wc-halfWidth wc-fullWidth-phone wc-inline wc-alignTop wc-eventDetailDateAndLocation"><div class="wc-pagePadding wc-alignTop"><div id="wc-eventDetailDate" class="wc-eventDetailDate"><label data-bind="text: Event.EventStartAndEndDateAndTimeAsLongString">Wednesday, October 7, 2026 | 10:30 AM &#8211; 7:30 PM</label></div><div id="wc-eventDetailLocation" class="wc-eventDetailLocation"><address><div data-bind="html: Event.LocationDisplay">Metropolis Country Club<br />289 Dobbs Ferry Rd<br />White Plains, NY 10607</div></address></div></div></div><div id="wc-eventDetailDescriptionAndItems" class="wc-fullWidth wc-fullWidth-phone wc-eventDetailDescriptionAndItems"><div class="wc-pagePadding"><div id="wc-eventDetailDescription" class="wc-eventDetailDescription"><div data-bind="html: Event.Descr"><p>Join us on <strong>Wednesday, October 7, 2026</strong> for our Annual Golf Outing!</p><p>Don&#8217;t miss out on a day of golfing under the sun, networking and connecting with industry professionals, dinner at the prestigious Metropolis Country Club, and a chance to win some amazing prizes at our raffle! You can help make our raffle prizes even better by donating. Contact Margie at <a href="mailto:margie@buildersinstitute.org">margie@buildersinstitute.org</a> if your business or organization would like to make a prize donation!</p><p><u><strong>Tentative Schedule</strong><i> (subject to change closer to the date)</i></u></p><p>10:30 am to 12:00 noon &#8212; Registration and breakfast buffet</p><p>12:15 noon &#8212; Shotgun start</p><p>12:30 pm &#8212; Lunch available at the Halfway House</p><p>5:00 pm &#8212; Cocktail reception</p><p>6:00 pm &#8212; Dinner and prize raffle</p><h1><a href="https://web.buildersinstitute.org/events/Annual-Golf-Outing-1120/details" target="_blank" title="" class="" rel="noopener">REGISTER HERE!</a></h1></div></div></div></div></div>
+
+					<!-- Registration and Add to Calendar Buttons -->
+					<div class="btn-wrap feat-btn"><div class="add-to-cal-wrap"><a  class="ease add-to-cal-trigger btn border-3 border-blue bg-none bg-to-blue link-blue to-white" href="#"  aria-label="Link displaying options for adding the event to a calendar">Add to Calendar</a><div class="add-to-cal-links hidden"><a  class="ease add-to-cal btn bg-blue-lter bg-to-orange link-blue to-white border-3 border-blue" href="http://www.google.com/calendar/event?action=TEMPLATE&text=Annual%20Golf%20Outing&dates=20261007T143000Z/20261007T233000Z&details=Wednesday,%20October%207,%202026%20&#124;%2010:30%20AM%20&#8211;%207:30%20PMMetropolis%20Country%20Club&#160;289%20Dobbs%20Ferry%20Rd&#160;White%20Plains,%20NY%2010607Join%20us%20on%20Wednesday,%20October%207,%202026 for%20our%20Annual%20Golf%20Outing!&#160;Don&#8217;t%20miss%20out%20on%20a%20day%20of%20golfing%20under%20the%20sun,%20networking%20and%20connecting%20with%20industry%20professionals,%20dinner%20%5B&#8230;%5D&sprop=The%20Builders%20Institute%20|%20The%20Building%20&amp;%20Realty%20Institute%20of%20Westchester%20&amp;%20the%20Mid-Hudson%20Region" target="_blank" aria-label="Link add the event to a Google calendar">Google Calendar</a><a  class="ease add-to-cal btn bg-blue-lter bg-to-orange link-blue to-white border-3 border-blue" href="https://www.buildersinstitute.org/annual-golf-outing/feed/eo-events/"  aria-label="Link add the event to an iCal or Outlook calendar">iCal/Outlook Calendar</a></div></div></div>				</section>
+
+				<hr>
+				<section aria-label="Categorization and meta information about the event" class="entry-meta font-size-16">
+					<div class="entry-bookmark">Bookmark the <a href="https://www.buildersinstitute.org/annual-golf-outing/" title="Annual Golf Outing" rel="bookmark">Permalink</a></div>
+						<div class="navigation ">
+		<div class="prev">&laquo; <a href="https://www.buildersinstitute.org/lunch-meeting-for-suppliers-service-providers-and-subcontractors-business-insurance-issues-you-need-to-understand/" rel="prev">Previous Event</a></div><div class="next"><a href="https://www.buildersinstitute.org/networking-night-building-connections-across-westchesters-aec-community/" rel="next">Next Event</a> &raquo;</div>	</div>				</section>
+				<hr>
+
+							<div class="alertme_email">
+			<div class="alertme_conatainer">
+				<h2 class="alertme_heading">
+					Send me an email when this page has been updated!				</h2>
+				<form name="alert_me_form" id="alert_me_form" method="post" action="">
+				    <div class="alertme_row">
+				    	<input type="hidden" id="_wpnonce" name="_wpnonce" value="822dc7fda8" /><input type="hidden" name="_wp_http_referer" value="/annual-golf-outing" />				    	<input type="hidden" name="alert_me_post_id" id="alert_me_post_id" value="12741">
+				      <div class="alertme_left">
+				        <img src="https://www.buildersinstitute.org/wp-content/plugins/alertme/assets//images/email.svg">
+				        <input type="text" name="alert_me_email" class="alertme_input" id="alert_me_email" placeholder="Email">
+				      </div>
+				      <div class="alertme_right">
+				        <button type="button" id="alert_me_submit" class="alertme_button">
+				        	Subscribe				        </button>
+				      </div>
+				    </div>
+				</form>
+			</div>
+		</div>
+				</div>
+
+			
+<aside class="sidebar sidebar-events col-12 col-lg-4 border-blue link-blue-lt to-orange font-size-16">
+
+	<section id="search-3" class="widget-odd widget-first widget-1 widget widget_search"><form data-wpadaid="searchform" role="search" method="get" class="search-form" action="https://www.buildersinstitute.org/">
+	<div class="d-flex position-relative">
+		<label>
+			<span class="screen-reader-text">Search for:</span>
+			<input type="search" class="search-field" placeholder="Search" value="" name="s" title="Search for:" />
+		</label><!--
+		--><input type="submit" class="search-submit" value="" /><!--
+		--><span class="faico-wrap text-center ease"><span class="faico fas fa-search"></span></span>
+	</div>
+</form></section><section id="eo_calendar_widget-2" class="widget-even widget-2 widget widget_calendar eo_widget_calendar"><div id='eo_calendar_widget-2_content' class='eo-widget-cal-wrap' data-eo-widget-cal-id='eo_calendar_widget-2' ><table id='wp-calendar'><caption> October 2026 </caption><thead><tr><th title='Sunday' scope='col'>S</th><th title='Monday' scope='col'>M</th><th title='Tuesday' scope='col'>T</th><th title='Wednesday' scope='col'>W</th><th title='Thursday' scope='col'>T</th><th title='Friday' scope='col'>F</th><th title='Saturday' scope='col'>S</th></tr></thead><tbody><tr><td class="pad eo-before-month" colspan="1">&nbsp;</td><td class="pad eo-before-month" colspan="1">&nbsp;</td><td class="pad eo-before-month" colspan="1">&nbsp;</td><td class="pad eo-before-month" colspan="1">&nbsp;</td><td data-eo-wc-date='2026-10-01' class='eo-past-date event eo-event-past'> <a title='Annual BACI Membership Meeting &#8211; Where Can We Still Build? A Practical 2027 Housing and Development Outlook for Westchester, Putnam and Rockland' href='https://www.buildersinstitute.org/annual-baci-membership-meeting-where-can-we-still-build-a-practical-2027-housing-and-development-outlook-for-westchester-putnam-and-rockland/'> 1 </a></td><td data-eo-wc-date='2026-10-02' class='eo-past-date'><span> 2 </span></td><td data-eo-wc-date='2026-10-03' class='today'><span> 3 </span></td></tr><tr><td data-eo-wc-date='2026-10-04' class='eo-future-date'><span> 4 </span></td><td data-eo-wc-date='2026-10-05' class='eo-future-date'><span> 5 </span></td><td data-eo-wc-date='2026-10-06' class='eo-future-date'><span> 6 </span></td><td data-eo-wc-date='2026-10-07' class='eo-future-date event eo-event-future'> <a title='Annual Golf Outing' href='https://www.buildersinstitute.org/annual-golf-outing/'> 7 </a></td><td data-eo-wc-date='2026-10-08' class='eo-future-date'><span> 8 </span></td><td data-eo-wc-date='2026-10-09' class='eo-future-date'><span> 9 </span></td><td data-eo-wc-date='2026-10-10' class='eo-future-date'><span> 10 </span></td></tr><tr><td data-eo-wc-date='2026-10-11' class='eo-future-date'><span> 11 </span></td><td data-eo-wc-date='2026-10-12' class='eo-future-date'><span> 12 </span></td><td data-eo-wc-date='2026-10-13' class='eo-future-date'><span> 13 </span></td><td data-eo-wc-date='2026-10-14' class='eo-future-date event eo-event-future'> <a title='Webinar: Review of the new BRI-32BJ contract with Labor Counsel Matt Persanis' href='https://www.buildersinstitute.org/webinar-review-of-the-new-bri-32bj-contract-with-labor-counsel-matt-persanis/'> 14 </a></td><td data-eo-wc-date='2026-10-15' class='eo-future-date event eo-event-future'> <a title='October General Membership Meeting &#8211; &#8220;80 Years of Leadership in Housing&#8221;' href='https://www.buildersinstitute.org/october-general-membership-meeting-80-years-of-leadership-in-housing/'> 15 </a></td><td data-eo-wc-date='2026-10-16' class='eo-future-date'><span> 16 </span></td><td data-eo-wc-date='2026-10-17' class='eo-future-date'><span> 17 </span></td></tr><tr><td data-eo-wc-date='2026-10-18' class='eo-future-date'><span> 18 </span></td><td data-eo-wc-date='2026-10-19' class='eo-future-date event eo-event-future'> <a title='Webinar: Review of the new BRI-32BJ contract with Labor Counsel Matt Persanis' href='https://www.buildersinstitute.org/webinar-review-of-the-new-bri-32bj-contract-with-labor-counsel-matt-persanis-2/'> 19 </a></td><td data-eo-wc-date='2026-10-20' class='eo-future-date'><span> 20 </span></td><td data-eo-wc-date='2026-10-21' class='eo-future-date event eo-event-future'> <a title='Fall Networking Event' href='https://www.buildersinstitute.org/fall-networking-event-3/'> 21 </a></td><td data-eo-wc-date='2026-10-22' class='eo-future-date'><span> 22 </span></td><td data-eo-wc-date='2026-10-23' class='eo-future-date'><span> 23 </span></td><td data-eo-wc-date='2026-10-24' class='eo-future-date'><span> 24 </span></td></tr><tr><td data-eo-wc-date='2026-10-25' class='eo-future-date'><span> 25 </span></td><td data-eo-wc-date='2026-10-26' class='eo-future-date'><span> 26 </span></td><td data-eo-wc-date='2026-10-27' class='eo-future-date'><span> 27 </span></td><td data-eo-wc-date='2026-10-28' class='eo-future-date'><span> 28 </span></td><td data-eo-wc-date='2026-10-29' class='eo-future-date'><span> 29 </span></td><td data-eo-wc-date='2026-10-30' class='eo-future-date'><span> 30 </span></td><td data-eo-wc-date='2026-10-31' class='eo-future-date'><span> 31 </span></td></tr></tbody><tfoot><tr>
+				<td id='eo-widget-prev-month' colspan='3'><a title='Previous month' href='https://www.buildersinstitute.org?eo_month=2026-09'>&laquo; Sep</a></td>
+				<td class='pad'>&nbsp;</td>
+				<td id='eo-widget-next-month' colspan='3'><a title='Next month' href='https://www.buildersinstitute.org?eo_month=2026-11'> Nov &raquo; </a></td>
+			</tr></tfoot></table></div></section><section id="text-9" class="widget-odd widget-last widget-3 widget widget_text">			<div class="textwidget"><div class="membership-cta bg-blue px-25 py-30"><h2 class="font-size-16 orange mb-35">Join the BRI Today</h2><div class="cta-description mb-40 white">Our services extend to all facets of the Building and Realty industries. Stay current with all of the events and planned meetings of The BRI. We encourage you to apply or renew your application for membership online.  </div><a  class="ease font-libre-baskerville font-size-14 mt-10 btn border-orange border-to-white bg-orange bg-to-white link-white to-orange" href="https://www.buildersinstitute.org/membership/become-a-member/"  aria-label="Become A Member">Become A Member</a><a  class="ease font-libre-baskerville font-size-14 mt-10 btn btn-light" href="http://web.buildersinstitute.org/portal"  aria-label="Renew Membership">Renew Membership</a></div>
+			<div class="alertme_email">
+			<div class="alertme_conatainer">
+				<h2 class="alertme_heading">
+					Send me an email when this page has been updated!				</h2>
+				<form name="alert_me_form" id="alert_me_form" method="post" action="">
+				    <div class="alertme_row">
+				    	<input type="hidden" id="_wpnonce" name="_wpnonce" value="822dc7fda8" /><input type="hidden" name="_wp_http_referer" value="/annual-golf-outing" />				    	<input type="hidden" name="alert_me_post_id" id="alert_me_post_id" value="12741">
+				      <div class="alertme_left">
+				        <img decoding="async" src="https://www.buildersinstitute.org/wp-content/plugins/alertme/assets//images/email.svg">
+				        <input type="text" name="alert_me_email" class="alertme_input" id="alert_me_email" placeholder="Email">
+				      </div>
+				      <div class="alertme_right">
+				        <button type="button" id="alert_me_submit" class="alertme_button">
+				        	Subscribe				        </button>
+				      </div>
+				    </div>
+				</form>
+			</div>
+		</div>
+	
+</div>
+		</section>
+</aside>
+		</div>
+
+	</div></article>
+
+</div>
+
+	
+</div><!--End Content Section-->
+
+<footer id="footer" role="contentinfo" class="bg-blue white link-white font-weight-bold font-size-14">
+	<div id="foot-wrap" class="py-80 container">
+		<div class="row justify-content-between align-items-center mb-20">
+			<!-- Logo -->
+			<div id="foot-logo" class="col-md-6 mb-20"><a class="logo" href="https://www.buildersinstitute.org/"><img width="1" height="1" src="https://www.buildersinstitute.org/wp-content/uploads/2019/10/logo-white.svg" class="attachment-full size-full" alt="BI | BRI - The Builders Institute, The Building &amp; Realty Institute of Westchester &amp; the Mid-Hudson Region" decoding="async" /></a></div>
+			<!-- Newsletter & Social -->
+			<div id="foot-c2a" class="col-md-6 mb-20 d-flex align-items-center justify-content-md-end">
+				<!-- Newsletter -->
+				<a id="foot-news" href="#newsletter" class="btn border-3 border-blue-lt bg-none bg-to-blue-lt white mr-20" data-fancybox="newsletter">Join Our Newsletter</a>
+				<!-- Social -->
+				<div id="foot-social"><ul class="social social-btn"><li><a class="link-white to-orange" href="https://www.facebook.com/buildingandrealtyinstitute/" target="_blank"><span class="faico fab fa-facebook-f "></span></a></li><li><a class="link-white to-orange" href="https://twitter.com/briwestchester" target="_blank"><span class="faico fab fa-twitter "></span></a></li><li><a class="link-white to-orange" href="https://sg.linkedin.com/company/building-and-realty-institute-of-westchester-bri" target="_blank"><span class="faico fab fa-linkedin-in "></span></a></li><li><a class="link-white to-orange" href="https://www.youtube.com/channel/UCA9h-s6BtZiMALs_-nxbbwg/null" target="_blank"><span class="faico fab fa-youtube "></span></a></li><li><a class="link-white to-orange" href="https://www.instagram.com/briwestchester/" target="_blank"><span class="faico fab fa-instagram "></span></a></li></ul></div>
+			</div>
+		</div>
+		<div class="row">
+			<!-- Contact Info -->
+			<div class="foot-contact col col-sm-6 col-md-4 col-lg foot-group pb-30 pb-lg-0">
+				<div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4">Headquarters</div>
+									<div id="foot-cinfo" class="mb-20">
+													<!-- Phone -->
+							<div id="foot-phone">
+								<span class="mr-2">Phone</span><a href="tel:+19142730730">914-273-0730</a>
+							</div>
+																			<!-- Fax -->
+							<div id="foot-fax">
+								<span class="mr-2">Fax</span><a href="fax:+19142737051">914-273-7051</a>
+							</div>
+																			<!-- Email -->
+							<div id="foot-email">
+								<span class="mr-2">Email</span><a href="mailto:info@buildersinstitute.org">info@buildersinstitute.org</a>
+							</div>
+											</div>
+													<div id="foot-location" class="mb-20">80 Business Park Drive<br>Suite 309<br>Armonk, New York 10504</div>
+								<!-- Copyright -->
+				<div id="copyright">
+					<span>&copy;&nbsp;2026&nbsp;BI&nbsp;|&nbsp;BRI.</span>
+					<span>All Rights Reserved.</span>
+					<span>Website by <a href="https://www.msmdesignz.com/" target="_blank">MSM DesignZ, Inc.</a></span>
+				</div>				
+			</div>
+			<!-- Footer Nav -->
+			<nav id="menu-item-283" class="nav-foot-wrap col col-sm-6 col-md-4 col-lg foot-group pb-30 pb-lg-0" role="navigation">
+<ul class="nav-menu nav-foot">
+	<li id="menu-item-235" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="https://www.buildersinstitute.org/about/">About BI | BRI</a></div>
+	<ul class="sub-menu">
+		<li id="menu-item-236" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-236"><a href="https://www.buildersinstitute.org/about/our-history/">Our History</a></li>
+		<li id="menu-item-237" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-237"><a href="https://www.buildersinstitute.org/about/message-from-the-president/">Message from the President</a></li>
+		<li id="menu-item-238" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-238"><a href="https://www.buildersinstitute.org/about/message-from-the-chairman/">Message from the Chairwoman</a></li>
+		<li id="menu-item-239" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-239"><a href="https://www.buildersinstitute.org/about/officers-board-of-trustees/">Officers &#038; Board of Trustees</a></li>
+		<li id="menu-item-240" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-240"><a href="https://www.buildersinstitute.org/about/realty-councils/">Realty Councils</a></li>
+		<li id="menu-item-241" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-241"><a href="https://www.buildersinstitute.org/about/builder-remodeler-councils/">Builder &#038; Remodeler Councils</a></li>
+	</ul>
+</li>
+	<li id="menu-item-295" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="https://www.buildersinstitute.org/membership/become-a-member/">Become A Member</a></div></li>
+</ul>
+</nav>
+<nav id="menu-item-284" class="nav-foot-wrap col col-sm-6 col-md-4 col-lg foot-group pb-30 pb-lg-0" role="navigation">
+<ul class="nav-menu nav-foot">
+	<li id="menu-item-242" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="https://www.buildersinstitute.org/membership/">Membership</a></div>
+	<ul class="sub-menu">
+		<li id="menu-item-296" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-296"><a href="https://www.buildersinstitute.org/membership/">Membership Overview</a></li>
+		<li id="menu-item-290" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-290"><a href="https://www.buildersinstitute.org/membership/member-services/">Member Services</a></li>
+		<li id="menu-item-292" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-292"><a href="https://www.buildersinstitute.org/membership/member-benefits/">Member Benefits</a></li>
+		<li id="menu-item-291" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-291"><a href="https://www.buildersinstitute.org/membership/workers-compensation/">Workers Compensation</a></li>
+		<li id="menu-item-4418" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4418"><a href="https://www.buildersinstitute.org/baci/">BACI</a></li>
+		<li id="menu-item-293" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-293"><a href="https://www.buildersinstitute.org/membership/become-a-member/">Become A Member</a></li>
+	</ul>
+</li>
+</ul>
+</nav>
+<nav id="menu-item-285" class="nav-foot-wrap col col-sm-6 col-md-4 col-lg foot-group pb-30 pb-lg-0" role="navigation">
+<ul class="nav-menu nav-foot">
+	<li id="menu-item-244" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="https://www.buildersinstitute.org/events/">Events</a></div></li>
+	<li id="menu-item-257" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="http://News%20&#038;%20Media">BRI News</a></div>
+	<ul class="sub-menu">
+		<li id="menu-item-249" class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-249"><a href="https://www.buildersinstitute.org/news/">BRI News</a></li>
+		<li id="menu-item-245" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-245"><a href="https://www.buildersinstitute.org/impact/">IMPACT News</a></li>
+		<li id="menu-item-246" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-246"><a href="https://www.buildersinstitute.org/radio/">Radio Shows</a>
+		<ul class="sub-menu">
+			<li id="menu-item-247" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-247"><a href="https://www.buildersinstitute.org/radio/westchester-show/">Westchester Show</a></li>
+			<li id="menu-item-248" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-248"><a href="https://www.buildersinstitute.org/radio/nyc-show/">NYC Show</a></li>
+		</ul>
+</li>
+	</ul>
+</li>
+</ul>
+</nav>
+<nav id="menu-item-286" class="nav-foot-wrap col col-sm-6 col-md-4 col-lg foot-group pb-30 pb-lg-0" role="navigation">
+<ul class="nav-menu nav-foot">
+	<li id="menu-item-4434" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="#">Advertise With Us</a></div>
+	<ul class="sub-menu">
+		<li id="menu-item-4435" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4435"><a target="_blank" rel="noopener noreferrer" href="https://www.buildersinstitute.org/wp-content/uploads/2019/12/Impact_AdSpecs_20200817.pdf">Advertising Rates &#038; Specs</a></li>
+		<li id="menu-item-4436" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4436"><a target="_blank" rel="noopener noreferrer" href="https://www.buildersinstitute.org/wp-content/uploads/2019/12/IMPACT-Insertion-Order.pdf">Advertising Insertion Order</a></li>
+	</ul>
+</li>
+	<li id="menu-item-250" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="https://www.buildersinstitute.org/resources/">Resources</a></div>
+	<ul class="sub-menu">
+		<li id="menu-item-10047" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10047"><a href="https://www.buildersinstitute.org/resources/brief-summary-tenatative-agreement-between-bri-32bj-2022/">2022-2026 BRI &#038; 32BJ Agreement</a></li>
+		<li id="menu-item-4465" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4465"><a href="https://www.buildersinstitute.org/take-action/">Take Action</a></li>
+		<li id="menu-item-251" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-251"><a href="https://www.buildersinstitute.org/resources/stars-stripes-pac/">Stars &#038; Stripes PAC</a></li>
+		<li id="menu-item-252" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-252"><a href="https://www.buildersinstitute.org/resources/state-local-representatives/">State &#038; Local Representatives</a></li>
+		<li id="menu-item-4423" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-privacy-policy menu-item-4423"><a href="https://www.buildersinstitute.org/policies/">Privacy/Refund Policies</a></li>
+	</ul>
+</li>
+	<li id="menu-item-253" class="pb-30"><div class="foot-title font-libre-baskerville font-size-16 orange link-orange mb-4"><a href="https://www.buildersinstitute.org/contact-us/">Contact Us</a></div></li>
+</ul>
+</nav>
+		</div>
+	</div>
+</footer>
+
+</div><!--Close Wrapper-->
+
+<div id="newsletter" class="fancy-hide newsletter-signup">
+	<div class="popup-title font-libre-baskerville font-weight-bold font-size-24 orange mb-30">Join Our Newsletter</div>
+	
+                <div class='gf_browser_unknown gform_wrapper gravity-theme gform-theme--no-framework' data-form-theme='gravity-theme' data-form-index='0' id='gform_wrapper_8' ><div id='gf_8' class='gform_anchor' tabindex='-1'></div>
+                        <div class='gform_heading'>
+							<p class='gform_required_legend'>&quot;<span class="gfield_required gfield_required_asterisk">*</span>&quot; indicates required fields</p>
+                        </div><form method='post' enctype='multipart/form-data' target='gform_ajax_frame_8' id='gform_8'  action='/annual-golf-outing#gf_8' data-formid='8' novalidate><div class='gf_invisible ginput_recaptchav3' data-sitekey='6LcnYSccAAAAAC0u8mVTK7Z2WFI4GnoCwZu8uJFp' data-tabindex='0'><input id="input_3f1b158930940546112d3662d483e257" class="gfield_recaptcha_response" type="hidden" name="input_3f1b158930940546112d3662d483e257" value=""/></div>
+                        <div class='gform-body gform_body'><div id='gform_fields_8' class='gform_fields top_label form_sublabel_below description_above validation_below'><fieldset id="field_8_3" class="gfield gfield--type-name gfield_contains_required field_sublabel_below gfield--no-description field_description_above field_validation_below gfield_visibility_visible"  ><legend class='gfield_label gform-field-label gfield_label_before_complex' ><span class='gform-field-label__text'>Name</span><span class="gfield_required"><span class="gfield_required gfield_required_asterisk">*</span></span></legend><div class='ginput_complex ginput_container ginput_container--name no_prefix has_first_name no_middle_name has_last_name no_suffix gf_name_has_2 ginput_container_name gform-grid-row' id='input_8_3'>
+                            
+                            <span id='input_8_3_3_container' class='name_first gform-grid-col gform-grid-col--size-auto' >
+                                                    <input type='text' name='input_3.3' id='input_8_3_3' value=''   aria-required='true'     />
+                                                    <label for='input_8_3_3' class='gform-field-label gform-field-label--type-sub '>First</label>
+                                                </span>
+                            
+                            <span id='input_8_3_6_container' class='name_last gform-grid-col gform-grid-col--size-auto' >
+                                                    <input type='text' name='input_3.6' id='input_8_3_6' value=''   aria-required='true'     />
+                                                    <label for='input_8_3_6' class='gform-field-label gform-field-label--type-sub '>Last</label>
+                                                </span>
+                            
+                        </div></fieldset><div id="field_8_2" class="gfield gfield--type-email gfield_contains_required field_sublabel_below gfield--no-description field_description_above field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_8_2'><span class='gform-field-label__text'>Email</span><span class="gfield_required"><span class="gfield_required gfield_required_asterisk">*</span></span></label><div class='ginput_container ginput_container_email'>
+                            <input name='input_2' id='input_8_2' type='email' value='' class='large'    aria-required="true" aria-invalid="false"  />
+                        </div></div></div></div>
+        <div class='gform-footer gform_footer top_label'> <button type='submit' id='gform_submit_button_8' class='gform_button button' onclick='gform.submission.handleButtonClick(this);' data-submission-type='submit' >Sign Up</button> <input type='hidden' name='gform_ajax' value='form_id=8&amp;title=&amp;description=&amp;tabindex=0&amp;theme=gravity-theme&amp;hash=433bba0ae6600a76606066ff3534b473' />
+            <input type='hidden' class='gform_hidden' name='gform_submission_method' data-js='gform_submission_method_8' value='iframe' />
+            <input type='hidden' class='gform_hidden' name='gform_theme' data-js='gform_theme_8' id='gform_theme_8' value='gravity-theme' />
+            <input type='hidden' class='gform_hidden' name='gform_style_settings' data-js='gform_style_settings_8' id='gform_style_settings_8' value='' />
+            <input type='hidden' class='gform_hidden' name='is_submit_8' value='1' />
+            <input type='hidden' class='gform_hidden' name='gform_submit' value='8' />
+            
+            <input type='hidden' class='gform_hidden' name='gform_currency' data-currency='USD' value='B+yyOSYOTJ1ALN4x6QF9GiX0Sni0Pj6/j7SdzIznT6o0T9gC1DYzms+l2cG1PZjY51wiHKPiSsZCVdRhbLB92hb7dKNbHotR84V76IhkIEpWSeM=' />
+            <input type='hidden' class='gform_hidden' name='gform_unique_id' value='' />
+            <input type='hidden' class='gform_hidden' name='state_8' value='WyJ7XCJnZm9ybV9zdWJtaXNzaW9uX21ldGhvZFwiOltcIjE4NTAzMjRhY2QwOWY0MmFlYTUzMzljYmNmNDk2MDJjXCIsXCIzNGUyNzUxNGNlMWI5YzljYzA3NmNjYjMwNzFkM2IwYVwiLFwiZmYzMGJkM2M5OTZhZDYzNzcwMjkwZjI0MDA4MDdhNGFcIl0sXCJnZm9ybV90aGVtZVwiOlwiZDA0ZWZiMmQ3NDk3MzYzMTlmNjg2NWViMjhhYzlmNDJcIixcImdmb3JtX3N0eWxlX3NldHRpbmdzXCI6XCJmZDBlMmRiYWJkNzAxMDgyZjQ3Mzc4OTUzYWJmYTRhYVwiLFwiZm9ybV9pZFwiOlwiNTZhZTlkNjYyNDNhZGQ2YWM0ZWM4ZGI2ZmRjM2QxNTdcIixcInVybFwiOlwiNjU5M2Y4MjViZTQ1ZTRmNTdlNjExMjZkOTFkYmM0YjRcIixcInN0YXRlX3RpbWVzdGFtcFwiOlwiYTM5MGM2MjVjMmZkZDI0MDVmZjQyZTdlNjcxMDJkZjVcIn0iLCI2YjgwNzdhMmUwNjY3ODhlNmYzOWRlYmU4OTc1ZGVjOSIsMTc5MTA0MzQwMF0=' />
+            <input type='hidden' autocomplete='off' class='gform_hidden' name='gform_target_page_number_8' id='gform_target_page_number_8' value='0' />
+            <input type='hidden' autocomplete='off' class='gform_hidden' name='gform_source_page_number_8' id='gform_source_page_number_8' value='1' />
+            <input type='hidden' name='gform_field_values' value='' />
+            
+        </div>
+                        </form>
+                        </div>
+		                <iframe style='display:none;width:0px;height:0px;' src='about:blank' name='gform_ajax_frame_8' id='gform_ajax_frame_8' title='This iframe contains the logic required to handle Ajax powered Gravity Forms.'></iframe>
+		                <script>
+gform.initializeOnLoaded( function() {jQuery('#gform_ajax_frame_8').on('load',function(){var contents = jQuery(this).contents().find('*').html();var is_postback = contents.indexOf('GF_AJAX_POSTBACK') >= 0;if(!is_postback){return;}var form_content = jQuery(this).contents().find('#gform_wrapper_8');var is_confirmation = jQuery(this).contents().find('#gform_confirmation_wrapper_8').length > 0;var is_redirect = contents.indexOf('gformRedirect(){') >= 0;var is_form = form_content.length > 0 && ! is_redirect && ! is_confirmation;var mt = parseInt(jQuery('html').css('margin-top'), 10) + parseInt(jQuery('body').css('margin-top'), 10) + 100;if(is_form){jQuery('#gform_wrapper_8').html(form_content.html());if(form_content.hasClass('gform_validation_error')){jQuery('#gform_wrapper_8').addClass('gform_validation_error');} else {jQuery('#gform_wrapper_8').removeClass('gform_validation_error');}setTimeout( function() { /* delay the scroll by 50 milliseconds to fix a bug in chrome */ jQuery(document).scrollTop(jQuery('#gform_wrapper_8').offset().top - mt); }, 50 );var current_page = jQuery('#gform_source_page_number_8').val();jQuery(document).trigger('gform_page_loaded', [8, current_page]);window['gf_submitting_8'] = false;}else if(!is_redirect){var confirmation_content = jQuery(this).contents().find('.GF_AJAX_POSTBACK').html();if(!confirmation_content){confirmation_content = contents;}jQuery('#gform_wrapper_8').replaceWith(confirmation_content);jQuery(document).scrollTop(jQuery('#gf_8').offset().top - mt);jQuery(document).trigger('gform_confirmation_loaded', [8]);window['gf_submitting_8'] = false;wp.a11y.speak(jQuery('#gform_confirmation_message_8').text());}else{jQuery('#gform_8').append(contents);if(window['gformRedirect']) {gformRedirect();}}jQuery(document).trigger("gform_pre_post_render", [{ formId: "8", currentPage: "current_page", abort: function() { this.preventDefault(); } }]);        if (event && event.defaultPrevented) {                return;        }        const gformWrapperDiv = document.getElementById( "gform_wrapper_8" );        if ( gformWrapperDiv ) {            const visibilitySpan = document.createElement( "span" );            visibilitySpan.id = "gform_visibility_test_8";            gformWrapperDiv.insertAdjacentElement( "afterend", visibilitySpan );        }        const visibilityTestDiv = document.getElementById( "gform_visibility_test_8" );        let postRenderFired = false;        function triggerPostRender() {            if ( postRenderFired ) {                return;            }            postRenderFired = true;            gform.core.triggerPostRenderEvents( 8, current_page );            if ( visibilityTestDiv ) {                visibilityTestDiv.parentNode.removeChild( visibilityTestDiv );            }        }        function debounce( func, wait, immediate ) {            var timeout;            return function() {                var context = this, args = arguments;                var later = function() {                    timeout = null;                    if ( !immediate ) func.apply( context, args );                };                var callNow = immediate && !timeout;                clearTimeout( timeout );                timeout = setTimeout( later, wait );                if ( callNow ) func.apply( context, args );            };        }        const debouncedTriggerPostRender = debounce( function() {            triggerPostRender();        }, 200 );        if ( visibilityTestDiv && visibilityTestDiv.offsetParent === null ) {            const observer = new MutationObserver( ( mutations ) => {                mutations.forEach( ( mutation ) => {                    if ( mutation.type === 'attributes' && visibilityTestDiv.offsetParent !== null ) {                        debouncedTriggerPostRender();                        observer.disconnect();                    }                });            });            observer.observe( document.body, {                attributes: true,                childList: false,                subtree: true,                attributeFilter: [ 'style', 'class' ],            });        } else {            triggerPostRender();        }    } );} );
+</script>
+</div>
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/builders-institute/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script>(function(){var s=document.createElement('script');e = !document.body ? document.querySelector('head'):document.body;s.src='https://acsbapp.com/apps/app/dist/js/app.js';s.defer=true;s.onload=function(){acsbJS.init({
+            statementLink     : '',
+            feedbackLink      : '',
+            footerHtml        : '',
+            hideMobile        : false,
+            hideTrigger       : false,
+            language          : 'en',
+            position          : 'left',
+            leadColor         : '#146FF8',
+            triggerColor      : '#146FF8',
+            triggerRadius     : '50%',
+            triggerPositionX  : 'left',
+            triggerPositionY  : 'bottom',
+            triggerIcon       : 'people',
+            triggerSize       : 'medium',
+            triggerOffsetX    : 20,
+            triggerOffsetY    : 20,
+            mobile            : {
+                triggerSize       : 'small',
+                triggerPositionX  : 'left',
+                triggerPositionY  : 'center',
+                triggerOffsetX    : 0,
+                triggerOffsetY    : 0,
+                triggerRadius     : '50%'
+            }
+        });
+    };
+    e.appendChild(s);}());</script> <script> (function(){ var s = document.createElement('script'); var h = document.querySelector('head') || document.body; s.src = 'https://acsbapp.com/apps/app/dist/js/app.js'; s.async = true; s.onload = function(){ acsbJS.init({ statementLink : '', footerHtml : '', hideMobile : false, hideTrigger : false, disableBgProcess : false, language : 'en', position : 'right', leadColor : '#146FF8', triggerColor : '#146FF8', triggerRadius : '50%', triggerPositionX : 'right', triggerPositionY : 'bottom', triggerIcon : 'people', triggerSize : 'bottom', triggerOffsetX : 20, triggerOffsetY : 20, mobile : { triggerSize : 'small', triggerPositionX : 'right', triggerPositionY : 'bottom', triggerOffsetX : 10, triggerOffsetY : 10, triggerRadius : '20' } }); }; h.appendChild(s); })(); </script><script>
+	if (jQuery) {
+		jQuery(document).ready(function($) {
+			jQuery(window).load(function(event) {
+
+				jQuery('i[class*=fa-]').each(function() {
+
+					if ((jQuery(this).attr('title') === undefined || jQuery(this).attr('title') ===
+							'') &&
+						(jQuery(this).attr('aria-label') === undefined || jQuery(this).attr(
+							'aria-label') === '') && jQuery(this).is(':empty')) {
+						jQuery(this).attr('aria-hidden', 'true');
+					}
+				});
+		
+			});
+		});
+	}
+</script>
+	<script>
+	if (jQuery) {
+		jQuery(document).ready(function($) {
+			jQuery('a[href*="#"]:not([href="#"])').on('click', function(event) {
+
+				// add exception for accordions.
+				var tabsnav = '';
+				if (jQuery(this).parent().parent() !== 'undefined')
+					var tabsnav = jQuery(this).parent().parent().attr('class');
+
+				var vcaccordion = jQuery(this).attr('data-vc-accordion');
+				if ((typeof vcaccordion === 'undefined' || vcaccordion === false) && tabsnav !=
+					'tabs-nav' && !jQuery(this).hasClass('thickbox')) {
+					var wpada_selectedid = jQuery(this).attr('href');
+
+					if (wpada_selectedid.indexOf("#") != '-1') {
+						event.preventDefault();
+						jQuery("html").css("scroll-behavior", 'smooth');
+
+						window.location = jQuery(this).attr('href');
+					}
+				} // end exception for accordions.
+
+			});
+		});
+	}
+</script>
+		<script>  
+if(jQuery){		  
+jQuery(document).ready(function($){
+// correct elementor table of contents links not working when passed through the url.
+jQuery(window).load(function(event) {
+var currenthash = window.location.hash;
+if(currenthash != '' && currenthash.indexOf("elementor-toc__heading-anchor") !== '-1'){
+
+if(jQuery(currenthash).length){
+	jQuery("html").css("scroll-behavior",'smooth');
+	window.location.hash = '';
+window.location.hash = currenthash;
+
+}
+}
+
+});	
+
+
+
+
+// correct toc display toggle by adding label, role and tabindex to collapse button.
+$('.elementor-widget-table-of-contents').each(function( key, toc ) {
+var wpadaTOCID = 'wp-ada-compliance-TOC-'+key;
+jQuery('.elementor-toc__body',toc).addClass(wpadaTOCID);    
+$('.elementor-toc__toggle-button',toc).each(function( keybutton, tocbutton ) {		
+jQuery(tocbutton).attr('role','button');
+	if(jQuery(tocbutton).hasClass('elementor-toc__toggle-button--expand')){
+		jQuery(tocbutton).css('display','none');
+	}
+	jQuery(tocbutton).attr('class','wp-ada-compliance-TOC-button');
+	jQuery(tocbutton).attr('tabindex','0');
+	jQuery(tocbutton).attr('data-tocid',wpadaTOCID);
+jQuery(tocbutton).attr('aria-label','Toggle Table of Contents');
+	if(jQuery('.elementor-toc__body',toc).is(':visible') === true){
+		jQuery(tocbutton).attr('aria-expanded', 'true');
+
+	}
+	else {
+		jQuery(tocbutton).attr('aria-expanded', 'false');
+	}
+});	
+});	
+		
+jQuery("body").on("keypress click", ".wp-ada-compliance-TOC-button", function (event) {
+
+	if(jQuery(this).attr('aria-expanded') === 'true'){
+		jQuery('.elementor-toc__toggle-button').attr('aria-expanded', 'true');
+		jQuery(this).attr('aria-expanded', 'false');
+		jQuery('.'+jQuery(this).attr('data-tocid')).hide('slow');
+	}
+	else {
+		jQuery('.elementor-toc__toggle-button').attr('aria-expanded', 'false');
+		jQuery(this).attr('aria-expanded', 'true');
+		jQuery('.'+jQuery(this).attr('data-tocid')).show('slow');
+	}
+
+});		
+	
+	//autocorrect elementor_toc - dont remove or change this line.
+jQuery("body").on("click", "a.elementor-toc__list-item-text", function (event) {
+event.stopPropagation();	
+var wpada_selectedid = $(this).attr('href');
+	$(wpada_selectedid).attr('tabindex','-1');
+	$(wpada_selectedid).focus();
+
+});
+});
+}
+</script>
+		<script>
+if(jQuery){		  
+jQuery(document).ready(function($){
+	// correct toggles, tabs and accordions .
+	//autocorrect elementor_toggles - dont remove or change this line.  
+
+jQuery("body").on("keypress click", ".elementor-accordion .elementor-tab-title, .elementor-toggle .elementor-tab-title", function (event) {
+var key = event.keyCode;
+	if(key == 32){ // activate on space bar
+		event.preventDefault();
+	}	
+
+// removing aria-selected and setting tab index to 0.
+setTimeout(function(){
+jQuery('.elementor-accordion .elementor-tab-title, .elementor-toggle .elementor-tab-title').attr('tabindex','0');
+jQuery('.elementor-accordion .elementor-tab-title').removeAttr('aria-selected');
+}, 100);
+
+});
+
+// remove aria-selected from accordions on page load.
+if($('.elementor-accordion .elementor-tab-title').length){
+setTimeout(function(){
+jQuery('.elementor-accordion .elementor-tab-title').each(function( key, tabs ) {     
+jQuery(this).removeAttr('aria-selected');
+});
+}, 100);
+}
+	
+
+// correct tabs
+jQuery("body").on("keypress keydown", ".elementor-tabs .elementor-tab-title", function (event) {
+var key = event.keyCode;
+
+if(key == 13 || key == 32){ // trigger click on spacebar or enter.
+	event.preventDefault();
+jQuery(this).trigger('click');
+	jQuery(this).focus();
+}
+if(key == 38){ 	// add up down arrow support for tabs.
+event.preventDefault();	
+var focusable = jQuery(this).parent().find(':focusable');
+if(focusable.first().is(':focus'))
+	focusable.last().focus();
+else jQuery(this).prev().focus();
+}
+if(key == 40){ 	// add up down arrow support for tabs
+event.preventDefault();	
+var focusable = jQuery(this).parent().find(':focusable');
+if(focusable.last().is(':focus'))
+	focusable.first().focus();
+else jQuery(this).next().focus();
+} 
+});
+
+// remove aria-expanded on page load
+if($('.elementor-tabs').length){
+setTimeout(function(){
+jQuery('.elementor-tabs .elementor-tab-title').each(function( key, tabs ) {     
+jQuery(this).removeAttr('aria-expanded');
+});
+}, 500);
+}
+// remove aria-expanded on click
+jQuery("body").on("click keypress", ".elementor-tabs .elementor-tab-title", function (event) {
+setTimeout(function(){
+$('.elementor-tabs .elementor-tab-title').each(function( key, tabs ) {      
+jQuery(this).removeAttr('aria-expanded');
+}, 500);
+}); 
+});
+	
+});
+}
+</script>
+	<!--WP ADA Compliance License is Expired--><script>                             
+if (document.readyState !== 'loading') {
+    wts_count_init();
+} 
+else {
+   document.addEventListener('DOMContentLoaded', function () {
+      wts_count_init();
+   });
+}
+var wts7 = {};
+wts7.user_id = '{"id":0,"name":false,"email":false,"date_registered":false,"pic":"https:\/\/secure.gravatar.com\/avatar\/?s=96&d=mm&r=g"}';
+wts7.params = 'wordPress';
+function wts_count_init(){ 
+   var url = "https://app.ardalio.com/ajax.htm?action=lookup_WP_account&params=fHd3dy5idWlsZGVyc2luc3RpdHV0ZS5vcmd8NjVlZjQ5ZGFjNTFmNDUuMDA1MjgzMjN8LTR8QW1lcmljYS9OZXdfWW9ya3xqZW5uaWZlckBtc21kZXNpZ256LmNvbXxlbi1VU3wxLjQuNw==";
+   fetch(url).then(function(response) {
+     return response.text();
+   }).then(function(wts_response) {
+    var wts_response =  wts_response.split(":");
+    if (wts_response[0] == "Account Found"){
+      var wts_div = document.createElement('div');
+      wts_div.setAttribute('id', 'wts'+wts_response[1]);
+      wts_div.style.textAlign='center';
+      document.body.appendChild(wts_div);        
+      wtslog7(wts_response[1],wts_response[2]);
+    }
+   }).catch(function(e) {
+     console.log("error 3 / response: "+wts_response+" / error: "+e);
+   });
+}  
+</script>
+<script id="wp-dom-ready-js" src="https://www.buildersinstitute.org/wp-includes/js/dist/dom-ready.js?ver=3fe927cab37bf38d6a23"></script>
+<script id="wp-hooks-js" src="https://www.buildersinstitute.org/wp-includes/js/dist/hooks.js?ver=f0f188028580e8dc1255"></script>
+<script id="wp-i18n-js" src="https://www.buildersinstitute.org/wp-includes/js/dist/i18n.js?ver=1dfe7db3940c23ea9216"></script>
+<script id="wp-i18n-js-after">
+wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );
+//# sourceURL=wp-i18n-js-after
+</script>
+<script id="wp-a11y-js" src="https://www.buildersinstitute.org/wp-includes/js/dist/a11y.js?ver=31c6cec5a4ff7aff483d"></script>
+<script id="gform_gravityforms_theme_vendors-js" defer='defer' src="https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/js/dist/vendor-theme.min.js?ver=0c901cb641ce64b99c20ea1a4d208cc9"></script>
+<script id="gform_gravityforms_theme-js-extra">
+var gform_theme_config = {"common":{"form":{"honeypot":{"version_hash":"52ac1eb0d9bd279fdd21e2364063e33d"},"ajax":{"ajaxurl":"https://www.buildersinstitute.org/wp-admin/admin-ajax.php","ajax_submission_nonce":"f7df293e9a","i18n":{"step_announcement":"Step %1$s of %2$s, %3$s","unknown_error":"There was an unknown error processing your request. Please try again.","error_403":"The request was blocked (403 error) for unknown security reasons. Remove any code-like text (scripts or DB queries) and try again."}}}},"hmr_dev":"","public_path":"https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/js/dist/","config_nonce":"c3fcc3620f"};
+//# sourceURL=gform_gravityforms_theme-js-extra
+</script>
+<script id="gform_gravityforms_theme-js" defer='defer' src="https://www.buildersinstitute.org/wp-content/plugins/gravityforms/assets/js/dist/scripts-theme.min.js?ver=373fcf115e257ba62fdd1a205717b981"></script>
+<script id="ctct_frontend_forms-js" src="https://www.buildersinstitute.org/wp-content/plugins/constant-contact-forms/assets/js/ctct-plugin-frontend.js?ver=2.14.2"></script>
+<script id="theme-my-login-js-extra">
+var themeMyLogin = {"action":"","errors":[],"autofocus":"1","showPasswordLabel":"Show password","hidePasswordLabel":"Hide password"};
+//# sourceURL=theme-my-login-js-extra
+</script>
+<script id="theme-my-login-js" src="https://www.buildersinstitute.org/wp-content/plugins/theme-my-login/assets/scripts/theme-my-login.js?ver=7.2.2"></script>
+<script id="functions-js-js-extra">
+var path = "https://www.buildersinstitute.org/wp-content/themes/builders-institute";
+var site_url = "https://www.buildersinstitute.org";
+//# sourceURL=functions-js-js-extra
+</script>
+<script id="functions-js-js" src="https://www.buildersinstitute.org/wp-content/themes/builders-institute/assets/js/functions.js?ver=1791043400"></script>
+<script id="gforms_recaptcha_recaptcha-js-extra">
+var gforms_recaptcha_recaptcha_strings = {"nonce":"07acd3d133","disconnect":"Disconnecting","change_connection_type":"Resetting","spinner":"https://www.buildersinstitute.org/wp-content/plugins/gravityforms/images/spinner.svg","connection_type":"classic","disable_badge":"","change_connection_type_title":"Change Connection Type","change_connection_type_message":"Changing the connection type will delete your current settings.  Do you want to proceed?","disconnect_title":"Disconnect","disconnect_message":"Disconnecting from reCAPTCHA will delete your current settings.  Do you want to proceed?","site_key":"6LcnYSccAAAAAC0u8mVTK7Z2WFI4GnoCwZu8uJFp"};
+//# sourceURL=gforms_recaptcha_recaptcha-js-extra
+</script>
+<script data-wp-strategy="defer" defer id="gforms_recaptcha_recaptcha-js" src="https://www.google.com/recaptcha/api.js?render=6LcnYSccAAAAAC0u8mVTK7Z2WFI4GnoCwZu8uJFp&#038;ver=2.2.2"></script>
+<script data-wp-strategy="defer" defer id="gforms_recaptcha_frontend-js" src="https://www.buildersinstitute.org/wp-content/plugins/gravityformsrecaptcha/js/frontend.js?ver=2.2.2"></script>
+<script id="mc4wp-forms-api-js" defer src="https://www.buildersinstitute.org/wp-content/plugins/mailchimp-for-wp/assets/js/forms.js?ver=4.14.1"></script>
+<script id="googlesitekit-events-provider-mailchimp-js" src="https://www.buildersinstitute.org/wp-content/plugins/google-site-kit/dist/assets/js/googlesitekit-events-provider-mailchimp-7920d200a07d3bcd60bb.js" defer></script>
+<script id="eo_qtip2-js" src="https://www.buildersinstitute.org/wp-content/plugins/event-organiser/js/qtip2.js?ver=3.12.5"></script>
+<script id="jquery-ui-core-js-before">
+jQuery.uiBackCompat = true;
+//# sourceURL=jquery-ui-core-js-before
+</script>
+<script id="jquery-ui-core-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/ui/core.js?ver=1.14.2"></script>
+<script id="jquery-ui-controlgroup-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/ui/controlgroup.js?ver=1.14.2"></script>
+<script id="jquery-ui-checkboxradio-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/ui/checkboxradio.js?ver=1.14.2"></script>
+<script id="jquery-ui-button-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/ui/button.js?ver=1.14.2"></script>
+<script id="jquery-ui-datepicker-js" src="https://www.buildersinstitute.org/wp-includes/js/jquery/ui/datepicker.js?ver=1.14.2"></script>
+<script id="eo_momentjs-js" src="https://www.buildersinstitute.org/wp-content/plugins/event-organiser/js/moment.js?ver=1"></script>
+<script id="eo_fullcalendar-js" src="https://www.buildersinstitute.org/wp-content/plugins/event-organiser/js/fullcalendar.js?ver=3.12.5"></script>
+<script id="eo-wp-js-hooks-js" src="https://www.buildersinstitute.org/wp-content/plugins/event-organiser/js/event-manager.js?ver=3.12.5"></script>
+<script id="eo_GoogleMap-js" src="https://maps.googleapis.com/maps/api/js?key=REDACTED_CREDENTIAL&#038;language=en&#038;ver=7.1.2"></script>
+<script id="eo-googlemaps-adapter-js" src="https://www.buildersinstitute.org/wp-content/plugins/event-organiser/js/maps/googlemaps-adapter.js?ver=3.12.5"></script>
+<script id="eo_front-js-extra">
+var EOAjaxFront = {"adminajax":"https://www.buildersinstitute.org/wp-admin/admin-ajax.php","locale":{"locale":"en","isrtl":false,"monthNames":["January","February","March","April","May","June","July","August","September","October","November","December"],"monthAbbrev":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"dayNames":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"dayAbbrev":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"dayInitial":["S","M","T","W","T","F","S"],"ShowMore":"Show More","ShowLess":"Show Less","today":"today","day":"day","week":"week","month":"month","gotodate":"go to date","cat":"View all categories","venue":"View all venues","tag":false,"view_all_organisers":"View all organisers","nextText":"\u003E","prevText":"\u003C"}};
+var eo_widget_cal = {"eo_calendar_widget-2":{"showpastevents":1,"show-long":0,"link-to-single":1,"event-venue":0,"event-category":0}};
+//# sourceURL=eo_front-js-extra
+</script>
+<script id="eo_front-js" src="https://www.buildersinstitute.org/wp-content/plugins/event-organiser/js/frontend.js?ver=3.12.5"></script>
+<script id="wtslog7-js" src="https://app.ardalio.com/log7.js?ver=7.1.2"></script>
+<script id="wp-emoji-settings" type="application/json">
+{"baseUrl":"https://s.w.org/images/core/emoji/17.0.2/72x72/","ext":".png","svgUrl":"https://s.w.org/images/core/emoji/17.0.2/svg/","svgExt":".svg","source":{"wpemoji":"https://www.buildersinstitute.org/wp-includes/js/wp-emoji.js?ver=7.1.2","twemoji":"https://www.buildersinstitute.org/wp-includes/js/twemoji.js?ver=7.1.2"}}
+</script>
+<script type="module">
+/**
+ * @output wp-includes/js/wp-emoji-loader.js
+ */
+
+/* eslint-env es6 */
+
+// Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
+
+/**
+ * Emoji Settings as exported in PHP via _print_emoji_detection_script().
+ * @typedef WPEmojiSettings
+ * @type {object}
+ * @property {?object} source
+ * @property {?string} source.concatemoji
+ * @property {?string} source.twemoji
+ * @property {?string} source.wpemoji
+ */
+
+const selector = 'script#wp-emoji-settings';
+const script = document.querySelector( selector );
+if ( ! ( script instanceof HTMLScriptElement ) ) {
+	throw new Error( `Element missing: ${ selector }`);
+}
+const settings = /** @type {WPEmojiSettings} */ ( JSON.parse( script.text ) );
+
+// For compatibility with other scripts that read from this global, in particular wp-includes/js/wp-emoji.js (source file: js/_enqueues/wp/emoji.js).
+window._wpemojiSettings = settings;
+
+/**
+ * Support tests.
+ * @typedef SupportTests
+ * @type {object}
+ * @property {?boolean} flag
+ * @property {?boolean} emoji
+ */
+
+const sessionStorageKey = 'wpEmojiSettingsSupports';
+const tests = [ 'flag', 'emoji' ];
+
+/**
+ * Checks whether the browser supports offloading to a Worker.
+ *
+ * @since 6.3.0
+ *
+ * @private
+ *
+ * @returns {boolean}
+ */
+function supportsWorkerOffloading() {
+	return (
+		typeof Worker !== 'undefined' &&
+		typeof OffscreenCanvas !== 'undefined' &&
+		typeof URL !== 'undefined' &&
+		URL.createObjectURL &&
+		typeof Blob !== 'undefined'
+	);
+}
+
+/**
+ * @typedef SessionSupportTests
+ * @type {object}
+ * @property {number} timestamp
+ * @property {SupportTests} supportTests
+ */
+
+/**
+ * Get support tests from session.
+ *
+ * @since 6.3.0
+ *
+ * @private
+ *
+ * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
+ */
+function getSessionSupportTests() {
+	try {
+		/** @type {SessionSupportTests} */
+		const item = JSON.parse(
+			sessionStorage.getItem( sessionStorageKey )
+		);
+		if (
+			typeof item === 'object' &&
+			typeof item.timestamp === 'number' &&
+			new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
+			typeof item.supportTests === 'object'
+		) {
+			return item.supportTests;
+		}
+	} catch ( e ) {}
+	return null;
+}
+
+/**
+ * Persist the supports in session storage.
+ *
+ * @since 6.3.0
+ *
+ * @private
+ *
+ * @param {SupportTests} supportTests Support tests.
+ */
+function setSessionSupportTests( supportTests ) {
+	try {
+		/** @type {SessionSupportTests} */
+		const item = {
+			supportTests: supportTests,
+			timestamp: new Date().valueOf()
+		};
+
+		sessionStorage.setItem(
+			sessionStorageKey,
+			JSON.stringify( item )
+		);
+	} catch ( e ) {}
+}
+
+/**
+ * Checks if two sets of Emoji characters render the same visually.
+ *
+ * This is used to determine if the browser is rendering an emoji with multiple data points
+ * correctly. set1 is the emoji in the correct form, using a zero-width joiner. set2 is the emoji
+ * in the incorrect form, using a zero-width space. If the two sets render the same, then the browser
+ * does not support the emoji correctly.
+ *
+ * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+ * scope. Everything must be passed by parameters.
+ *
+ * @since 4.9.0
+ *
+ * @private
+ *
+ * @param {CanvasRenderingContext2D} context 2D Context.
+ * @param {string} set1 Set of Emoji to test.
+ * @param {string} set2 Set of Emoji to test.
+ *
+ * @return {boolean} True if the two sets render the same.
+ */
+function emojiSetsRenderIdentically( context, set1, set2 ) {
+	// Cleanup from previous test.
+	context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
+	context.fillText( set1, 0, 0 );
+	const rendered1 = new Uint32Array(
+		context.getImageData(
+			0,
+			0,
+			context.canvas.width,
+			context.canvas.height
+		).data
+	);
+
+	// Cleanup from previous test.
+	context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
+	context.fillText( set2, 0, 0 );
+	const rendered2 = new Uint32Array(
+		context.getImageData(
+			0,
+			0,
+			context.canvas.width,
+			context.canvas.height
+		).data
+	);
+
+	return rendered1.every( ( rendered2Data, index ) => {
+		return rendered2Data === rendered2[ index ];
+	} );
+}
+
+/**
+ * Checks if the center point of a single emoji is empty.
+ *
+ * This is used to determine if the browser is rendering an emoji with a single data point
+ * correctly. The center point of an incorrectly rendered emoji will be empty. A correctly
+ * rendered emoji will have a non-zero value at the center point.
+ *
+ * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+ * scope. Everything must be passed by parameters.
+ *
+ * @since 6.8.2
+ *
+ * @private
+ *
+ * @param {CanvasRenderingContext2D} context 2D Context.
+ * @param {string} emoji Emoji to test.
+ *
+ * @return {boolean} True if the center point is empty.
+ */
+function emojiRendersEmptyCenterPoint( context, emoji ) {
+	// Cleanup from previous test.
+	context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
+	context.fillText( emoji, 0, 0 );
+
+	// Test if the center point (16, 16) is empty (0,0,0,0).
+	const centerPoint = context.getImageData(16, 16, 1, 1);
+	for ( let i = 0; i < centerPoint.data.length; i++ ) {
+		if ( centerPoint.data[ i ] !== 0 ) {
+			// Stop checking the moment it's known not to be empty.
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Determines if the browser properly renders Emoji that Twemoji can supplement.
+ *
+ * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+ * scope. Everything must be passed by parameters.
+ *
+ * @since 4.2.0
+ *
+ * @private
+ *
+ * @param {CanvasRenderingContext2D} context 2D Context.
+ * @param {string} type Whether to test for support of "flag" or "emoji".
+ * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ *
+ * @return {boolean} True if the browser can render emoji, false if it cannot.
+ */
+function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
+	let isIdentical;
+
+	switch ( type ) {
+		case 'flag':
+			/*
+			 * Test for Transgender flag compatibility. Added in Unicode 13.
+			 *
+			 * To test for support, we try to render it, and compare the rendering to how it would look if
+			 * the browser doesn't render it correctly (white flag emoji + transgender symbol).
+			 */
+			isIdentical = emojiSetsRenderIdentically(
+				context,
+				'\uD83C\uDFF3\uFE0F\u200D\u26A7\uFE0F', // as a zero-width joiner sequence
+				'\uD83C\uDFF3\uFE0F\u200B\u26A7\uFE0F' // separated by a zero-width space
+			);
+
+			if ( isIdentical ) {
+				return false;
+			}
+
+			/*
+			 * Test for Sark flag compatibility. This is the least supported of the letter locale flags,
+			 * so gives us an easy test for full support.
+			 *
+			 * To test for support, we try to render it, and compare the rendering to how it would look if
+			 * the browser doesn't render it correctly ([C] + [Q]).
+			 */
+			isIdentical = emojiSetsRenderIdentically(
+				context,
+				'\uD83C\uDDE8\uD83C\uDDF6', // as the sequence of two code points
+				'\uD83C\uDDE8\u200B\uD83C\uDDF6' // as the two code points separated by a zero-width space
+			);
+
+			if ( isIdentical ) {
+				return false;
+			}
+
+			/*
+			 * Test for English flag compatibility. England is a country in the United Kingdom, it
+			 * does not have a two letter locale code but rather a five letter sub-division code.
+			 *
+			 * To test for support, we try to render it, and compare the rendering to how it would look if
+			 * the browser doesn't render it correctly (black flag emoji + [G] + [B] + [E] + [N] + [G]).
+			 */
+			isIdentical = emojiSetsRenderIdentically(
+				context,
+				// as the flag sequence
+				'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F',
+				// with each code point separated by a zero-width space
+				'\uD83C\uDFF4\u200B\uDB40\uDC67\u200B\uDB40\uDC62\u200B\uDB40\uDC65\u200B\uDB40\uDC6E\u200B\uDB40\uDC67\u200B\uDB40\uDC7F'
+			);
+
+			return ! isIdentical;
+		case 'emoji':
+			/*
+			 * Is there a large, hairy, humanoid mythical creature living in the browser?
+			 *
+			 * To test for Emoji 17.0 support, try to render a new emoji: Hairy Creature.
+			 *
+			 * The hairy creature emoji is a single code point emoji. Testing for browser
+			 * support required testing the center point of the emoji to see if it is empty.
+			 *
+			 * 0xD83E 0x1FAC8 (\uD83E\u1FAC8) == 🫈 Hairy creature.
+			 *
+			 * When updating this test, please ensure that the emoji is either a single code point
+			 * or switch to using the emojiSetsRenderIdentically function and testing with a zero-width
+			 * joiner vs a zero-width space.
+			 */
+			const notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\u1FAC8' );
+			return ! notSupported;
+	}
+
+	return false;
+}
+
+/**
+ * Checks emoji support tests.
+ *
+ * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+ * scope. Everything must be passed by parameters.
+ *
+ * @since 6.3.0
+ *
+ * @private
+ *
+ * @param {string[]} tests Tests.
+ * @param {Function} browserSupportsEmoji Reference to browserSupportsEmoji function, needed due to minification.
+ * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+ * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
+ *
+ * @return {SupportTests} Support tests.
+ */
+function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
+	let canvas;
+	if (
+		typeof WorkerGlobalScope !== 'undefined' &&
+		self instanceof WorkerGlobalScope
+	) {
+		canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
+	} else {
+		canvas = document.createElement( 'canvas' );
+	}
+
+	const context = canvas.getContext( '2d', { willReadFrequently: true } );
+
+	/*
+	 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
+	 * it doesn't work when the font is bolder than 500 weight. So, we
+	 * check for bold rendering support to avoid invisible emoji in Chrome.
+	 */
+	context.textBaseline = 'top';
+	context.font = '600 32px Arial';
+
+	const supports = {};
+	tests.forEach( ( test ) => {
+		supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
+	} );
+	return supports;
+}
+
+/**
+ * Adds a script to the head of the document.
+ *
+ * @ignore
+ *
+ * @since 4.2.0
+ *
+ * @param {string} src The url where the script is located.
+ *
+ * @return {void}
+ */
+function addScript( src ) {
+	const script = document.createElement( 'script' );
+	script.src = src;
+	script.defer = true;
+	document.head.appendChild( script );
+}
+
+settings.supports = {
+	everything: true,
+	everythingExceptFlag: true
+};
+
+// Obtain the emoji support from the browser, asynchronously when possible.
+new Promise( ( resolve ) => {
+	let supportTests = getSessionSupportTests();
+	if ( supportTests ) {
+		resolve( supportTests );
+		return;
+	}
+
+	if ( supportsWorkerOffloading() ) {
+		try {
+			// Note that the functions are being passed as arguments due to minification.
+			const workerScript =
+				'postMessage(' +
+				testEmojiSupports.toString() +
+				'(' +
+				[
+					JSON.stringify( tests ),
+					browserSupportsEmoji.toString(),
+					emojiSetsRenderIdentically.toString(),
+					emojiRendersEmptyCenterPoint.toString()
+				].join( ',' ) +
+				'));';
+			const blob = new Blob( [ workerScript ], {
+				type: 'text/javascript'
+			} );
+			const worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
+			worker.onmessage = ( event ) => {
+				supportTests = event.data;
+				setSessionSupportTests( supportTests );
+				worker.terminate();
+				resolve( supportTests );
+			};
+			return;
+		} catch ( e ) {}
+	}
+
+	supportTests = testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
+	setSessionSupportTests( supportTests );
+	resolve( supportTests );
+} )
+	// Once the browser emoji support has been obtained from the session, finalize the settings.
+	.then( ( supportTests ) => {
+		/*
+		 * Tests the browser support for flag emojis and other emojis, and adjusts the
+		 * support settings accordingly.
+		 */
+		for ( const test in supportTests ) {
+			settings.supports[ test ] = supportTests[ test ];
+
+			settings.supports.everything =
+				settings.supports.everything && settings.supports[ test ];
+
+			if ( 'flag' !== test ) {
+				settings.supports.everythingExceptFlag =
+					settings.supports.everythingExceptFlag &&
+					settings.supports[ test ];
+			}
+		}
+
+		settings.supports.everythingExceptFlag =
+			settings.supports.everythingExceptFlag &&
+			! settings.supports.flag;
+
+		// When the browser can not render everything we need to load a polyfill.
+		if ( ! settings.supports.everything ) {
+			const src = settings.source || {};
+
+			if ( src.concatemoji ) {
+				addScript( src.concatemoji );
+			} else if ( src.wpemoji && src.twemoji ) {
+				addScript( src.twemoji );
+				addScript( src.wpemoji );
+			}
+		}
+	} );
+//# sourceURL=https://www.buildersinstitute.org/wp-includes/js/wp-emoji-loader.js
+</script>
+<script>
+gform.initializeOnLoaded( function() { jQuery(document).on('gform_post_render', function(event, formId, currentPage){if(formId == 8) {} } );jQuery(document).on('gform_post_conditional_logic', function(event, formId, fields, isInit){} ) } );
+</script>
+<script>
+gform.initializeOnLoaded( function() {jQuery(document).trigger("gform_pre_post_render", [{ formId: "8", currentPage: "1", abort: function() { this.preventDefault(); } }]);        if (event && event.defaultPrevented) {                return;        }        const gformWrapperDiv = document.getElementById( "gform_wrapper_8" );        if ( gformWrapperDiv ) {            const visibilitySpan = document.createElement( "span" );            visibilitySpan.id = "gform_visibility_test_8";            gformWrapperDiv.insertAdjacentElement( "afterend", visibilitySpan );        }        const visibilityTestDiv = document.getElementById( "gform_visibility_test_8" );        let postRenderFired = false;        function triggerPostRender() {            if ( postRenderFired ) {                return;            }            postRenderFired = true;            gform.core.triggerPostRenderEvents( 8, 1 );            if ( visibilityTestDiv ) {                visibilityTestDiv.parentNode.removeChild( visibilityTestDiv );            }        }        function debounce( func, wait, immediate ) {            var timeout;            return function() {                var context = this, args = arguments;                var later = function() {                    timeout = null;                    if ( !immediate ) func.apply( context, args );                };                var callNow = immediate && !timeout;                clearTimeout( timeout );                timeout = setTimeout( later, wait );                if ( callNow ) func.apply( context, args );            };        }        const debouncedTriggerPostRender = debounce( function() {            triggerPostRender();        }, 200 );        if ( visibilityTestDiv && visibilityTestDiv.offsetParent === null ) {            const observer = new MutationObserver( ( mutations ) => {                mutations.forEach( ( mutation ) => {                    if ( mutation.type === 'attributes' && visibilityTestDiv.offsetParent !== null ) {                        debouncedTriggerPostRender();                        observer.disconnect();                    }                });            });            observer.observe( document.body, {                attributes: true,                childList: false,                subtree: true,                attributeFilter: [ 'style', 'class' ],            });        } else {            triggerPostRender();        }    } );
+</script>
+
+</body>
+
+</html>

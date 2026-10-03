@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
+import { budgetProfileSchema } from "@gof/shared/budget";
 import { BudgetGuard } from "./budget.ts";
 import { runPipeline } from "./run.ts";
 
@@ -16,10 +17,10 @@ async function runCli(): Promise<void> {
   });
 
   const mode = values.live ? "live" : "dry-run";
-  const budget = values.budget ?? "nightly";
+  const budget = budgetProfileSchema.parse(values.budget ?? "nightly");
   const stages = values.stages?.split(",") ?? null;
 
-  const guard = new BudgetGuard();
+  const guard = new BudgetGuard(budget, process.env);
   const result = await runPipeline({ mode, budget, stages, guard });
 
   console.log(

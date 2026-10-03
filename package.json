@@ -21,7 +21,8 @@
     "seed": "pnpm --filter @gof/pipeline start:seed",
     "pipeline": "pnpm --filter @gof/pipeline start",
     "test:live-extract": "pnpm --filter @gof/pipeline start:live-extract",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "docker:up": "docker compose up --build site"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

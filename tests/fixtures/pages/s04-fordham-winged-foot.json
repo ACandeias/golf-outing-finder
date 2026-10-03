@@ -1,0 +1,144 @@
+{
+  "url": "https://now.fordham.edu/event/fordham-golf-classic-2026/",
+  "fetched_at": "2026-10-03T16:03:32.013Z",
+  "http_status": 200,
+  "text": "Close Menu\n\nSubscribe\n\nFordham Home\n\nFacebook\n\nInstagram\n\nLinkedIn\n\nX (Twitter)\n\nYouTube\n\nSubscribe\n\nFordham Golf Classic 2026\n\nTuesday, October 13, 10 a.m. – 8 p.m.\n\nWinged Foot Golf Club\n\n851 Fenimore Rd\n\nMamaroneck,\n\nNY\n\n10543\n\n+ Google Map\n\nJoin us for the 2026 Fordham Golf Classic at Winged Foot.\n\nExperience a premier day of golf alongside fellow Fordham alumni, parents, supporters and friends at one of the most iconic courses in the country. Winged Foot is set to host the U.S. Open in 2028, offering a unique opportunity to play the course ahead of one of golf’s biggest stages.\n\nFor more information, visit our website.\n\n:\nAthletics\n\nOrganizer\n\nDuraunte Cutts\n\nRegister\n\nAdd to calendar\n\nGoogle Calendar\n\niCalendar\n\nOutlook 365\n\nOutlook Live\n\nRelated Events\n\nAlumni Chapter of Long Island: 2026 Richmond vs. Fordham Football Tailgate\n\nSaturday, October 10, 1 – 3:30 p.m.\n\nFordham ROTC Centennial Gameday Celebration\n\nSaturday, November 14, 9 a.m. – 12 p.m.",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://now.fordham.edu/event/fordham-golf-classic-2026/",
+          "url": "https://now.fordham.edu/event/fordham-golf-classic-2026/",
+          "name": "Fordham Golf Classic 2026",
+          "isPartOf": {
+            "@id": "https://now.fordham.edu/#website"
+          },
+          "datePublished": "2026-05-05T13:24:44+00:00",
+          "breadcrumb": {
+            "@id": "https://now.fordham.edu/event/fordham-golf-classic-2026/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://now.fordham.edu/event/fordham-golf-classic-2026/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://now.fordham.edu/event/fordham-golf-classic-2026/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://now.fordham.edu/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://now.fordham.edu/events/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Fordham Golf Classic 2026"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://now.fordham.edu/#website",
+          "url": "https://now.fordham.edu/",
+          "name": "Fordham Now",
+          "description": "The official news site for Fordham University.",
+          "publisher": {
+            "@id": "https://now.fordham.edu/#organization"
+          },
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://now.fordham.edu/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://now.fordham.edu/#organization",
+          "name": "Fordham University",
+          "url": "https://now.fordham.edu/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://now.fordham.edu/#/schema/logo/image/",
+            "url": "https://now.fordham.edu/wp-content/uploads/2024/03/Fordham_Mag_Header.png",
+            "contentUrl": "https://now.fordham.edu/wp-content/uploads/2024/03/Fordham_Mag_Header.png",
+            "width": 1024,
+            "height": 128,
+            "caption": "Fordham University"
+          },
+          "image": {
+            "@id": "https://now.fordham.edu/#/schema/logo/image/"
+          },
+          "sameAs": [
+            "https://www.facebook.com/FordhamUniversity",
+            "https://x.com/fordhamnyc"
+          ]
+        },
+        {
+          "@type": "Event",
+          "name": "Fordham Golf Classic 2026",
+          "description": "Join us for the 2026 Fordham Golf Classic at Winged Foot. Experience a premier day of golf alongside fellow Fordham alumni, parents, supporters and friends at one of the most",
+          "url": "https://forever.fordham.edu/s/1362/18/interior.aspx?sid=1362&gid=1&pgid=15222&content_id=17301",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "startDate": "2026-10-13T10:00:00-04:00",
+          "endDate": "2026-10-13T20:00:00-04:00",
+          "location": {
+            "@type": "Place",
+            "name": "Winged Foot Golf Club",
+            "description": "",
+            "url": "https://now.fordham.edu/venue/winged-foot-golf-club/",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "851 Fenimore Rd",
+              "addressLocality": "Mamaroneck",
+              "addressRegion": "NY",
+              "postalCode": "10543",
+              "addressCountry": "United States"
+            },
+            "telephone": "",
+            "sameAs": ""
+          },
+          "organizer": {
+            "@type": "Person",
+            "name": "Duraunte Cutts",
+            "description": "",
+            "url": "",
+            "telephone": "",
+            "email": ""
+          },
+          "@id": "https://now.fordham.edu/event/fordham-golf-classic-2026/#event",
+          "mainEntityOfPage": {
+            "@id": "https://now.fordham.edu/event/fordham-golf-classic-2026/"
+          }
+        }
+      ]
+    }
+  ]
+}

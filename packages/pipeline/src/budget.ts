@@ -1,25 +1,23 @@
-import { z } from "zod";
+import {
+  type Budget,
+  type BudgetCap,
+  type BudgetProfile,
+  resolveBudget,
+} from "@gof/shared/budget";
 
-// Caps from SPEC.md section 14. Defaults live here; env vars override.
-export const budgetSchema = z.object({
-  MAX_SERP_QUERIES_PER_RUN: z.coerce.number().int().min(0).default(450),
-  MAX_EXTRACTIONS_PER_RUN: z.coerce.number().int().min(0).default(600),
-  MAX_LLM_INPUT_TOKENS_PER_RUN: z.coerce.number().int().min(0).default(2_000_000),
-  MAX_COURSE_CLASSIFICATIONS_PER_RUN: z.coerce.number().int().min(0).default(4000),
-  MAX_FETCHES_PER_RUN: z.coerce.number().int().min(0).default(2500),
-  MAX_RENDERS_PER_RUN: z.coerce.number().int().min(0).default(400),
-});
-export type Budget = z.infer<typeof budgetSchema>;
-
-export type Meter = keyof Budget;
+/** Caps that are counted per run (minutes and the monthly spend cap are checked elsewhere). */
+export type Meter = Exclude<BudgetCap, "MAX_FETCH_MINUTES" | "MONTHLY_SPEND_CAP_CENTS">;
 
 export class BudgetGuard {
   readonly budget: Budget;
   private readonly counts = new Map<Meter, number>();
   private readonly hits = new Set<Meter>();
 
-  constructor(env: NodeJS.ProcessEnv = process.env) {
-    this.budget = budgetSchema.parse(env);
+  constructor(
+    profile: BudgetProfile = "nightly",
+    env: Readonly<Record<string, string | undefined>> = {},
+  ) {
+    this.budget = resolveBudget(profile, env);
   }
 
   spent(meter: Meter): number {

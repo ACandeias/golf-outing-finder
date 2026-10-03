@@ -1,18 +1,22 @@
-# Cloudflare Worker running the Astro app.
-# For production, replace database_id after `wrangler d1 create gof`.
-# For local dev inside Docker or wrangler dev, the database_id is unused.
+# Cloudflare Worker running the Astro app (Astro 7, @astrojs/cloudflare 14).
+# `astro build` writes the deployable Worker and a generated config under dist/;
+# `wrangler dev` and `wrangler deploy` pick that up through .wrangler/deploy/config.json.
+# For production, replace database_id with the id from `wrangler d1 create gof`.
+# Local dev (wrangler dev, Docker) ignores database_id.
 
 name = "golf-outing-finder"
-main = "./dist/_worker.js/index.js"
+main = "@astrojs/cloudflare/entrypoints/server"
 compatibility_date = "2026-09-01"
 compatibility_flags = ["nodejs_compat"]
-assets = { directory = "./dist" }
 
 [vars]
+NODE_ENV = "production"
 PUBLIC_SITE_URL = "http://localhost:8787"
 ADS_PROVIDER = "adsense"
 PUBLIC_ADSENSE_CLIENT = ""
 PUBLIC_GA4_ID = ""
+INDEXNOW_KEY = ""
+SITE_NOW = ""
 
 [[d1_databases]]
 binding = "DB"
@@ -24,4 +28,4 @@ migrations_dir = "../../packages/db/migrations"
 ip = "0.0.0.0"
 port = 8787
 
-# Secrets (`wrangler secret put`, not committed): TURNSTILE_SECRET
+# Secrets (`wrangler secret put`, never committed): TURNSTILE_SECRET

@@ -1,0 +1,75 @@
+{
+  "url": "https://rmhcstl.org/scramble/",
+  "fetched_at": "2026-10-03T16:03:47.842Z",
+  "http_status": 200,
+  "text": "Fore The House that Love Built\n\nJoin Ronald McDonald House St. Louis for the 33rd Annual Scramble for Charity Golf Tournament, presented by McDonald’s and titled by CSI Leasing.\nThe tournament will be held on Monday, October 19, 2026, at Whitmoor Country Club, a beautiful 36-hole course in Weldon Spring. This tournament continues to sell out each year, attracting participants looking for an affordable tournament to play for fun and a good cause.\nTogether, we raised over $214,000 in 2025 to help families of seriously ill children stay close to the care they need at Ronald McDonald House St. Louis.\n\nTeams of four will compete for a chance to win great prizes in either a morning (7:30am) or afternoon (12:30pm) shotgun start. The registration fee includes a gift bag, lunch, and refreshments. Golfers will also have the opportunity to test their luck at several games set up on the course.\n\nAll funds raised from the tournament help support the mission of Ronald McDonald House St. Louis to provide a home-away-from-home for families of seriously ill children.",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://rmhcstl.org/scramble/#breadcrumblist",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "@id": "https://rmhcstl.org/#listItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://rmhcstl.org/",
+              "nextItem": {
+                "@type": "ListItem",
+                "@id": "https://rmhcstl.org/scramble/#listItem",
+                "name": "Scramble"
+              }
+            },
+            {
+              "@type": "ListItem",
+              "@id": "https://rmhcstl.org/scramble/#listItem",
+              "position": 2,
+              "name": "Scramble",
+              "previousItem": {
+                "@type": "ListItem",
+                "@id": "https://rmhcstl.org/#listItem",
+                "name": "Home"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://rmhcstl.org/#organization",
+          "name": "Ronald McDonald House Charities of St. Louis",
+          "description": "Keeping Families Close",
+          "url": "https://rmhcstl.org/"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://rmhcstl.org/scramble/#webpage",
+          "url": "https://rmhcstl.org/scramble/",
+          "name": "Scramble | Ronald McDonald House Charities of St. Louis",
+          "inLanguage": "en-US",
+          "isPartOf": {
+            "@id": "https://rmhcstl.org/#website"
+          },
+          "breadcrumb": {
+            "@id": "https://rmhcstl.org/scramble/#breadcrumblist"
+          },
+          "datePublished": "2023-06-07T17:37:46-05:00",
+          "dateModified": "2026-06-09T15:17:11-05:00"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://rmhcstl.org/#website",
+          "url": "https://rmhcstl.org/",
+          "name": "Ronald McDonald House Charities of St. Louis",
+          "description": "Keeping Families Close",
+          "inLanguage": "en-US",
+          "publisher": {
+            "@id": "https://rmhcstl.org/#organization"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -17,3 +17,5 @@ tests/fixtures/**/*.recorded.json
 tests/fixtures/**/*.actual/
 playwright-report/
 test-results/
+.drizzle/
+worker-configuration.d.ts

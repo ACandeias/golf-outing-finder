@@ -6,9 +6,11 @@ interface Props {
   noindex?: boolean;
 }
 
+import { siteEnv } from "../lib/env.ts";
+
 const { title, description, canonical, noindex } = Astro.props;
-const siteUrl = Astro.site?.href ?? Astro.locals.runtime?.env?.PUBLIC_SITE_URL ?? "";
-const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl || Astro.url).href;
+const siteUrl = siteEnv().PUBLIC_SITE_URL;
+const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
 ---
 
 <!doctype html>

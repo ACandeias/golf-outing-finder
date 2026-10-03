@@ -1,0 +1,147 @@
+{
+  "url": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/",
+  "fetched_at": "2026-10-03T16:03:49.459Z",
+  "http_status": 200,
+  "text": "Find a Scramble\n›\nFL\n›\nGrady Charity Golf Scramble 2026\n\nAbout this event\n\nWelcome to the Annual Grady Golf Scramble! The Grady Dad's Club is proud to host this exciting event as a way to raise money for our school and connect with…\n\nSign up free to see the full event description, location map, amenities, and registration link.\nSign Up Free →\n\nHave a question?\n\nMessages are reviewed before they reach the organizer — this keeps their inbox free from spam.\n\nSign Up Free to Contact Organizer\n\nPreferred vendors\nfor charity scrambles in FL\n\nPartners are independently reviewed. Scramble Hunter may earn a referral fee.\n\nAdvertisement\n\n[ Ad slot — 728×90 desktop / 320×50 mobile ]",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": [
+            "WebPage",
+            "ItemPage"
+          ],
+          "@id": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/",
+          "url": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/",
+          "name": "Grady Charity Golf Scramble 2026",
+          "isPartOf": {
+            "@id": "https://scramblehunter.com/#website"
+          },
+          "datePublished": "2026-08-16T14:09:48+00:00",
+          "description": "Welcome to the Annual Grady Golf Scramble! The Grady Dad's Club is proud to host this exciting event as a way to raise money for our school and connect",
+          "breadcrumb": {
+            "@id": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://scramblehunter.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://scramblehunter.com/events/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Grady Charity Golf Scramble 2026"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://scramblehunter.com/#website",
+          "url": "https://scramblehunter.com/",
+          "name": "Scramble Hunter",
+          "description": "",
+          "publisher": {
+            "@id": "https://scramblehunter.com/#organization"
+          },
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://scramblehunter.com/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://scramblehunter.com/#organization",
+          "name": "Scramble Hunter",
+          "url": "https://scramblehunter.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "inLanguage": "en-US",
+            "@id": "https://scramblehunter.com/#/schema/logo/image/",
+            "url": "https://scramblehunter.com/wp-content/uploads/2026/04/scramble-hunter-logo-dark-1.png",
+            "contentUrl": "https://scramblehunter.com/wp-content/uploads/2026/04/scramble-hunter-logo-dark-1.png",
+            "width": 254,
+            "height": 65,
+            "caption": "Scramble Hunter"
+          },
+          "image": {
+            "@id": "https://scramblehunter.com/#/schema/logo/image/"
+          }
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Grady Charity Golf Scramble 2026",
+      "url": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/",
+      "startDate": "2026-11-07T08:30:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "4151 Dana Shores Dr, Tampa, FL 33634, United States",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4151 Dana Shores Dr, Tampa, FL 33634, United States",
+          "addressRegion": "FL",
+          "addressCountry": "US"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 27.9766987,
+          "longitude": -82.5580127
+        }
+      },
+      "organizer": {
+        "@type": "Organization",
+        "name": "Patrick Snow"
+      },
+      "description": "Welcome to the Annual Grady Golf Scramble! The Grady Dad's Club is proud to host this exciting event as a way to raise money for our school and connect with the community. WHO: This is a FUN event for all golfers of all abilities with a \"Best Ball\" format. If you can putt you …",
+      "image": [
+        "https://scramblehunter.com/wp-content/plugins/scramble-hunter-core/assets/images/sh-event-default-16x9.jpg",
+        "https://scramblehunter.com/wp-content/plugins/scramble-hunter-core/assets/images/sh-event-default-4x3.jpg",
+        "https://scramblehunter.com/wp-content/plugins/scramble-hunter-core/assets/images/sh-event-default-1x1.jpg"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "url": "https://gradygolf26.com/",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "price": 150
+      }
+    }
+  ]
+}

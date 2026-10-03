@@ -13,5 +13,10 @@
     "@gof/db": "workspace:*",
     "@gof/shared": "workspace:*",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@mozilla/readability": "0.6.0",
+    "linkedom": "0.18.13",
+    "playwright": "1.63.0"
   }
 }

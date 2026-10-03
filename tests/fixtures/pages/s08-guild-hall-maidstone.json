@@ -1,0 +1,137 @@
+{
+  "url": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/",
+  "fetched_at": "2026-10-03T16:03:48.018Z",
+  "http_status": 200,
+  "text": "Friday, October 30, 2026\n10 AM–6 PM\n\nPhoto: Jessica Dalene Photography\n\n$1,500 PER GOLFER/$6,000 PER FOURSOME\nGolf at the historic, ocean-front Maidstone Club in East Hampton. Practice on the gorgeously maintained grounds while you work up an appetite for a delicious lunch served on the Clubhouse veranda overlooking one of the most beautiful ocean beaches in America. A shotgun tournament will be followed by cocktails and hors d’oeuvres and an awards ceremony honoring the top golfers at the outing.",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/",
+          "url": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/",
+          "name": "2026 GEORGE D. YATES GOLF OUTING AT THE MAIDSTONE CLUB - Guild Hall",
+          "isPartOf": {
+            "@id": "https://www.guildhall.org/#website"
+          },
+          "primaryImageOfPage": {
+            "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#primaryimage"
+          },
+          "image": {
+            "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#primaryimage"
+          },
+          "thumbnailUrl": "https://www.guildhall.org/wp-content/uploads/2022/04/19_09_05_0543-2-scaled.jpg",
+          "datePublished": "2026-04-22T19:26:28+00:00",
+          "dateModified": "2026-09-28T13:31:48+00:00",
+          "breadcrumb": {
+            "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#breadcrumb"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": [
+            {
+              "@type": "ReadAction",
+              "target": [
+                "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/"
+              ]
+            }
+          ]
+        },
+        {
+          "@type": "ImageObject",
+          "inLanguage": "en-US",
+          "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#primaryimage",
+          "url": "https://www.guildhall.org/wp-content/uploads/2022/04/19_09_05_0543-2-scaled.jpg",
+          "contentUrl": "https://www.guildhall.org/wp-content/uploads/2022/04/19_09_05_0543-2-scaled.jpg",
+          "width": 2560,
+          "height": 1706,
+          "caption": "Photo: Jessica Dalene Photography"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://www.guildhall.org/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Events",
+              "item": "https://www.guildhall.org/events/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "2026 GEORGE D. YATES GOLF OUTING AT THE MAIDSTONE CLUB"
+            }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.guildhall.org/#website",
+          "url": "https://www.guildhall.org/",
+          "name": "Guild Hall",
+          "description": "",
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://www.guildhall.org/?s={search_term_string}"
+              },
+              "query-input": {
+                "@type": "PropertyValueSpecification",
+                "valueRequired": true,
+                "valueName": "search_term_string"
+              }
+            }
+          ],
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "Event",
+          "name": "2026 GEORGE D. YATES GOLF OUTING AT THE MAIDSTONE CLUB",
+          "description": "$1,500 PER GOLFER/$6,000 PER FOURSOME   Golf at the historic, ocean-front Maidstone Club in East Hampton. Practice on the gorgeously maintained grounds while you work up an appetite for a delicious lunch served...",
+          "image": {
+            "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#primaryimage"
+          },
+          "url": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/",
+          "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "startDate": "2026-10-30T10:00:00-04:00",
+          "endDate": "2026-10-30T18:00:00-04:00",
+          "location": {
+            "@type": "Place",
+            "name": "Maidstone Club",
+            "description": "",
+            "image": "https://www.guildhall.org/wp-content/uploads/2018/03/Golf-Image-2.jpg",
+            "url": "https://www.guildhall.org/venue/maidstone-club/",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "50 Old Beach Lane",
+              "addressLocality": "East Hampton",
+              "addressRegion": "NY",
+              "postalCode": "11937",
+              "addressCountry": "United States"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 40.9512881,
+              "longitude": -72.1740461
+            },
+            "telephone": "",
+            "sameAs": "https://www.maidstoneclub.org/"
+          },
+          "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/#event",
+          "mainEntityOfPage": {
+            "@id": "https://www.guildhall.org/events/2026-george-d-yates-golf-outing-at-the-maidstone-club/"
+          }
+        }
+      ]
+    }
+  ]
+}

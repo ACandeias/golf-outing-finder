@@ -1,0 +1,266 @@
+{
+  "url": "https://support.kidney.org/event/2026-nkf-golf-classic-at-winged-foot-golf-club/e766893",
+  "fetched_at": "2026-10-03T16:03:43.005Z",
+  "http_status": 200,
+  "text": "Monday, October 19, 2026 | 10:00am\n\n851 Fenimore Rd, Mamaroneck, NY 10543\n\nThe National Kidney Foundation (NKF) Golf Classic at Winged Foot Golf Club, presented by Collins Building Services, Inc., is one of the nation’s premier amateur charity golf events and a distinguished platform for client entertainment and relationship-building. This exclusive outing offers an unparalleled opportunity to host clients, strengthen business connections, and enjoy a memorable day on one of the country’s most renowned golf courses, all while supporting a meaningful cause. Participants will also have the chance to qualify for the National Finals, taking place January 14–17, 2027, at Pebble Beach Resorts.\nDesigned to combine world-class golf with elevated hospitality and networking, the event delivers an exceptional experience both on and off the course. Teams may compete in either the Handicap Index Division or the Gross Division, allowing for a day that is both competitive and enjoyable for golfers of all levels.\nIn the Handicap Index Division, each team may include one player with a handicap index of 8.0 or lower, and the combined handicap index for all four players must be at least 42.0. The Gross Division is designed for teams without an official USGA Handicap Index or those who do not meet the Handicap Index Division criteria.\nWe are proud to return to Winged Foot Golf Club, an iconic venue that hosted the 2020 U.S. Open and will host again in 2028. With its legendary courses, exceptional service, and world-class amenities, Winged Foot provides an unforgettable experience rooted in tradition and excellence — making it the ideal setting to entertain valued clients, engage top executives, and support the fight against kidney disease.\n\nKenneth J. Collins\nPresident and CEO,\nCollins Building Services, Inc.\n\nOutstanding Leadership & Philanthropy Award\nKenneth J. Collins has been a steadfast champion of the National Kidney Foundation Golf Classic at Winged Foot for more than a decade. His unwavering commitment has not only elevated this event, but has also helped drive critical advancements in kidney research, fuel innovation, and expand life-changing care for patients and families across the kidney community. Learn more about CBS.\n\nDonate In Honor of Mr. Collins\n\nTournament Details:\n10:00 am - Registration & Breakfast Opens\n12:00 pm Noon - Shotgun Start\n5:00 pm - Dinner, Award Ceremony for Top Finishers and Contest Winners\n\nTournament Includes:\nWelcome gift bag\nFull Clubhouse/locker room access\nPutting Green and Driving Range access\nCaddies (2 per team)\nBrunch, Light Lunch at the Turn & Gourmet Buffet Dinner & Awards\n\nGolf Committee:\nCommittee Chairman:\nStephen J. Nicholas, MD\nNicholas Institute of Sports Medicine and Athletic Trauma\nWilliam G. Dessoffy, CFA\nCitizens Bank\nNicole Chiarella\nCollins Building Services, Inc.\nAndrew Jablonski\nCast & Crew Entertainment Services\nLou Jablonski\nNKF New York Board of Advisors\nMatt Marvel\nBuilt National\nScott Noble\nFirst New York Securities\nRyan Rate\nPriceWaterhouse Coopers\n\nWinged Foot Golf Club\n\n851 Fenimore Rd, Mamaroneck, NY 10543",
+  "jsonld": [
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Event",
+          "name": "2026 NKF Golf Classic at Winged Foot Golf Club",
+          "url": "https://pro.gofundme.com/event/e766893",
+          "startDate": "2026-10-19T10:00:00-04:00",
+          "endDate": "2026-10-19T19:00:00-04:00",
+          "eventStatus": "https://schema.org/EventScheduled",
+          "image": "https://assets.classy.org/19614948/8778bdce-af07-11ed-939f-0a58a9feac02.png",
+          "location": {
+            "@type": "Place",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "851 Fenimore Road",
+              "addressLocality": "Mamaroneck",
+              "addressRegion": "NY",
+              "postalCode": "10543",
+              "addressCountry": "US"
+            }
+          },
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Foursome",
+              "price": "7500.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Presenting Sponsor",
+              "price": "75000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Diamond Sponsor",
+              "price": "50000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Platinum Sponsor",
+              "price": "25000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Gold Sponsor",
+              "price": "15000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Silver Sponsor",
+              "price": "10000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Brunch Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Turn Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Putting Green Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Driving Range Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Leaderboard Sponsor",
+              "price": "5000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Tee Sponsor",
+              "price": "1000.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Super Ticket",
+              "price": "50.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Individual Mulligan",
+              "price": "100.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "Team Mulligan",
+              "price": "300.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "25 Raffle Tickets",
+              "price": "300.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "15 Raffle Tickets",
+              "price": "200.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            },
+            {
+              "@type": "Offer",
+              "name": "5 Raffle Tickets",
+              "price": "100.00",
+              "priceCurrency": "USD",
+              "url": "https://pro.gofundme.com/event/e766893",
+              "availability": "https://schema.org/InStock"
+            }
+          ],
+          "organizer": {
+            "@id": "https://pro.gofundme.com/event/e766893#organization"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://pro.gofundme.com/event/e766893#organization",
+          "name": "National Kidney Foundation",
+          "url": "https://www.kidney.org/",
+          "logo": "https://assets.classy.org/26421026/f25bc7da-cc6f-11ef-98d3-0affcc6bf4b7.png",
+          "sameAs": [
+            "https://www.kidney.org/",
+            "https://www.facebook.com/nationalkidneyfoundation/",
+            "https://x.com/nkf"
+          ]
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "National Kidney Foundation",
+          "item": "https://www.kidney.org/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "2026 NKF Golf Classic at Winged Foot Golf Club",
+          "item": "https://pro.gofundme.com/event/e766893"
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is this donation tax deductible?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "National Kidney Foundation (EIN: 13-1673104) is a 501(c)3 tax-exempt organization and your donation is tax-deductible within the guidelines of U.S. law. To claim a donation as a deduction on your U.S. taxes, please keep your email donation receipt as your official record. We'll send it to you upon successful completion of your donation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a minimum amount I'm allowed to give?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Every dollar counts. No gift is too small and makes a meaningful difference in our work to advance research, diagnosis and treatment of kidney disease."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will I receive a donation receipt?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. A donation receipt will be sent to you at the email address you provide on this form. Please be sure to keep a copy of your receipt for tax purposes. We’ll also make a statement of your generosity available for download in your Account whenever you need it. Can’t find it? Contact: <u><a href=\"mailto:donations@kidney.org\" rel=\"nofollow\">Donations@kidney.org</a></u>."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How will my gift help?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Your support helps us do more. More research, more advocacy, more transplants, more hope. Your generosity will ensure that NKF can continue to make transplants a priority through research, innovation and advocacy, while expanding access to programs that help patients find their perfect match."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I make my gift by mail or over the phone?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Of course! Complete our mail-in donation form to accompany your offline donation and send it to: <br><br>Attn: Gift Processing at National Kidney Foundation HQ<br>30 East 33rd Street<br>New York, NY 10016<br><br>Or, call us to complete your gift at 212-889-2210"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Still have questions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "If you are experiencing any issues or have questions about your contribution, please contact <u><a href=\"mailto:donations@kidney.org\" rel=\"nofollow\">donations@kidney.org</a></u>."
+          }
+        }
+      ]
+    }
+  ]
+}
