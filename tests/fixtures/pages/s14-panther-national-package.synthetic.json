@@ -1,0 +1,9 @@
+{
+  "synthetic": true,
+  "note": "Hand-written for golden case gc1 from the seed entry and tests/fixtures/MISSING.md: the live page returned 404 when Phase 0 recorded fixtures. Written in our own words; not a recording of any page. Facts kept: a three-day package with a resort stay and no golf-only option, at Panther National, Palm Beach Gardens, FL, starting 2026-10-13.",
+  "url": "https://golfwithaccess.com/events/2026-access-palm-beach-golf-experience",
+  "fetched_at": "2026-09-28T12:00:00.000Z",
+  "http_status": 200,
+  "text": "Access Palm Beach Golf Experience\n\nOctober 13 to 15, 2026\nPalm Beach Gardens, Florida\n\nThree days of private-club golf in Palm Beach Gardens, with the first round at Panther National.\n\nThis experience is sold only as a complete package. Every package includes three nights at a resort in Palm Beach Gardens, daily breakfast, a welcome dinner, and all three rounds with carts.\n\nThere is no golf-only, single-round or commuter option for this event. Golfers must book the full package with the resort stay.\n\nPackages are limited. Contact us for package pricing and availability.\n\nBook your package",
+  "jsonld": []
+}

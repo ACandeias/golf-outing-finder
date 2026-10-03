@@ -27,13 +27,9 @@ describe("course-types.yaml", () => {
   });
 
   it("rejects an entry with neither key, or a bad type", () => {
+    expect(() => parseCourseTypesYaml("overrides:\n  - course_type: private\n    reason: x\n")).toThrow();
     expect(() =>
-      parseCourseTypesYaml("overrides:\n  - course_type: private\n    reason: x\n"),
-    ).toThrow();
-    expect(() =>
-      parseCourseTypesYaml(
-        "overrides:\n  - osm_ref: way/1\n    course_type: fancy\n    reason: x\n",
-      ),
+      parseCourseTypesYaml("overrides:\n  - osm_ref: way/1\n    course_type: fancy\n    reason: x\n"),
     ).toThrow();
   });
 
@@ -47,9 +43,7 @@ describe("course-types.yaml", () => {
   });
 
   it("merges generated entries without replacing the owner's", () => {
-    const owner: CourseTypeOverride[] = [
-      { osm_ref: "way/1", course_type: "public", reason: "owner" },
-    ];
+    const owner: CourseTypeOverride[] = [{ osm_ref: "way/1", course_type: "public", reason: "owner" }];
     const generated: CourseTypeOverride[] = [
       { osm_ref: "way/1", course_type: "private", reason: "seed" },
       { osm_ref: "way/2", course_type: "private", reason: "seed" },

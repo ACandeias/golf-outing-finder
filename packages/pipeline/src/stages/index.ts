@@ -17,3 +17,4 @@ export { report, mdCell, FETCH_ERROR_RATE_LIMIT } from "./report.ts";
 export { courses } from "./courses.ts";
 export { irs } from "./irs.ts";
 export { courseTypesRequestBuild, courseTypesCollect } from "./course-types.ts";
+export { memoryIrsLookup, irsNameTokens } from "./irs-memory.ts";

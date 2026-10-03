@@ -10,6 +10,7 @@ import { extractRequestBuild } from "../stages/extract-request-build.ts";
 import { planFetch } from "../stages/fetch-plan.ts";
 import { irs } from "../stages/irs.ts";
 import { match } from "../stages/match.ts";
+import { NotImplemented } from "../stages/not-implemented.ts";
 import { normalize } from "../stages/normalize.ts";
 import { publish } from "../stages/publish.ts";
 import { recheckRollForward } from "../stages/recheck-roll-forward.ts";
@@ -153,3 +154,14 @@ export const defaultHandlers: StageHandlers = {
     return { result: out.result };
   },
 };
+
+/** Handlers that all throw NotImplemented, for runner tests independent of B, C and D progress. */
+export function stubHandlers(): StageHandlers {
+  const out = {} as StageHandlers;
+  for (const name of Object.keys(defaultHandlers) as (keyof StageHandlers)[]) {
+    out[name] = async () => {
+      throw new NotImplemented(name);
+    };
+  }
+  return out;
+}

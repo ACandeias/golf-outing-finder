@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { parseCliArgs } from "./cli-args.ts";
 import { main } from "./cli.ts";
 import { MemoryD1 } from "./d1/memory.ts";
-import { defaultHandlers, type StageHandler, type StageHandlers } from "./run/handlers.ts";
+import { stubHandlers, type StageHandler, type StageHandlers } from "./run/handlers.ts";
 import { emptyResult } from "./stages/types.ts";
 
 const ENV = { NODE_ENV: "test", PIPELINE_NOW: "2026-09-28" };
@@ -60,7 +60,7 @@ describe("parseCliArgs", () => {
 
 async function runMain(
   argv: string[],
-  handlers: StageHandlers = defaultHandlers,
+  handlers: StageHandlers = stubHandlers(),
   env: Record<string, string> = ENV,
 ) {
   const out: string[] = [];
@@ -114,7 +114,7 @@ describe("pipeline CLI", () => {
       await fetch("https://api.dataforseo.com/v3/serp/google/organic/task_post");
       return { result: emptyResult() };
     };
-    const r = await runMain(["--dry-run"], { ...defaultHandlers, discover: leaky });
+    const r = await runMain(["--dry-run"], { ...stubHandlers(), discover: leaky });
     expect(r.exitCode).toBe(1);
     expect(r.networkAttempts).toEqual([
       "https://api.dataforseo.com/v3/serp/google/organic/task_post",
@@ -129,7 +129,7 @@ describe("pipeline CLI", () => {
   });
 
   it("exits 2 on a usage error", async () => {
-    const r = await runMain(["--now=2026-09-28"], defaultHandlers, {
+    const r = await runMain(["--now=2026-09-28"], stubHandlers(), {
       NODE_ENV: "production",
       PUBLIC_SITE_URL: "https://x.org",
     });
@@ -140,7 +140,7 @@ describe("pipeline CLI", () => {
   it("pins the clock with --now and writes $GITHUB_STEP_SUMMARY", async () => {
     const dir = await mkdtemp(join(tmpdir(), "gof-summary-"));
     const file = join(dir, "summary.md");
-    const r = await runMain(["--dry-run", "--now=2026-10-01"], defaultHandlers, {
+    const r = await runMain(["--dry-run", "--now=2026-10-01"], stubHandlers(), {
       NODE_ENV: "test",
       GITHUB_STEP_SUMMARY: file,
     });
@@ -156,7 +156,7 @@ describe("pipeline CLI", () => {
     };
     const r = await runMain(
       ["--dry-run"],
-      { ...defaultHandlers, discover: leaky },
+      { ...stubHandlers(), discover: leaky },
       { ...ENV, ANTHROPIC_API_KEY: secret },
     );
     const all = r.err.join("\n");

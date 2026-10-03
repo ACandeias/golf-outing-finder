@@ -7,7 +7,12 @@ import { NIGHTLY_STAGES, selectStages, type StageName } from "../stages/registry
 import { runRowSchema } from "../stages/rows.ts";
 import { emptyResult, type Context } from "../stages/types.ts";
 import { newRunRow, runRowPlan } from "./accounting.ts";
-import { defaultHandlers, type StageHandler, type StageHandlers } from "./handlers.ts";
+import {
+  defaultHandlers,
+  stubHandlers,
+  type StageHandler,
+  type StageHandlers,
+} from "./handlers.ts";
 import { runPipeline, type RunOptions } from "./runner.ts";
 
 const NOW = new Date("2026-09-28T12:00:00.000Z");
@@ -41,7 +46,7 @@ const nightly: RunOptions = {
 
 async function run(
   opts: Partial<RunOptions> = {},
-  handlers: StageHandlers = defaultHandlers,
+  handlers: StageHandlers = stubHandlers(),
   env = {},
   d1 = new MemoryD1(),
 ) {
@@ -67,7 +72,7 @@ function runWrites(d1: MemoryD1): number {
   return d1.applied.flat().filter((s) => s.startsWith("INSERT INTO runs")).length;
 }
 
-describe("runPipeline with the Phase 2A stubs", () => {
+describe("runPipeline with NotImplemented stages", () => {
   it("reports every unimplemented stage by name and exits 0 without --strict", async () => {
     const { outcome, rows, d1, summaries } = await run();
     expect(outcome.exitCode).toBe(0);

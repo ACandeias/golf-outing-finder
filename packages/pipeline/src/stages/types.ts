@@ -556,6 +556,8 @@ export const irsRecordSchema = z.object({
   city: z.string(),
   state: z.string().regex(/^[A-Z]{2}$/),
   subsection: z.string().regex(/^\d{2}$/),
+  /** BMF SORT_NAME: a secondary name (a DBA such as "BCNY"), or null. */
+  sort_name: z.string().nullable(),
 });
 export type IrsRecord = z.infer<typeof irsRecordSchema>;
 
