@@ -30,7 +30,8 @@ function headerIndex(row: readonly string[]): ColumnIndex | null {
     out[key] = names.indexOf(name);
   }
   // SORT_NAME is optional; the rest must be present.
-  if (out.ein < 0 || out.name < 0 || out.city < 0 || out.state < 0 || out.subsection < 0) return null;
+  if (out.ein < 0 || out.name < 0 || out.city < 0 || out.state < 0 || out.subsection < 0)
+    return null;
   return out;
 }
 

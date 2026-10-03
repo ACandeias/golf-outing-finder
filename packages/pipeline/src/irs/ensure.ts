@@ -1,7 +1,13 @@
 import { access, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Context } from "../stages/types.ts";
-import { buildIrsDb, irsDbFileName, openIrsLookup, type IrsSource, type SqliteIrsLookup } from "./db.ts";
+import {
+  buildIrsDb,
+  irsDbFileName,
+  openIrsLookup,
+  type IrsSource,
+  type SqliteIrsLookup,
+} from "./db.ts";
 import { fileTextChunks, httpTextChunks, IRS_BMF_URLS, type HttpTextOptions } from "./download.ts";
 
 export const IRS_FIXTURE_DB = "irs-fixture.sqlite";
@@ -71,7 +77,9 @@ export async function newestIrsDb(dir: string): Promise<string | null> {
 export async function ensureIrsDb(o: EnsureIrsOptions): Promise<EnsureIrsResult> {
   if (o.mode === "dry-run") {
     const path = join(o.dir, IRS_FIXTURE_DB);
-    const rep = await buildIrsDb(o.ctx, path, [{ name: o.fixturePath, chunks: fileTextChunks(o.fixturePath) }]);
+    const rep = await buildIrsDb(o.ctx, path, [
+      { name: o.fixturePath, chunks: fileTextChunks(o.fixturePath) },
+    ]);
     return { path, built: true, records: rep.records, fallback: false, error: null };
   }
   const path = join(o.dir, irsDbFileName(o.ctx.now));
@@ -96,7 +104,10 @@ export async function ensureIrsDb(o: EnsureIrsOptions): Promise<EnsureIrsResult>
     const msg = err instanceof Error ? err.message : String(err);
     const prev = await newestIrsDb(o.dir);
     if (prev && prev !== path) {
-      o.ctx.log.warn("IRS download failed; using the previous month's database", { error: msg, prev });
+      o.ctx.log.warn("IRS download failed; using the previous month's database", {
+        error: msg,
+        prev,
+      });
       return { path: prev, built: false, records: recordsIn(prev), fallback: true, error: msg };
     }
     throw err;

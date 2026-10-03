@@ -1,15 +1,15 @@
 import type { BudgetGuard } from "../budget.ts";
+import { coursesHandler } from "../courses/monthly.ts";
 import type { D1Port, Snapshot } from "../d1/port.ts";
 import { classify } from "../stages/classify.ts";
 import { courseTypesRequestBuild } from "../stages/course-types.ts";
-import { courses } from "../stages/courses.ts";
 import { dedupeUpsert } from "../stages/dedupe-upsert.ts";
 import { discover, planSearch } from "../stages/discover.ts";
 import { extractCollect } from "../stages/extract-collect.ts";
 import { extractRequestBuild } from "../stages/extract-request-build.ts";
 import { planFetch } from "../stages/fetch-plan.ts";
-import { irs } from "../stages/irs.ts";
 import { match } from "../stages/match.ts";
+import { irsHandler } from "../irs/handler.ts";
 import { NotImplemented } from "../stages/not-implemented.ts";
 import { normalize } from "../stages/normalize.ts";
 import { publish } from "../stages/publish.ts";
@@ -22,6 +22,14 @@ import type { PipelineState } from "./state.ts";
 export interface StageEnv {
   stage: StageName;
   mode: "dry-run" | "live";
+  /** The current `runs` row id (workstream D: resume and pending batches). */
+  runId: string;
+  /**
+   * Records a step inside a long stage (e.g. `courses:NY`) in `runs.stages_done`
+   * and writes the row now, so a killed job can resume after the last step
+   * (workstream D).
+   */
+  markProgress: (entry: string) => Promise<void>;
   ctx: Context;
   guard: BudgetGuard;
   state: PipelineState;
@@ -131,20 +139,9 @@ export const defaultHandlers: StageHandlers = {
     const out = recheckRollForward(ctx, { outings: [], sources: [], outingSlugs: [] });
     return { result: out.result, plan: out.output.plan };
   },
-  courses: async ({ ctx }) => {
-    const out = courses(ctx, {
-      features: [],
-      existing: [],
-      places: [],
-      websiteTypes: {},
-      timeZoneAt: () => "America/New_York",
-    });
-    return { result: out.result, plan: out.output.plan };
-  },
-  irs: async ({ ctx }) => {
-    const out = irs(ctx, { rows: [] });
-    return { result: out.result };
-  },
+  // Workstream D: the monthly edges live in src/courses and src/irs.
+  courses: coursesHandler(),
+  irs: irsHandler(),
   "course-types": async ({ ctx, guard }) => {
     const out = courseTypesRequestBuild(ctx, {
       courses: [],

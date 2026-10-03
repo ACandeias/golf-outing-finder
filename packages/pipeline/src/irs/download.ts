@@ -73,7 +73,10 @@ export async function* httpTextChunks(url: string, opts: HttpTextOptions): Async
 
 /** A local CSV file as text chunks (the test fixture and dry runs). */
 export async function* fileTextChunks(path: string): AsyncGenerator<string> {
-  for await (const chunk of createReadStream(path, { encoding: "utf8", highWaterMark: 64 * 1024 })) {
+  for await (const chunk of createReadStream(path, {
+    encoding: "utf8",
+    highWaterMark: 64 * 1024,
+  })) {
     yield String(chunk);
   }
 }

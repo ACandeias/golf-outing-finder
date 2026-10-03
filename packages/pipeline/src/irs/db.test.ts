@@ -33,12 +33,19 @@ let memory: IrsLookup;
 beforeAll(async () => {
   dir = await mkdtemp(join(tmpdir(), "gof-irs-"));
   const path = join(dir, "irs-2026-10.sqlite");
-  const rep = await buildIrsDb(ctx(), path, [{ name: "fixture", chunks: fileTextChunks(FIXTURE) }], {
-    batchSize: 5,
-  });
+  const rep = await buildIrsDb(
+    ctx(),
+    path,
+    [{ name: "fixture", chunks: fileTextChunks(FIXTURE) }],
+    {
+      batchSize: 5,
+    },
+  );
   expect(rep.records).toBe(22);
   sqlite = openIrsLookup(path);
-  memory = memoryIrsLookup(irs(ctx(), { rows: parseCsv(await readFile(FIXTURE, "utf8")) }).output.records);
+  memory = memoryIrsLookup(
+    irs(ctx(), { rows: parseCsv(await readFile(FIXTURE, "utf8")) }).output.records,
+  );
 });
 
 afterAll(async () => {
@@ -94,7 +101,9 @@ describe("buildIrsDb", () => {
       yield "EIN,NAME,CITY,STATE,SUBSECTION\n";
     }
     const path = join(dir, "empty.sqlite");
-    await expect(buildIrsDb(ctx(), path, [{ name: "e", chunks: empty() }])).rejects.toThrow(/no records/);
+    await expect(buildIrsDb(ctx(), path, [{ name: "e", chunks: empty() }])).rejects.toThrow(
+      /no records/,
+    );
   });
 
   it("names the file by the run month", () => {
@@ -121,11 +130,23 @@ describe("ensureIrsDb", () => {
       return new Response(csv, { status: 200 });
     };
     const http = { userAgent: "GolfOutingFinderBot/1.0 (+http://localhost:8787/bot)", fetch };
-    const first = await ensureIrsDb({ ctx: ctx(), dir: d, mode: "live", fixturePath: FIXTURE, http });
+    const first = await ensureIrsDb({
+      ctx: ctx(),
+      dir: d,
+      mode: "live",
+      fixturePath: FIXTURE,
+      http,
+    });
     expect(first).toMatchObject({ path: join(d, "irs-2026-10.sqlite"), built: true, records: 22 });
     expect(urls).toHaveLength(4);
     expect(urls.every((u) => u.startsWith("https://www.irs.gov/pub/irs-soi/eo"))).toBe(true);
-    const again = await ensureIrsDb({ ctx: ctx(), dir: d, mode: "live", fixturePath: FIXTURE, http });
+    const again = await ensureIrsDb({
+      ctx: ctx(),
+      dir: d,
+      mode: "live",
+      fixturePath: FIXTURE,
+      http,
+    });
     expect(again).toMatchObject({ built: false, records: 22 });
     expect(urls).toHaveLength(4);
     await rm(d, { recursive: true, force: true });

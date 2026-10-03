@@ -58,7 +58,9 @@ export function irsNormalizedName(name: string): string {
 }
 
 function recordTokens(r: IrsRecord): string[] {
-  return [...new Set([...irsNameTokens(r.name), ...(r.sort_name ? irsNameTokens(r.sort_name) : [])])];
+  return [
+    ...new Set([...irsNameTokens(r.name), ...(r.sort_name ? irsNameTokens(r.sort_name) : [])]),
+  ];
 }
 
 export interface IrsSource {
@@ -110,7 +112,15 @@ export async function buildIrsDb(
         skipped += out.output.skipped;
         db.exec("BEGIN");
         for (const r of out.output.records) {
-          const res = insOrg.run(r.ein, r.name, r.sort_name, r.city, r.state, r.subsection, irsNormalizedName(r.name));
+          const res = insOrg.run(
+            r.ein,
+            r.name,
+            r.sort_name,
+            r.city,
+            r.state,
+            r.subsection,
+            irsNormalizedName(r.name),
+          );
           if (Number(res.changes) === 0) {
             skipped++;
             continue;

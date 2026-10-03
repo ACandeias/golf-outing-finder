@@ -151,6 +151,17 @@ export async function runPipeline(opts: RunOptions, deps: RunDeps): Promise<RunO
         const out = await deps.handlers[stage]({
           stage,
           mode: opts.mode,
+          runId: row.id,
+          markProgress: async (entry: string) => {
+            row = applyStageUpdate(row, {
+              stage: entry,
+              done: true,
+              counters: {},
+              errors: [],
+              guard,
+            });
+            await d1.apply(runRowPlan(row));
+          },
           ctx,
           guard,
           state,

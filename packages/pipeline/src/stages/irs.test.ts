@@ -13,13 +13,44 @@ const ctx: Context = {
 };
 
 const HEADER = [
-  "EIN", "NAME", "ICO", "STREET", "CITY", "STATE", "ZIP", "GROUP", "SUBSECTION", "AFFILIATION",
-  "CLASSIFICATION", "RULING", "DEDUCTIBILITY", "FOUNDATION", "ACTIVITY", "ORGANIZATION", "STATUS",
-  "TAX_PERIOD", "ASSET_CD", "INCOME_CD", "FILING_REQ_CD", "PF_FILING_REQ_CD", "ACCT_PD",
-  "ASSET_AMT", "INCOME_AMT", "REVENUE_AMT", "NTEE_CD", "SORT_NAME",
+  "EIN",
+  "NAME",
+  "ICO",
+  "STREET",
+  "CITY",
+  "STATE",
+  "ZIP",
+  "GROUP",
+  "SUBSECTION",
+  "AFFILIATION",
+  "CLASSIFICATION",
+  "RULING",
+  "DEDUCTIBILITY",
+  "FOUNDATION",
+  "ACTIVITY",
+  "ORGANIZATION",
+  "STATUS",
+  "TAX_PERIOD",
+  "ASSET_CD",
+  "INCOME_CD",
+  "FILING_REQ_CD",
+  "PF_FILING_REQ_CD",
+  "ACCT_PD",
+  "ASSET_AMT",
+  "INCOME_AMT",
+  "REVENUE_AMT",
+  "NTEE_CD",
+  "SORT_NAME",
 ];
 
-function row(p: { ein: string; name: string; city?: string; state?: string; sub?: string; sort?: string }): string[] {
+function row(p: {
+  ein: string;
+  name: string;
+  city?: string;
+  state?: string;
+  sub?: string;
+  sort?: string;
+}): string[] {
   const r = HEADER.map(() => "");
   r[0] = p.ein;
   r[1] = p.name;
