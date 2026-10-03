@@ -154,12 +154,16 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
   const courses = valid(
     env,
     "course",
-    snapshot.all("SELECT id, name, outing_count, notable FROM courses WHERE outing_count > 0 OR notable = 1", looseRow),
+    snapshot.all(
+      "SELECT id, name, outing_count, notable, state FROM courses WHERE outing_count > 0 OR notable = 1",
+      looseRow,
+    ),
     z.object({
       id: z.string(),
       name: z.string(),
       outing_count: z.number().int(),
       notable: z.union([z.boolean(), z.number()]).transform((v) => v === true || v === 1),
+      state: z.string().nullable().optional(),
     }),
   );
 
@@ -168,7 +172,13 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     metros: ctx.overrides.metros.map((m) => ({ name: m.name, state: m.state, population: m.population })),
     courses,
     allowance: guard.allowance(),
+    ...(ports.prioritizeStates?.length ? { prioritize_states: [...ports.prioritizeStates] } : {}),
   });
+  if (ports.prioritizeStates?.length)
+    ctx.log.info("search: prioritized states first", {
+      states: ports.prioritizeStates.join(","),
+      queries: search.output.queries.length,
+    });
   state.serpQueries = search.output.queries;
   const serp = env.ports.serp ?? ports.serp;
   const serpResults = await runSerpQueries(serp, search.output.queries, guard);

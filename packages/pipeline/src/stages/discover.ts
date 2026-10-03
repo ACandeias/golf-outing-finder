@@ -95,29 +95,49 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   const days = daysInMonthUtc(now);
   const weekly = month >= 3 && month <= 8;
 
-  const queries: SerpQuery[] = [];
+  const priority = (input.prioritize_states ?? []).map((s) => s.toUpperCase());
+  const rank = (state: string | null | undefined): number => {
+    const i = state ? priority.indexOf(state.toUpperCase()) : -1;
+    return i < 0 ? priority.length : i;
+  };
+  // Prioritized states first (in the order given; metros before courses within
+  // a state), then tonight's regular schedule. The cap below cuts from the end.
+  const planned: { rank: number; seq: number; queries: SerpQuery[] }[] = [];
+  let seq = 0;
   input.metros.forEach((m, i) => {
+    const r = rank(m.state);
     const tonight = weekly ? i % 7 === dayNumber % 7 : i % days === dom;
-    if (!tonight) return;
+    if (!tonight && r === priority.length) return;
     const city = `${m.name} ${m.state}`;
     const subject = `${m.name}, ${m.state}`;
-    queries.push(
-      { kind: "place", q: `golf outing ${city} ${year}`, subject },
-      { kind: "place", q: `charity golf tournament ${city} ${year}`, subject },
-      { kind: "place", q: `golf scramble ${city} ${monthName}`, subject },
-    );
+    planned.push({
+      rank: r,
+      seq: seq++,
+      queries: [
+        { kind: "place", q: `golf outing ${city} ${year}`, subject },
+        { kind: "place", q: `charity golf tournament ${city} ${year}`, subject },
+        { kind: "place", q: `golf scramble ${city} ${monthName}`, subject },
+      ],
+    });
   });
   const eligible = input.courses
     .filter((c) => c.outing_count > 0 || c.notable)
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   eligible.forEach((c, i) => {
-    if (i % days !== dom) return;
+    const r = rank(c.state);
+    if (i % days !== dom && r === priority.length) return;
     const name = c.name.replace(/"/g, "");
-    queries.push(
-      { kind: "course", q: `"${name}" golf outing ${year}`, subject: c.id },
-      { kind: "course", q: `"${name}" golf classic register`, subject: c.id },
-    );
+    planned.push({
+      rank: r,
+      seq: seq++,
+      queries: [
+        { kind: "course", q: `"${name}" golf outing ${year}`, subject: c.id },
+        { kind: "course", q: `"${name}" golf classic register`, subject: c.id },
+      ],
+    });
   });
+  planned.sort((a, b) => a.rank - b.rank || a.seq - b.seq);
+  const queries: SerpQuery[] = planned.flatMap((p) => p.queries);
 
   const cap = input.allowance.MAX_SERP_QUERIES_PER_RUN ?? ctx.caps.MAX_SERP_QUERIES_PER_RUN;
   if (queries.length > cap) {

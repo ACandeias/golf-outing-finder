@@ -142,6 +142,53 @@ describe("planSearch", () => {
     expect(out.result.budgetHits[0]).toMatchObject({ cap: "MAX_SERP_QUERIES_PER_RUN", limit: 5, stage: "discover" });
   });
 
+  it("--prioritize-states: those states' metros and courses run tonight, first, in the order given", () => {
+    const mixed = [
+      { name: "Phoenix", state: "AZ", population: 5 },
+      { name: "Hartford", state: "CT", population: 4 },
+      { name: "Yonkers", state: "NY", population: 3 },
+      { name: "Newark", state: "NJ", population: 2 },
+      { name: "New York City", state: "NY", population: 1 },
+    ];
+    const stateCourses = [
+      { id: "crs_az", name: "Encanto 18", outing_count: 1, notable: false, state: "AZ" },
+      { id: "crs_ny", name: "Winged Foot Golf Club", outing_count: 0, notable: true, state: "NY" },
+      { id: "crs_nj", name: "Baltusrol", outing_count: 2, notable: false, state: "NJ" },
+    ];
+    // 2026-10-03: monthly cadence; none of these would be scheduled on this night otherwise except index 2.
+    const out = planSearch(ctxAt("2026-10-03T19:00:00Z"), {
+      metros: mixed,
+      courses: stateCourses,
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+      prioritize_states: ["NY", "NJ", "CT"],
+    }).output.queries;
+    const subjects = [...new Set(out.map((x) => x.subject))];
+    expect(subjects).toEqual(["Yonkers, NY", "New York City, NY", "crs_ny", "Newark, NJ", "crs_nj", "Hartford, CT"]);
+    expect(out.filter((x) => x.subject === "Yonkers, NY").map((x) => x.q)).toEqual([
+      "golf outing Yonkers NY 2026",
+      "charity golf tournament Yonkers NY 2026",
+      "golf scramble Yonkers NY October",
+    ]);
+    // Phoenix (index 0) and the AZ course are not due on day 3 and are not prioritized.
+    expect(subjects).not.toContain("Phoenix, AZ");
+    expect(subjects).not.toContain("crs_az");
+  });
+
+  it("prioritized queries come first when the cap cuts the night short", () => {
+    const many = [
+      ...Array.from({ length: 40 }, (_, i) => ({ name: `Az${i}`, state: "AZ", population: 1 })),
+      { name: "Yonkers", state: "NY", population: 1 },
+    ];
+    const out = planSearch(ctxAt("2026-07-01T07:15:00Z"), {
+      metros: many,
+      courses: [],
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 3 },
+      prioritize_states: ["NY"],
+    });
+    expect(out.output.queries.map((x) => x.subject)).toEqual(["Yonkers, NY", "Yonkers, NY", "Yonkers, NY"]);
+    expect(out.result.budgetHits).toHaveLength(1);
+  });
+
   it("plans nothing when the allowance is zero (monthly budget, spend cap)", () => {
     const out = planSearch(ctx, { metros, courses, allowance: { MAX_SERP_QUERIES_PER_RUN: 0 } });
     expect(out.output.queries).toEqual([]);

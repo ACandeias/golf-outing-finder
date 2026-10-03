@@ -277,9 +277,17 @@ export const searchPlanInputSchema = z.object({
       name: z.string(),
       outing_count: z.number().int(),
       notable: z.boolean(),
+      /** The course's state, for `prioritize_states`. */
+      state: z.string().nullable().optional(),
     }),
   ),
   allowance: allowanceSchema,
+  /**
+   * `--prioritize-states`: metros and courses in these states are searched
+   * tonight whatever their spread night, ahead of everything else, in this
+   * order. Empty or absent: the plain schedule.
+   */
+  prioritize_states: z.array(z.string().length(2)).optional(),
 });
 export type SearchPlanInput = z.infer<typeof searchPlanInputSchema>;
 export const searchPlanOutputSchema = z.object({ queries: z.array(serpQuerySchema) });
@@ -905,6 +913,8 @@ export interface ReportInput {
   /** Holds by reason across `sources` and `outings` after the run (SPEC.md 8.10). */
   holds: { sources: HoldCounts; outings: HoldCounts };
   strict: boolean;
+  /** Replaces the cost line when a subscription-backed provider (claude -p) ran. */
+  cost_note?: string | null;
 }
 
 export interface ReportOutput {
