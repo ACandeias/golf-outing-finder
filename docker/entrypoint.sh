@@ -1,7 +1,8 @@
 #!/bin/sh
 # Runs inside the `runner` image (and works on a host for testing):
 #   1. apply D1 migrations to the local database persisted under $D1_PERSIST_DIR
-#   2. load the seed when the outings table is empty and the loader is implemented
+#   2. load the seed when the outings table is empty (SQL files prebuilt by the
+#      builder stage with `seed.ts --sql-out`, applied with `wrangler d1 execute`)
 #   3. start `wrangler dev --local` on 0.0.0.0:8787
 set -eu
 
@@ -24,13 +25,20 @@ count=$($WRANGLER d1 execute gof --local --persist-to "$PERSIST" --json \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s)[0].results[0].n)}catch{console.log("unknown")}})')
 log "outings in local D1: $count"
 
-SEED="$APP_DIR/packages/pipeline/src/seed.ts"
+SEED_SQL="${SEED_SQL_DIR:-$APP_DIR/seed-sql}"
 if [ "$count" = "0" ]; then
-  if [ -f "$SEED" ] && node --experimental-strip-types --no-warnings "$SEED" --check >/dev/null 2>&1; then
-    log "loading seed/outings.json"
-    node --experimental-strip-types --no-warnings "$SEED" --local --persist-to "$PERSIST"
+  if ls "$SEED_SQL"/*.sql >/dev/null 2>&1; then
+    log "loading the seed from $SEED_SQL"
+    for f in "$SEED_SQL"/*.sql; do
+      log "  $(basename "$f")"
+      CI=1 $WRANGLER d1 execute gof --local --persist-to "$PERSIST" --file "$f" --yes >/dev/null
+    done
+    seeded=$($WRANGLER d1 execute gof --local --persist-to "$PERSIST" --json \
+      --command "SELECT count(*) AS n FROM outings WHERE published = 1" 2>/dev/null \
+      | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s)[0].results[0].n)}catch{console.log("unknown")}})')
+    log "published outings after seeding: $seeded"
   else
-    log "seed not implemented yet, skipping"
+    log "no seed SQL in $SEED_SQL, skipping"
   fi
 fi
 

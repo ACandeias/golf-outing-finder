@@ -30,7 +30,7 @@ import {
   zipLookup,
   type GofDb,
 } from "../src/queries.ts";
-import { drizzleOver, migratedSqlite } from "./helpers.ts";
+import { drizzleOver, migratedSqlite } from "../src/testing.ts";
 
 const TODAY = "2026-09-28";
 const T = "2026-09-28T12:00:00.000Z";

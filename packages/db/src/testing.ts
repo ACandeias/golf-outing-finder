@@ -1,9 +1,10 @@
+/** Node-only test helpers (node:sqlite); never import this from the Worker. */
 import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import type * as NodeSqlite from "node:sqlite";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
-import type { GofDb } from "../src/queries.ts";
+import type { GofDb } from "./queries.ts";
 
 // Node's built-in SQLite, loaded through require because Vitest 2's resolver does
 // not know the `node:sqlite` builtin.

@@ -50,6 +50,10 @@ ARG BUILD_VERSION=docker
 ENV BUILD_VERSION=${BUILD_VERSION}
 RUN pnpm build \
     && node -p "require('./apps/site/node_modules/wrangler/package.json').version" > /tmp/wrangler-version
+# The seed as literal-SQL files (cities, ZIPs, courses from the recorded Overpass
+# fixture, organizers, outings, sources). Offline: no network calls. The runner's
+# entrypoint applies them when the outings table is empty.
+RUN node --experimental-strip-types --no-warnings packages/pipeline/src/seed.ts --sql-out /workspace/.seed-sql
 
 # ---------------------------------------------------------------- runner
 FROM ${NODE_IMAGE} AS runner
@@ -73,9 +77,8 @@ COPY --from=builder /workspace/apps/site/wrangler.toml ./apps/site/wrangler.toml
 COPY --from=builder /workspace/apps/site/dist ./apps/site/dist
 COPY --from=builder /workspace/apps/site/.wrangler/deploy ./apps/site/.wrangler/deploy
 COPY --from=builder /workspace/packages/db/migrations ./packages/db/migrations
-# Seed loader and data (the loader is a Phase 1 item; the entrypoint skips a stub).
-COPY --from=builder /workspace/packages/pipeline/src/seed.ts ./packages/pipeline/src/seed.ts
-COPY --from=builder /workspace/seed/outings.json ./seed/outings.json
+# The seed, prebuilt as D1-sized literal SQL files by the builder (pnpm run seed --sql-out).
+COPY --from=builder /workspace/.seed-sql ./seed-sql
 COPY docker/entrypoint.sh /usr/local/bin/gof-entrypoint
 
 RUN mkdir -p /data && chown -R node:node /data /app/apps/site

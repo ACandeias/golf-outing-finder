@@ -1,6 +1,77 @@
 # Course-type overrides. First match wins in the classifier (SPEC.md section 8.1).
+# The owner edits this file; `pnpm run seed:course-types` added the seed entries once
+# (Phase 1) and never overwrites an entry that is already here.
 # Entries look like:
-#   - osm_ref: way/123456
-#     course_type: private
+#   - osm_ref: way/123456          # or course_id: crs_...
+#     course_type: private          # municipal | public | semi_private | private | resort | unknown
 #     reason: "Member roster confirmed by owner, 2026-09-15"
-overrides: []
+overrides:
+  - osm_ref: relation/3521491
+    course_type: municipal
+    reason: "Encanto Golf Course: expected_course_type of seed s01-encanto-pejatc (Phase 1 one-time import)"
+  - osm_ref: way/138359390
+    course_type: private
+    reason: "Metropolis Country Club: expected_course_type of seed s02-builders-institute-metropolis, e09-wchc-metropolis, e14-mariano-rivera-metropolis (Phase 1 one-time import)"
+  - osm_ref: way/770036100
+    course_type: private
+    reason: "Philadelphia Country Club: expected_course_type of seed s03-nkf-philadelphia-cc (Phase 1 one-time import)"
+  - osm_ref: way/122734591
+    course_type: private
+    reason: "Winged Foot Golf Club: expected_course_type of seed s04-fordham-winged-foot, s06-nkf-winged-foot, e08-autism-speaks-winged-foot (Phase 1 one-time import)"
+  - osm_ref: way/16753068
+    course_type: municipal
+    reason: "TPC Harding Park: expected_course_type of seed s05-thrivers-survivors-harding-park (Phase 1 one-time import)"
+  - osm_ref: relation/20346860
+    course_type: private
+    reason: "Whitmoor Country Club - North Course: expected_course_type of seed s07-rmhc-stl-whitmoor (Phase 1 one-time import)"
+  - osm_ref: way/967422877
+    course_type: private
+    reason: "Maidstone Club: expected_course_type of seed s08-guild-hall-maidstone (Phase 1 one-time import)"
+  - osm_ref: relation/3524732
+    course_type: resort
+    reason: "Arizona Biltmore Links Course: expected_course_type of seed s09-hyslop-arizona-biltmore (Phase 1 one-time import)"
+  - osm_ref: relation/3521502
+    course_type: public
+    reason: "McCormick Ranch Golf Club: expected_course_type of seed s10-brian-ong-mccormick-ranch (Phase 1 one-time import)"
+  - osm_ref: way/44652700
+    course_type: private
+    reason: "Riviera Country Club: expected_course_type of seed s11-legends-on-the-links-riviera, e16-pepperdine-riviera (Phase 1 one-time import)"
+  - osm_ref: way/98965416
+    course_type: municipal
+    reason: "Rocky Point Golf Course: expected_course_type of seed s12-grady-rocky-point (Phase 1 one-time import)"
+  - osm_ref: way/35679036
+    course_type: municipal
+    reason: "Torrey Pines South Course: expected_course_type of seed s13-two-man-links-torrey-pines (Phase 1 one-time import)"
+  - osm_ref: relation/6174192
+    course_type: private
+    reason: "Oakmont Country Club: expected_course_type of seed e01-st-anthony-oakmont, e02-presbyterian-seniorcare-oakmont (Phase 1 one-time import)"
+  - osm_ref: relation/16342371
+    course_type: private
+    reason: "Deepdale Golf Club: expected_course_type of seed e03-jack-martin-deepdale, e07-bcny-deepdale (Phase 1 one-time import)"
+  - osm_ref: way/1072066296
+    course_type: private
+    reason: "Piping Rock Club: expected_course_type of seed e04-nsla-piping-rock (Phase 1 one-time import)"
+  - osm_ref: way/44108723
+    course_type: private
+    reason: "The Ridgewood Country Club: expected_course_type of seed e05-valley-hospital-ridgewood (Phase 1 one-time import)"
+  - osm_ref: way/39835869
+    course_type: private
+    reason: "Baltusrol Golf Course: expected_course_type of seed e06-hope-heroes-baltusrol (Phase 1 one-time import)"
+  - osm_ref: way/122734578
+    course_type: private
+    reason: "Quaker Ridge Golf Club: expected_course_type of seed e10-gwa-quaker-ridge (Phase 1 one-time import)"
+  - osm_ref: way/143789356
+    course_type: private
+    reason: "Medinah Country Club: expected_course_type of seed e11-acs-medinah (Phase 1 one-time import)"
+  - osm_ref: way/39847755
+    course_type: private
+    reason: "Plainfield Country Club: expected_course_type of seed e12-gwa-plainfield (Phase 1 one-time import)"
+  - osm_ref: way/29468839
+    course_type: municipal
+    reason: "Bethpage State Park Golf Courses: expected_course_type of seed e13-scholarship-classic-bethpage-red (Phase 1 one-time import)"
+  - osm_ref: way/34772911
+    course_type: private
+    reason: "Peachtree Golf Club: expected_course_type of seed e15-mercy-care-peachtree (Phase 1 one-time import)"
+  - osm_ref: relation/4062340
+    course_type: private
+    reason: "The Bears Club: expected_course_type of seed e17-buoniconti-bears-club (Phase 1 one-time import)"
