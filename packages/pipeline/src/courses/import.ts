@@ -7,6 +7,16 @@ import { CityIndex, type CityRow } from "../places/geonames.ts";
 import { courseTypeFromOsmTags, isExcludedFeature } from "./classify.ts";
 import type { OsmFeature } from "./overpass.ts";
 
+/** An addr:city value we are willing to trust when it is not in the cities table. */
+export function looksLikeCityName(value: string): boolean {
+  const v = value.trim();
+  if (v.length < 2 || v.length > 40) return false;
+  if (/\d/.test(v)) return false;
+  if (/\b(suite|ste|floor|fl|unit|apt|po box|box)\b/i.test(v)) return false;
+  if (/^[A-Z]{1,2}$/.test(v)) return false;
+  return /^[A-Za-z][A-Za-z .'\-]*$/.test(v);
+}
+
 /** SPEC.md 8.1 step 3: nearest city within 30 km when OSM has no addr:city. */
 export const COURSE_CITY_RADIUS_KM = 30;
 /** SPEC.md 8.1 step 4.3: accept a website classification at 0.7 or higher. */
@@ -175,9 +185,14 @@ export function buildCourses(
 
     let city: string | null = null;
     const addrCity = t["addr:city"]?.trim();
-    if (addrCity) {
-      city = citiesBySlug.get(`${feat.state}/${citySlug(addrCity)}`)?.name ?? addrCity;
+    const knownCity = addrCity ? citiesBySlug.get(`${feat.state}/${citySlug(addrCity)}`)?.name : undefined;
+    if (knownCity) {
+      city = knownCity;
+    } else if (addrCity && looksLikeCityName(addrCity)) {
+      city = addrCity;
     } else {
+      // OSM addr:city is sometimes a mangled address fragment ("NE  Suite 2800");
+      // fall back to the nearest city rather than mint a bogus city page.
       city = index.nearest(feat, COURSE_CITY_RADIUS_KM, feat.state)?.name ?? null;
     }
 

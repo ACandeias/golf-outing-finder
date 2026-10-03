@@ -50,6 +50,7 @@ jobs:
         run: pnpm run build
         env:
           BUILD_VERSION: ${{ github.sha }}
+          PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
       - if: steps.token.outputs.present == 'true'
         run: pnpm run deploy
         env:

@@ -76,6 +76,20 @@ describe("buildCourses", () => {
     expect(byRef.get("way/4")?.city).toBeNull();
   });
 
+  it("ignores an addr:city that is an address fragment and uses the nearest city instead", () => {
+    const { courses } = buildCourses(
+      [
+        // Real OSM data for Peachtree Golf Club has addr:city "NE  Suite 2800".
+        f("way/5", "NY", 40.9625, -73.7539, { name: "Fragment Golf Club", "addr:city": "NE  Suite 2800" }),
+        f("way/6", "NY", 40.9625, -73.7539, { name: "Unknown Town Golf Club", "addr:city": "Larchmont Manor" }),
+      ],
+      ctx(),
+    );
+    const byRef = new Map(courses.map((c) => [c.osmRef, c]));
+    expect(byRef.get("way/5")?.city).toBe("Mamaroneck");
+    expect(byRef.get("way/6")?.city).toBe("Larchmont Manor");
+  });
+
   it("builds {state}/{kebab(name)} slugs, adding the city on a collision, then -2", () => {
     const { courses } = buildCourses(
       [
