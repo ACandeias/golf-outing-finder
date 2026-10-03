@@ -15,8 +15,14 @@ export const BUDGET_CAPS = [
 export type BudgetCap = (typeof BUDGET_CAPS)[number];
 export type Budget = Record<BudgetCap, number>;
 
-export const budgetProfileSchema = z.enum(["nightly", "monthly"]);
+export const budgetProfileSchema = z.enum(["nightly", "monthly", "smoke"]);
 export type BudgetProfile = z.infer<typeof budgetProfileSchema>;
+/** The `runs.kind` a profile runs as: `smoke` is a small nightly run. */
+export type BudgetJob = "nightly" | "monthly";
+
+export function budgetJob(profile: BudgetProfile): BudgetJob {
+  return profile === "monthly" ? "monthly" : "nightly";
+}
 
 /**
  * Budget profiles from SPEC.md section 14. Raising any of these values needs the
@@ -43,6 +49,23 @@ export const BUDGET_PROFILES: Readonly<Record<BudgetProfile, Readonly<Budget>>> 
     MAX_RENDERS_PER_RUN: 0,
     MAX_FETCH_MINUTES: 45,
     MAX_FETCHES_PER_HOST_PER_RUN: 150,
+    MONTHLY_SPEND_CAP_CENTS: 15_000,
+  }),
+  /**
+   * The owner's first live run (`--budget=smoke`): the nightly stages with every
+   * count capped at 5 to 10, so one run costs a few cents and finishes in
+   * minutes. The token cap fits 10 extractions of about 4,000 tokens plus
+   * headroom; the monthly spend cap is the same month-wide ceiling as nightly.
+   */
+  smoke: Object.freeze({
+    MAX_SERP_QUERIES_PER_RUN: 5,
+    MAX_EXTRACTIONS_PER_RUN: 10,
+    MAX_LLM_INPUT_TOKENS_PER_RUN: 60_000,
+    MAX_COURSE_CLASSIFICATIONS_PER_RUN: 0,
+    MAX_FETCHES_PER_RUN: 10,
+    MAX_RENDERS_PER_RUN: 5,
+    MAX_FETCH_MINUTES: 10,
+    MAX_FETCHES_PER_HOST_PER_RUN: 5,
     MONTHLY_SPEND_CAP_CENTS: 15_000,
   }),
 });

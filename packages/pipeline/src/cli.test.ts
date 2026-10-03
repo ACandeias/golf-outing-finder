@@ -11,12 +11,13 @@ import { emptyResult } from "./stages/types.ts";
 const ENV = { NODE_ENV: "test", PIPELINE_NOW: "2026-09-28" };
 
 describe("parseCliArgs", () => {
-  it("defaults to a nightly dry run on the local D1", () => {
+  it("defaults to a nightly dry run on the in-memory fixture D1", () => {
     const o = parseCliArgs([], ENV);
     expect(o).toMatchObject({
       mode: "dry-run",
       budget: "nightly",
-      d1: "local",
+      job: "nightly",
+      d1: "memory",
       strict: false,
       failStage: null,
       now: null,
@@ -34,6 +35,13 @@ describe("parseCliArgs", () => {
     expect(
       parseCliArgs(["--live", "--budget=monthly", "--stages=courses,irs,course-types"], {}).stages,
     ).toEqual(["courses", "irs", "course-types", "report"]);
+  });
+
+  it("--budget=smoke runs the nightly stages as a nightly run", () => {
+    const o = parseCliArgs(["--live", "--budget=smoke"], { NODE_ENV: "production" });
+    expect(o).toMatchObject({ budget: "smoke", job: "nightly", d1: "remote" });
+    expect(o.stages[0]).toBe("discover");
+    expect(parseCliArgs(["--d1=local"], ENV).d1).toBe("local");
   });
 
   it("rejects bad combinations", () => {
