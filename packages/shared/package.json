@@ -8,7 +8,9 @@
     "./slug": "./src/slug.ts",
     "./money": "./src/money.ts",
     "./dates": "./src/dates.ts",
-    "./schemas": "./src/schemas.ts"
+    "./schemas": "./src/schemas.ts",
+    "./env": "./src/env.ts",
+    "./budget": "./src/budget.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

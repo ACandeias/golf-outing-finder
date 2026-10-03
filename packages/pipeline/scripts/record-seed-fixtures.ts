@@ -106,7 +106,9 @@ export function mainText(html: string, url: string): string {
   unhide(document);
   let text = "";
   try {
-    const article = new Readability(document as unknown as Document, { charThreshold: 200 }).parse();
+    const article = new Readability(document as unknown as ConstructorParameters<typeof Readability>[0], {
+      charThreshold: 200,
+    }).parse();
     if (article?.content) text = htmlToText(article.content);
   } catch {
     text = "";

@@ -1,15 +1,15 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { createRequire } from "node:module";
-import type { DatabaseSync as DatabaseSyncType } from "node:sqlite";
+import type * as NodeSqlite from "node:sqlite";
 import { getTableConfig } from "drizzle-orm/sqlite-core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { allTables } from "../src/schema.ts";
 
 // Node's built-in SQLite (stable without a flag since Node 22.13). Loaded through
 // require because Vitest 2's resolver does not know the `node:sqlite` builtin.
-const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as typeof import("node:sqlite");
-type DatabaseSync = DatabaseSyncType;
+const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as typeof NodeSqlite;
+type DatabaseSync = NodeSqlite.DatabaseSync;
 
 const MIGRATIONS = join(import.meta.dirname, "..", "migrations");
 

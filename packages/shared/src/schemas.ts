@@ -49,8 +49,8 @@ export const includesItemSchema = z.enum([
 ]);
 export type IncludesItem = z.infer<typeof includesItemSchema>;
 
-// Extraction output schema, matching SPEC.md section 8.4.
-export const extractionSchema = z.object({
+// One extracted event, matching SPEC.md v1.1 section 8.4.
+export const extractionEventSchema = z.object({
   is_outing: z.boolean(),
   reject_reason: z
     .enum(["not_golf", "past", "members_only", "resort_package", "qualifier", "no_date", "other"])
@@ -94,4 +94,20 @@ export const extractionSchema = z.object({
     venue: z.string().nullable(),
   }),
 });
-export type Extraction = z.infer<typeof extractionSchema>;
+export type ExtractionEvent = z.infer<typeof extractionEventSchema>;
+
+/** Extraction output (amendment A1): every event on the page, at most 25. */
+export const extractionResultSchema = z.object({
+  events: z.array(extractionEventSchema).max(25),
+});
+export type ExtractionResult = z.infer<typeof extractionResultSchema>;
+
+export const holdReasonSchema = z.enum([
+  "course_unmatched",
+  "low_confidence",
+  "status_unknown",
+  "no_date",
+  "expected_stale",
+  "removed",
+]);
+export type HoldReason = z.infer<typeof holdReasonSchema>;
