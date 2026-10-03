@@ -5,7 +5,8 @@ import { buildEventJsonLd } from "@gof/shared/jsonld";
 import { isPast } from "@gof/shared/dates";
 import { milesToKm } from "@gof/shared/places";
 import Base from "../../../layouts/Base.astro";
-import OutingCard from "../../../components/OutingCard.astro";
+import Labels from "../../../components/Labels.astro";
+import TeeSheet from "../../../components/TeeSheet.astro";
 import { getDb } from "../../../lib/db.ts";
 import { listToday, requestNow } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
@@ -88,20 +89,14 @@ setCache(Astro, TTL.list);
 <Base title={title} description={description} path={path} noindex={o.sourceGone} crumbs={crumbs} jsonLd={event ? [event] : []}>
   <article class="outing">
     <h1>{o.title}</h1>
-    <p class="where">
+    <p class="where data">
       <a href={coursePath(o.course.slug)}>{o.course.name}</a>, {v.place}
     </p>
-    <p class="when"><strong>{v.when}</strong>{v.time && <>, {v.time}</>}</p>
-    <p class="badges">
-      <span class="badge type"><span class="visually-hidden">Course type: </span>{v.courseTypeLabel}</span>
-      <span class="badge"><span class="visually-hidden">Outing type: </span>{o.label}</span>
-      {o.status === "waitlist" && <span class="badge">Waitlist</span>}
-      {o.status === "sold_out" && <span class="badge">Sold out</span>}
-      {o.status === "cancelled" && <span class="badge">Cancelled</span>}
-    </p>
+    <p class="when data">{v.when}{v.time && <span class="when-time">, {v.time}</span>}</p>
+    <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
 
     {o.sourceGone && <p class="note">The organizer's page for this outing is gone. Check with the organizer before making plans.</p>}
-    {o.status === "cancelled" && <p class="note">The organizer has cancelled this outing.</p>}
+    {o.status === "cancelled" && <p class="note alert">The organizer has cancelled this outing.</p>}
     {passed && <p class="note">This outing has already been played.{next && <> The next one is <a href={outingPath(next.slug)}>{next.title}</a>.</>}</p>}
     {
       v.isExpected && (
@@ -128,39 +123,38 @@ setCache(Astro, TTL.list);
     </div>
 
     <h2>Details</h2>
-    <dl class="details">
-      <dt>When</dt>
-      <dd>{v.when}{v.time && <>, {v.time}</>}</dd>
-      <dt>Course</dt>
-      <dd>
-        <a href={coursePath(o.course.slug)}>{o.course.name}</a>
-        {o.course.street && <>, {o.course.street}</>}, {v.place}{o.course.zip && <> {o.course.zip}</>}
-      </dd>
-      <dt>Course type</dt>
-      <dd>{v.courseTypeLabel}</dd>
-      <dt>Outing type</dt>
-      <dd>
-        {o.label}
-        {o.label === "Charity" && <span class="small muted"> (listed as a 501(c)(3) in IRS records)</span>}
-      </dd>
-      {o.format && (<><dt>Format</dt><dd>{FORMAT_LABELS[o.format]}</dd></>)}
-      <dt>Price</dt>
-      <dd>{v.price}</dd>
-      {v.includes && (<><dt>What's included</dt><dd>{v.includes}</dd></>)}
-      {o.handicapRequired !== null && (<><dt>Handicap</dt><dd>{o.handicapRequired ? "A handicap is required" : "No handicap needed"}</dd></>)}
-      {o.audienceNote && (<><dt>Who it's for</dt><dd>{o.audienceNote}</dd></>)}
+    <dl class="details scorecard">
+      <div><dt>When</dt><dd class="num">{v.when}{v.time && <>, {v.time}</>}</dd></div>
+      <div>
+        <dt>Course</dt>
+        <dd>
+          <a href={coursePath(o.course.slug)}>{o.course.name}</a>
+          {o.course.street && <>, {o.course.street}</>}, {v.place}{o.course.zip && <> {o.course.zip}</>}
+        </dd>
+      </div>
+      <div><dt>Course type</dt><dd>{v.courseTypeLabel}</dd></div>
+      <div>
+        <dt>Outing type</dt>
+        <dd>
+          {o.label}
+          {o.label === "Charity" && <span class="muted"> (listed as a 501(c)(3) in IRS records)</span>}
+        </dd>
+      </div>
+      {o.format && <div><dt>Format</dt><dd>{FORMAT_LABELS[o.format]}</dd></div>}
+      <div><dt>Price</dt><dd class="num">{v.price}</dd></div>
+      {v.includes && <div><dt>What's included</dt><dd>{v.includes}</dd></div>}
+      {o.handicapRequired !== null && <div><dt>Handicap</dt><dd>{o.handicapRequired ? "A handicap is required" : "No handicap needed"}</dd></div>}
+      {o.audienceNote && <div><dt>Who it's for</dt><dd>{o.audienceNote}</dd></div>}
       {
         o.organizer && (
-          <>
+          <div>
             <dt>Organizer</dt>
             <dd><a href={organizerPath(o.organizer.slug)}>{o.organizer.name}</a></dd>
-          </>
+          </div>
         )
       }
-      <dt>Source</dt>
-      <dd><a href={o.canonicalSourceUrl} rel="nofollow noopener">{sourceHost}</a></dd>
-      <dt>Last verified</dt>
-      <dd>{verifiedDate(o.lastVerified)}</dd>
+      <div><dt>Source</dt><dd><a href={o.canonicalSourceUrl} rel="nofollow noopener">{sourceHost}</a></dd></div>
+      <div><dt>Last verified</dt><dd class="num">{verifiedDate(o.lastVerified)}</dd></div>
     </dl>
     <p class="small muted">
       We summarize outings in our own words from the organizer's page. Prices and details can change, so confirm them with the
@@ -172,15 +166,11 @@ setCache(Astro, TTL.list);
     nearby.length > 0 && (
       <section aria-labelledby="nearby">
         <h2 id="nearby">Upcoming outings nearby</h2>
-        <div class="cards">
-          {nearby.map((n) => (
-            <OutingCard outing={n} />
-          ))}
-        </div>
+        <TeeSheet outings={nearby} />
       </section>
     )
   }
-  <p>
+  <p class="more data">
     More: <a href={coursePath(o.course.slug)}>outings at {o.course.name}</a>
     {o.course.city && <> · <a href={cityPath(o.course.state, o.course.city)}>outings in {o.course.city}</a></>}
     {o.organizer && <> · <a href={organizerPath(o.organizer.slug)}>outings by {o.organizer.name}</a></>}
@@ -189,42 +179,41 @@ setCache(Astro, TTL.list);
 
 <style>
   .where {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
     margin: 0 0 0.25rem;
   }
-  .when {
-    margin: 0 0 0.5rem;
+  .where a {
+    text-decoration: none;
   }
-  .badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
+  .where a:hover {
+    text-decoration: underline;
+  }
+  .when {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 0.25rem;
+  }
+  .when-time {
+    font-weight: 400;
+  }
+  @media (min-width: 720px) {
+    .when {
+      font-size: 1.375rem;
+    }
   }
   .summary {
-    max-width: 65ch;
+    font-size: 1.125rem;
+    margin: 1.25rem 0;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem 1rem;
-    margin: 1rem 0;
+    margin: 1.25rem 0;
   }
-  .details {
-    display: grid;
-    grid-template-columns: minmax(110px, max-content) 1fr;
-    gap: 0.4rem 1rem;
-    margin: 0 0 1rem;
-  }
-  .details dt {
-    font-weight: 600;
-  }
-  .details dd {
-    margin: 0;
-  }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
+  .actions .button {
+    min-width: 9rem;
   }
 </style>
