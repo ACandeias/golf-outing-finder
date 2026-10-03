@@ -1,0 +1,18 @@
+# Override: the site container serves the host's local D1, so whatever
+# `pnpm run pipeline --live --d1=local` (or `pnpm run seed`) writes on the host
+# shows up on http://localhost:8787 without copying anything.
+#
+#   pnpm run docker:up:local
+#   # = docker compose -f docker-compose.yml -f docker-compose.local.yml up --build site
+#
+# wrangler keeps the D1 under <persist dir>/v3/d1, so ./apps/site/.wrangler/state
+# on the host (what `--persist-to apps/site/.wrangler/state` writes) is /data in
+# the container (what the entrypoint passes as --persist-to). The entrypoint
+# applies pending migrations and seeds only when the outings table is empty.
+# Stop the container (or don't write) while a host run applies a large batch;
+# wrangler dev and the host share one SQLite file.
+
+services:
+  site:
+    volumes: !override
+      - ./apps/site/.wrangler/state:/data

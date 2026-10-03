@@ -171,7 +171,9 @@ start (exit 2, nothing fetched, sent or written, no `runs` row) when a secret is
 `apps/site/wrangler.toml` still has the placeholder `database_id` (or one that differs from
 `D1_DATABASE_ID`). Nightly needs `PUBLIC_SITE_URL`, `ANTHROPIC_API_KEY`, `SERP_API_KEY`,
 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `D1_DATABASE_ID`; monthly needs the same minus
-`SERP_API_KEY`. `INDEXNOW_KEY` is optional; without it publish logs the URLs it would have pinged.
+`SERP_API_KEY`. With `--llm=claude-cli` the run needs no `ANTHROPIC_API_KEY`, with `--serp=claude-search`
+no `SERP_API_KEY`, and with `--d1=local` no Cloudflare secrets (the user agent falls back to the dev URL
+outside production). `INDEXNOW_KEY` is optional; without it publish logs the URLs it would have pinged.
 The snapshot comes from `wrangler d1 export --remote`, writes go out with
 `wrangler d1 execute --remote --file`.
 
@@ -180,6 +182,49 @@ extractions, 60,000 input tokens, 10 fetches, 5 renders, 5 fetches per host, 10 
 course classifications, and the usual `MONTHLY_SPEND_CAP_CENTS`. It runs the nightly stages and
 writes a `nightly` runs row; at most a few cents. In Actions: run the nightly workflow by hand and
 pick `smoke`.
+
+## Subscription-backed providers (`--llm=claude-cli`, `--serp=claude-search`)
+
+For running locally on the owner's Claude subscription instead of API credits. Both spawn Claude
+Code headless (`claude -p`, checked against 2.1.289) and never run in tests or dry runs (tests pass
+a fake spawner; a dry run refuses the flags and replays fixtures).
+
+| | `--llm=claude-cli` (`src/llm/claude-cli.ts`) | `--serp=claude-search` (`src/serp/claude-search.ts`) |
+| --- | --- | --- |
+| Interface | `BatchClient` (extraction and course types share one) | `BatchSerpAdapter` |
+| Per call | one `claude -p` per request, page text on stdin | one `claude -p` per query, query text on stdin |
+| Model | `claude-haiku-4-5` | `claude-haiku-4-5` |
+| Prompt | `--system-prompt` = prompts/extract.md (or course-type.md) | `--system-prompt` asking for the top organic results |
+| Output | `--json-schema` = the request's schema; `structured_output`, else a fenced JSON block in `result`; zod either way | `--json-schema` `{results:[{url,title,snippet}]}` (max 10), zod, URLs normalized |
+| Tools | none (`--tools ""` and every tool in `--disallowedTools`) | WebSearch only |
+| Limits | 120 s timeout, 2 retries (2 s, 8 s), `CLAUDE_CLI_CONCURRENCY` (default 3) | same |
+| Caps | `MAX_EXTRACTIONS_PER_RUN`, `MAX_LLM_INPUT_TOKENS_PER_RUN` (estimate before submit, then actual usage) | `MAX_SERP_QUERIES_PER_RUN` before every spawn |
+
+Details that matter:
+
+- **No `--bare`.** Bare mode authenticates only with `ANTHROPIC_API_KEY`, so it cannot use the
+  subscription ("Not logged in"). Instead: `--safe-mode` (no CLAUDE.md, hooks, plugins, MCP servers),
+  `--strict-mcp-config`, `--no-session-persistence`, an empty working directory, and our prompt as
+  `--system-prompt` in place of Claude Code's.
+- **No secrets in the child.** `ANTHROPIC_API_KEY` and every other secret are removed from its
+  environment, so it can't fall back to API billing.
+- **Thinking off** (`MAX_THINKING_TOKENS=0` in the child). With Claude Code's default thinking, one
+  fixture page took 46 s and 5,536 output tokens; without it, 7 s and 667, the same as the Batches
+  path asks for.
+- **Fatal answers stop the client** ("Not logged in", the usage limit): nothing more is spawned, the
+  remaining requests come back errored and their pages stay queued for the next run.
+- **Tokens.** Claude Code adds its own overhead (the structured-output tool carries the schema), so
+  actual input runs above the estimate. The guard is charged the estimate before submit, the client
+  stops once actual usage reaches what the cap had left, and the difference is added to the meter.
+- **Pending batches** don't exist: `submit` returns when every request is answered. A Message Batches
+  id left pending by an earlier API run is left alone (logged).
+- **Cost.** `est_cost_cents` still uses the SPEC.md 14 API rates (so the monthly spend cap still
+  counts it). The report's cost line says the estimate was covered by subscription and adds Claude
+  Code's own `total_cost_usd` sum (API list prices) as a usage proxy.
+- **Search quality.** WebSearch is not Google organic; result order is the model's reading of the
+  tool's results, and it often returns fewer than 10. A made-up URL just 404s at fetch.
+- `--prioritize-states=NY,NJ,CT` puts those states' metros and courses into tonight's search plan
+  whatever their spread night, ahead of the rest; the cap cuts from the end.
 
 ## How B, C and D plug in
 
@@ -249,7 +294,10 @@ pnpm run pipeline --dry-run --d1=local            # the local wrangler D1 instea
 | `--fail-stage=<name>` | Throw inside that stage. |
 | `--now=<ISO>` | Pin the clock like `PIPELINE_NOW`; refused when `NODE_ENV=production`. |
 | `--strict` | A `NotImplemented` stage fails the run. |
-| `--d1=local\|remote\|memory`, `--persist-to=<dir>` | D1 target (dry run: `memory`, live: `remote`); a dry run never writes the remote one. |
+| `--d1=local\|remote\|memory`, `--persist-to=<dir>` | D1 target (dry run: `memory`, live: `remote`); a dry run never writes the remote one. `--live --d1=local` needs no Cloudflare secrets. |
+| `--llm=api\|claude-cli` | LLM provider (`LLM_PROVIDER`; default `api`). `claude-cli` needs no `ANTHROPIC_API_KEY`. Live only. |
+| `--serp=dataforseo\|claude-search\|fixture` | SERP provider (`SERP_PROVIDER`; default `dataforseo` live). `claude-search` needs no `SERP_API_KEY`. Live only. |
+| `--prioritize-states=NY,NJ,CT` | Search those states' metros and courses tonight, first. |
 
 Exit codes: 0 OK; 1 when a stage throws, `--fail-stage` fired, more than 20% of fetches errored
 (network and 5xx only), a dry run tried the network, or `--strict` met a stub; 2 on a usage error or
