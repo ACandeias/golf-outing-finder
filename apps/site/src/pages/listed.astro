@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import { siteOrigin } from "../lib/urls.ts";
 
 export const prerender = true;
-const origin = siteOrigin();
+const origin = siteOrigin(Astro);
 const snippet = `<a href="${origin}/"><img src="${origin}/listed-badge.svg" width="200" height="48" alt="Listed on Golf Outing Finder"></a>`;
 ---
 

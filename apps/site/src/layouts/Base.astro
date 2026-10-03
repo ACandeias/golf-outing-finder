@@ -19,10 +19,10 @@ interface Props {
 
 const { title, description, noindex = false, crumbs = [], jsonLd = [], wide = false } = Astro.props;
 const path = canonicalPath(Astro.props.path ?? Astro.url.pathname);
-const canonical = absoluteUrl(path);
+const canonical = absoluteUrl(path, Astro);
 const allCrumbs: CrumbLink[] = [{ name: "Home", path: "/" }, ...crumbs];
 const breadcrumbLd = buildBreadcrumbJsonLd(
-  allCrumbs.map((c, i) => ({ name: c.name, url: absoluteUrl(i === allCrumbs.length - 1 ? path : (c.path ?? path)) })),
+  allCrumbs.map((c, i) => ({ name: c.name, url: absoluteUrl(i === allCrumbs.length - 1 ? path : (c.path ?? path), Astro) })),
 );
 const year = new Date().getUTCFullYear();
 ---

@@ -3,8 +3,8 @@ import Base from "../layouts/Base.astro";
 import { BOT_NAME, botUserAgent, correctionsEmail } from "../lib/contact.ts";
 
 export const prerender = true;
-const ua = botUserAgent();
-const email = correctionsEmail();
+const ua = botUserAgent(Astro);
+const email = correctionsEmail(Astro);
 ---
 
 <Base title="GolfOutingFinderBot | Golf Outing Finder" description="About GolfOutingFinderBot, the crawler that finds golf outings for Golf Outing Finder, and how to control it." path="/bot" noindex crumbs={[{ name: "Our crawler", path: "/bot" }]}>

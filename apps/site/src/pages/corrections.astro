@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import { correctionsEmail } from "../lib/contact.ts";
 
 export const prerender = true;
-const email = correctionsEmail();
+const email = correctionsEmail(Astro);
 ---
 
 <Base title="Corrections and removals | Golf Outing Finder" description="How organizers can correct or remove a listing on Golf Outing Finder." path="/corrections" noindex crumbs={[{ name: "Corrections", path: "/corrections" }]}>

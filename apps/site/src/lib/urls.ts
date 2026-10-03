@@ -1,8 +1,19 @@
 import { citySlug } from "@gof/shared/slug";
 import { siteEnv } from "./env.ts";
 
-/** Site origin without a trailing slash. */
-export function siteOrigin(): string {
+/** What `siteOrigin` needs from `Astro` to tell prerendered pages apart. */
+export interface OriginSource {
+  isPrerendered: boolean;
+  site: URL | undefined;
+}
+
+/**
+ * Site origin without a trailing slash: the PUBLIC_SITE_URL Worker var on rendered
+ * pages. Prerendered pages are built before any request, so they use Astro's
+ * `site`, which astro.config.mjs takes from PUBLIC_SITE_URL at build time.
+ */
+export function siteOrigin(astro?: OriginSource): string {
+  if (astro?.isPrerendered && astro.site) return astro.site.origin;
   return siteEnv().PUBLIC_SITE_URL.replace(/\/+$/, "");
 }
 
@@ -15,8 +26,8 @@ export function canonicalPath(path: string): string {
   return (trimmed || "/").toLowerCase();
 }
 
-export function absoluteUrl(path: string): string {
-  return `${siteOrigin()}${canonicalPath(path)}`;
+export function absoluteUrl(path: string, astro?: OriginSource): string {
+  return `${siteOrigin(astro)}${canonicalPath(path)}`;
 }
 
 export const statePath = (state: string): string => `/golf-outings/${state.toLowerCase()}`;

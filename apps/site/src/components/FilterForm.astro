@@ -4,7 +4,6 @@ import {
   COURSE_TYPE_FILTER_LABELS,
   DISTANCE_MILES,
   FORMAT_FILTERS,
-  hasActiveFilters,
   type ListingFilters,
 } from "@gof/shared/filters";
 import { FORMAT_LABELS } from "../lib/format.ts";
@@ -21,10 +20,9 @@ interface Props {
 }
 
 const { filters: f, action, showDistance = false, distanceFrom = "", total, shown } = Astro.props;
-const open = hasActiveFilters(f);
 ---
 
-<details class="filters" open={open}>
+<details class="filters" open>
   <summary>Filter outings</summary>
   <form method="get" action={action} data-filter-form>
     <fieldset>

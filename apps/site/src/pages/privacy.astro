@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import { correctionsEmail } from "../lib/contact.ts";
 
 export const prerender = true;
-const email = correctionsEmail();
+const email = correctionsEmail(Astro);
 ---
 
 <Base title="Privacy | Golf Outing Finder" description="What Golf Outing Finder collects and why: no accounts, no tracking of your location, and ads only with consent where required." path="/privacy" noindex crumbs={[{ name: "Privacy", path: "/privacy" }]}>
