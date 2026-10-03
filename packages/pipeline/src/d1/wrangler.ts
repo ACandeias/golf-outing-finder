@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -46,8 +46,42 @@ export function exportArgs(
     "--output",
     output,
   ];
-  if (o.target === "local" && o.persistTo) args.push("--persist-to", o.persistTo);
+  // `wrangler d1 export` has no --persist-to (wrangler 4.147: "Unknown arguments");
+  // a local snapshot under --persist-to is copied with `copyLocalD1` instead.
   return args;
+}
+
+/**
+ * The SQLite file wrangler keeps the local `gof` D1 in under a --persist-to
+ * directory: `<dir>/v3/d1/miniflare-D1DatabaseObject/<hash>.sqlite`. The one
+ * holding an `outings` table; more than one is refused rather than guessed.
+ */
+export function localD1File(persistTo: string): string {
+  const dir = join(persistTo, "v3/d1/miniflare-D1DatabaseObject");
+  const files = existsSync(dir)
+    ? readdirSync(dir).filter((f) => f.endsWith(".sqlite") && f !== "metadata.sqlite")
+    : [];
+  const withOutings = files.filter((f) => {
+    const db = openSqlite(join(dir, f), { readOnly: true });
+    try {
+      return db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'outings'").get() !== undefined;
+    } finally {
+      db.close();
+    }
+  });
+  if (withOutings.length === 0) throw new Error(`no local D1 with an outings table under ${dir} (run pnpm db:migrate:local)`);
+  if (withOutings.length > 1) throw new Error(`more than one local D1 database under ${dir}: ${withOutings.join(", ")}`);
+  return join(dir, withOutings[0] as string);
+}
+
+/** A consistent copy of a local D1 file (WAL included) at `dest`, via VACUUM INTO. */
+export function copyLocalD1(source: string, dest: string): void {
+  const db = openSqlite(source);
+  try {
+    db.prepare("VACUUM INTO ?").run(dest);
+  } finally {
+    db.close();
+  }
 }
 
 /** `wrangler d1 execute --command --json` arguments for a read (pure, tested). */
@@ -152,9 +186,15 @@ export class WranglerD1 implements D1Port {
     const dump = join(this.o.workDir, "snapshot.sql");
     const file = join(this.o.workDir, "snapshot.sqlite");
     await rm(file, { force: true });
-    await this.wrangler(exportArgs(this.o, dump));
-    const db = openSqlite(file);
-    loadDump(db, await readFile(dump, "utf8"));
+    let db: Sqlite;
+    if (this.o.target === "local" && this.o.persistTo) {
+      copyLocalD1(localD1File(this.o.persistTo), file);
+      db = openSqlite(file);
+    } else {
+      await this.wrangler(exportArgs(this.o, dump));
+      db = openSqlite(file);
+      loadDump(db, await readFile(dump, "utf8"));
+    }
     this.local = db;
     return snapshotOver(db, () => {
       if (this.local === db) this.local = null;

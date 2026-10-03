@@ -6,7 +6,10 @@ import type { UpsertPlan } from "../stages/types.ts";
 import { MemoryD1 } from "./memory.ts";
 import { planToFileChunks, planToStatements } from "./plan-sql.ts";
 import { loadDump, openSqlite, snapshotOver } from "./sqlite.ts";
-import { executeArgs, exportArgs, parseQueryOutput, queryArgs } from "./wrangler.ts";
+import { mkdirSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { copyLocalD1, executeArgs, exportArgs, localD1File, parseQueryOutput, queryArgs } from "./wrangler.ts";
 
 const run: RunRow = {
   id: "run_01",
@@ -200,6 +203,37 @@ describe("snapshot from a wrangler export dump", () => {
     expect(db.prepare("SELECT count(*) AS n FROM sqlite_master WHERE name = 't'").get()).toEqual({
       n: 0,
     });
+  });
+});
+
+describe("local D1 under --persist-to", () => {
+  function persistDir(files: Record<string, boolean>): string {
+    const root = mkdtempSync(join(tmpdir(), "gof-persist-"));
+    const dir = join(root, "v3/d1/miniflare-D1DatabaseObject");
+    mkdirSync(dir, { recursive: true });
+    for (const [name, withOutings] of Object.entries(files)) {
+      const db = openSqlite(join(dir, name));
+      db.exec(withOutings ? "CREATE TABLE outings (id TEXT); INSERT INTO outings VALUES ('o1');" : "CREATE TABLE other (x);");
+      db.close();
+    }
+    return root;
+  }
+
+  it("finds wrangler's database file (wrangler d1 export has no --persist-to)", () => {
+    const root = persistDir({ "metadata.sqlite": false, "abc123.sqlite": true });
+    expect(localD1File(root)).toBe(join(root, "v3/d1/miniflare-D1DatabaseObject/abc123.sqlite"));
+    expect(() => localD1File(mkdtempSync(join(tmpdir(), "gof-empty-")))).toThrow(/no local D1/);
+    const two = persistDir({ "a.sqlite": true, "b.sqlite": true });
+    expect(() => localD1File(two)).toThrow(/more than one/);
+  });
+
+  it("copies it into the snapshot file with VACUUM INTO, leaving the source as it was", () => {
+    const root = persistDir({ "metadata.sqlite": false, "abc123.sqlite": true });
+    const out = join(mkdtempSync(join(tmpdir(), "gof-snap-")), "snapshot.sqlite");
+    copyLocalD1(localD1File(root), out);
+    const db = openSqlite(out, { readOnly: true });
+    expect(db.prepare("SELECT id FROM outings").all()).toEqual([{ id: "o1" }]);
+    db.close();
   });
 });
 
