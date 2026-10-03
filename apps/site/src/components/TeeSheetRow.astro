@@ -1,0 +1,71 @@
+---
+import type { OutingListItem } from "@gof/db/queries";
+import { haversineKm, KM_PER_MILE, type LatLng } from "@gof/shared/places";
+import Labels from "./Labels.astro";
+import { dateBlock } from "../lib/date-block.ts";
+import { outingView } from "../lib/outing-view.ts";
+import { verifiedDate } from "../lib/format.ts";
+import { outingPath } from "../lib/urls.ts";
+
+interface Props {
+  outing: OutingListItem;
+  /** Page centre for the distance filter (city pages). */
+  center?: LatLng | null;
+  /** Hidden by the active filters (the browser script can show it again). */
+  hidden?: boolean;
+}
+
+const { outing: o, center = null, hidden = false } = Astro.props;
+const v = outingView(o);
+const d = dateBlock(o);
+const distanceMiles = center ? haversineKm(center, o.course) / KM_PER_MILE : null;
+const registerHref = o.registrationUrl ?? o.canonicalSourceUrl;
+// "$400 per player, $1,600 per foursome" reads as two lines in the price column.
+const priceLines = v.price.split(", ");
+const priceKnown = o.singlePriceCents !== null || o.foursomePriceCents !== null;
+---
+
+<li
+  class="tee-row"
+  hidden={hidden}
+  data-outing
+  data-course-type={o.course.courseType}
+  data-outing-type={o.outingType}
+  data-single={o.singlePriceCents ?? ""}
+  data-date={o.startDate ?? ""}
+  data-format={o.format ?? ""}
+  data-distance={distanceMiles === null ? "" : distanceMiles.toFixed(1)}
+>
+  <p class="tee-date data" aria-hidden="true">
+    <span class="tee-date-top">{d.top}</span>
+    <span class="tee-date-big">{d.big}</span>
+    <span class="tee-date-bottom">{d.bottom}</span>
+  </p>
+  <div class="tee-main">
+    <h3 class="tee-title"><a href={outingPath(o.slug)}>{o.title}</a></h3>
+    <p class="tee-course data">
+      <span class="visually-hidden">{v.when}. </span>{o.course.name}, {v.place}{v.time && <span class="tee-time">, {v.time}</span>}
+    </p>
+    <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
+    {v.includes && <p class="tee-note data">{v.includes}</p>}
+    {o.audienceNote && <p class="tee-note data muted">{o.audienceNote}</p>}
+  </div>
+  <p class:list={["tee-price data", { "tee-price-unknown": !priceKnown }]}>
+    {priceLines.map((line, i) => (i === 0 ? <span>{line}</span> : <span><span class="visually-hidden">, </span>{line}</span>))}
+  </p>
+  <div class="tee-action">
+    {
+      !v.isExpected && !v.isPast && o.status !== "cancelled" ? (
+        <a class="button" href={registerHref} rel="nofollow noopener" target="_blank">
+          {o.registrationUrl ? "Register" : "See site"}
+          <span class="visually-hidden"> for {o.title} (opens the organizer's site)</span>
+        </a>
+      ) : (
+        <a class="button secondary" href={outingPath(o.slug)}>
+          Details<span class="visually-hidden"> for {o.title}</span>
+        </a>
+      )
+    }
+    <span class="small muted">Last verified {verifiedDate(o.lastVerified)}</span>
+  </div>
+</li>

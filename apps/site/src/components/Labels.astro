@@ -1,0 +1,17 @@
+---
+/** Course type, outing type and status labels (SPEC.md 9.3). Text, not color, carries the meaning. */
+interface Props {
+  courseTypeLabel: string;
+  label: string;
+  status: string;
+}
+const { courseTypeLabel, label, status } = Astro.props;
+---
+
+<p class="labels">
+  <span class="label"><span class="visually-hidden">Course type: </span>{courseTypeLabel}</span>
+  <span class="label"><span class="visually-hidden">Outing type: </span>{label}</span>
+  {status === "waitlist" && <span class="label">Waitlist</span>}
+  {status === "sold_out" && <span class="label alert">Sold out</span>}
+  {status === "cancelled" && <span class="label alert">Cancelled</span>}
+</p>

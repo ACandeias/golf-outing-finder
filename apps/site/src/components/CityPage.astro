@@ -4,7 +4,7 @@ import { OPENFREEMAP_ATTRIBUTION_TEXT, OSM_ATTRIBUTION_TEXT } from "@gof/shared/
 import Base from "../layouts/Base.astro";
 import FilterForm from "./FilterForm.astro";
 import OutingList from "./OutingList.astro";
-import OutingCard from "./OutingCard.astro";
+import TeeSheet from "./TeeSheet.astro";
 import type { CityPageData } from "../lib/city-page.ts";
 import { stateName } from "../lib/format.ts";
 import { isVisible, listDescription } from "../lib/listing.ts";
@@ -74,7 +74,7 @@ const crumbs = [
         </button>
         <div id="city-map" class="city-map-wrap" hidden>
           <div class="city-map" data-map data-lat={String(center.lat)} data-lng={String(center.lng)} />
-          <p class="small muted">
+          <p class="small muted map-attr">
             Map data: {OPENFREEMAP_ATTRIBUTION_TEXT}. {OSM_ATTRIBUTION_TEXT}.
           </p>
         </div>
@@ -94,11 +94,7 @@ const crumbs = [
     nearby.length > 0 && (
       <section aria-labelledby="nearby">
         <h2 id="nearby">Outings near {city.name}</h2>
-        <div class="cards">
-          {nearby.map((o) => (
-            <OutingCard outing={o} />
-          ))}
-        </div>
+        <TeeSheet outings={nearby} />
       </section>
     )
   }
@@ -123,19 +119,14 @@ const crumbs = [
 </Base>
 
 <style>
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
-  }
   .map-toggle {
-    margin: 0.5rem 0 1rem;
+    margin: 0.75rem 0 1rem;
   }
   .city-map {
     position: relative;
     height: 420px;
     margin-top: 0.75rem;
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--rule);
     border-radius: var(--radius);
     overflow: hidden;
   }

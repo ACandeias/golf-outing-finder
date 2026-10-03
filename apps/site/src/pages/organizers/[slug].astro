@@ -4,7 +4,7 @@ import { organizerBySlug, outingsForOrganizer } from "@gof/db/queries";
 import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { isPast } from "@gof/shared/dates";
 import Base from "../../layouts/Base.astro";
-import OutingCard from "../../components/OutingCard.astro";
+import TeeSheet from "../../components/TeeSheet.astro";
 import { getDb } from "../../lib/db.ts";
 import { requestNow } from "../../lib/clock.ts";
 import { TTL } from "../../lib/cache.ts";
@@ -50,13 +50,13 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="upcoming">
     <h2 id="upcoming">Upcoming outings</h2>
-    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <div class="cards">{upcoming.map((o) => <OutingCard outing={o} />)}</div>}
+    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <TeeSheet outings={upcoming} />}
   </section>
   {
     expected.length > 0 && (
       <section aria-labelledby="expected">
         <h2 id="expected">Expected to return</h2>
-        <div class="cards">{expected.map((o) => <OutingCard outing={o} />)}</div>
+        <TeeSheet outings={expected} />
       </section>
     )
   }
@@ -64,16 +64,9 @@ setCache(Astro, TTL.list);
     past.length > 0 && (
       <section aria-labelledby="past">
         <h2 id="past">Past outings</h2>
-        <div class="cards">{past.map((o) => <OutingCard outing={o} />)}</div>
+        <TeeSheet outings={past} />
       </section>
     )
   }
 </Base>
 
-<style>
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
-  }
-</style>

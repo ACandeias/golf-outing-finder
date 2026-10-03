@@ -3,7 +3,7 @@ import { countUpcomingByState, listExpectedOutings, listUpcomingOutings } from "
 import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../../layouts/Base.astro";
-import OutingCard from "../../components/OutingCard.astro";
+import TeeSheet from "../../components/TeeSheet.astro";
 import { getDb } from "../../lib/db.ts";
 import { listToday } from "../../lib/clock.ts";
 import { TTL } from "../../lib/cache.ts";
@@ -44,7 +44,7 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="by-state">
     <h2 id="by-state">States with outings</h2>
-    <table class="states">
+    <table class="states ruled">
       <thead>
         <tr><th scope="col">State</th><th scope="col">Upcoming</th><th scope="col">Expected</th></tr>
       </thead>
@@ -64,9 +64,7 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="soonest">
     <h2 id="soonest">Soonest outings</h2>
-    <div class="cards">
-      {soonest.map((o) => <OutingCard outing={o} />)}
-    </div>
+    <TeeSheet outings={soonest} />
   </section>
 
   <section aria-labelledby="all-states">
@@ -76,25 +74,3 @@ setCache(Astro, TTL.list);
     </ul>
   </section>
 </Base>
-
-<style>
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
-  }
-  .states {
-    border-collapse: collapse;
-    width: 100%;
-    max-width: 520px;
-  }
-  .states th,
-  .states td {
-    text-align: left;
-    padding: 0.4rem 0.75rem 0.4rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .states tbody th {
-    font-weight: 400;
-  }
-</style>
