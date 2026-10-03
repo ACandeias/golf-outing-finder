@@ -3,7 +3,13 @@ name: nightly
 on:
   schedule:
     - cron: "15 7 * * *" # 07:15 UTC, about 3 a.m. Eastern
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      budget:
+        description: "Budget profile: nightly, or smoke (every cap at 5 to 10) for a first live run"
+        type: choice
+        options: [nightly, smoke]
+        default: nightly
 
 permissions:
   contents: read
@@ -37,9 +43,17 @@ jobs:
         with:
           path: .cache/irs # IRS lookup db; rebuilt by the pipeline when missing
           key: irs-${{ steps.month.outputs.month }}
-      # Pending batch ids live only in runs.pending_batch_id, never in this cache.
-      - run: pnpm run pipeline --live --budget=nightly
+      # ETag/Last-Modified per URL for conditional GETs. A new key every run (a cache
+      # key is never overwritten); restore-keys picks up the latest saved copy.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/http-validators.json
+          key: http-validators-${{ github.run_id }}
+          restore-keys: http-validators-
+      # Pending batch ids live only in runs.pending_batch_id, never in a cache.
+      - run: pnpm run pipeline --live --budget="$BUDGET" --strict
         env:
+          BUDGET: ${{ inputs.budget || 'nightly' }}
           NODE_ENV: production
           PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

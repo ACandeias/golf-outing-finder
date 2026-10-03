@@ -33,7 +33,7 @@ jobs:
         with:
           path: .cache/irs # IRS lookup db; rebuilt by the pipeline when missing
           key: irs-${{ steps.month.outputs.month }}
-      - run: pnpm run pipeline --live --budget=monthly --stages=courses,irs,course-types
+      - run: pnpm run pipeline --live --budget=monthly --stages=courses,irs,course-types --strict
         env:
           NODE_ENV: production
           PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}

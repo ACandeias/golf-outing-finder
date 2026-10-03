@@ -30,6 +30,11 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      # The whole nightly pipeline on fixtures: network blocked, in-memory D1, every
+      # stage must be wired (--strict). Exits non-zero on any failure (SPEC.md 13, Phase 2).
+      - run: pnpm run pipeline --dry-run --strict
+        env:
+          PIPELINE_NOW: "2026-09-28"
       - run: pnpm build
 
   e2e:
