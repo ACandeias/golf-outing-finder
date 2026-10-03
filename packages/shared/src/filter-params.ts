@@ -98,17 +98,3 @@ export function parseFilterParams(params: URLSearchParams): ParsedFilters {
     invalid: [...new Set(invalid)],
   };
 }
-
-/** Writes filters back to query parameters (only the active ones). */
-export function filtersToParams(f: ListingFilters): URLSearchParams {
-  const p = new URLSearchParams();
-  if (f.courseTypes.length > 0) p.set("course_type", f.courseTypes.join(","));
-  if (f.charityOnly) p.set("charity", "1");
-  if (f.maxPriceCents !== null) p.set("max_price", String(Math.floor(f.maxPriceCents / 100)));
-  if (f.from) p.set("from", f.from);
-  if (f.to) p.set("to", f.to);
-  if (f.distanceMiles !== null) p.set("distance", String(f.distanceMiles));
-  if (f.format) p.set("format", f.format);
-  if (f.singlesWelcome) p.set("singles", "1");
-  return p;
-}

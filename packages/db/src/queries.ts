@@ -643,3 +643,18 @@ export async function sitemapStates(db: GofDb): Promise<{ state: string; lastmod
     .orderBy(asc(courses.state));
   return rows;
 }
+
+/**
+ * States whose page is indexed: at least one published outing that is upcoming
+ * (listed status, `end_date ?? start_date` on or after today) or expected. Past-only
+ * states render with noindex, so they stay out of the sitemap.
+ */
+export async function sitemapStatesCurrent(db: GofDb, today: string): Promise<{ state: string; lastmod: string }[]> {
+  return db
+    .select({ state: courses.state, lastmod: sql<string>`max(${outings.updatedAt})` })
+    .from(outings)
+    .innerJoin(courses, eq(outings.courseId, courses.id))
+    .where(or(upcomingClause(today), and(eq(outings.published, 1), eq(outings.status, "expected"))))
+    .groupBy(courses.state)
+    .orderBy(asc(courses.state));
+}

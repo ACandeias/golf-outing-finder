@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { filtersToParams, parseFilterParams } from "./filter-params.ts";
-import { courseTypesForFilters, hasActiveFilters, matchesFilters, NO_FILTERS, type FilterableOuting } from "./filters.ts";
+import { parseFilterParams } from "./filter-params.ts";
+import { courseTypesForFilters, filtersToParams, hasActiveFilters, matchesFilters, NO_FILTERS, type FilterableOuting } from "./filters.ts";
 
 const p = (q: string) => parseFilterParams(new URLSearchParams(q));
 
