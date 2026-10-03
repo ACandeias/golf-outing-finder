@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { BudgetJob } from "@gof/shared/budget";
-import { pipelineEnvSchema, type PipelineEnv } from "@gof/shared/env";
+import {
+  pipelineEnvSchema,
+  requiredLiveSecrets,
+  type LlmProvider,
+  type PipelineEnv,
+  type SerpProvider,
+} from "@gof/shared/env";
 import type { D1Target } from "../d1/port.ts";
 import { PATHS } from "../lib/paths.ts";
 
@@ -13,17 +19,8 @@ import { PATHS } from "../lib/paths.ts";
  * environment). Messages name variables, never values.
  */
 
-/** Secrets and variables each live job needs. */
-export const LIVE_REQUIREMENTS: Readonly<Record<BudgetJob, readonly (keyof PipelineEnv)[]>> = Object.freeze({
-  nightly: ["PUBLIC_SITE_URL", "ANTHROPIC_API_KEY", "SERP_API_KEY"],
-  monthly: ["PUBLIC_SITE_URL", "ANTHROPIC_API_KEY"],
-});
-/** Needed whenever the run reads and writes the remote D1. */
-export const REMOTE_D1_REQUIREMENTS: readonly (keyof PipelineEnv)[] = [
-  "CLOUDFLARE_API_TOKEN",
-  "CLOUDFLARE_ACCOUNT_ID",
-  "D1_DATABASE_ID",
-];
+/** The dev URL a live run on a local D1 puts in the crawler's user agent when PUBLIC_SITE_URL is unset. */
+export const DEV_SITE_URL = "http://localhost:8787";
 
 export const WRANGLER_TOML = join(PATHS.site, "wrangler.toml");
 export const DATABASE_ID_PLACEHOLDER = "REPLACE_WITH_D1_DATABASE_ID";
@@ -43,16 +40,26 @@ export interface PreflightResult {
 export function livePreflight(
   job: BudgetJob,
   rawEnv: Readonly<Record<string, string | undefined>>,
-  opts: { d1: D1Target; wranglerToml?: string | null },
+  opts: { d1: D1Target; llm?: LlmProvider; serp?: SerpProvider; wranglerToml?: string | null },
 ): PreflightResult {
   const problems: string[] = [];
-  const parsed = pipelineEnvSchema.safeParse(rawEnv);
+  // A local or in-memory D1 outside production falls back to the dev URL, as a dry run does.
+  const withDefaults =
+    opts.d1 !== "remote" && rawEnv.NODE_ENV !== "production" && !rawEnv.PUBLIC_SITE_URL
+      ? { ...rawEnv, PUBLIC_SITE_URL: DEV_SITE_URL }
+      : rawEnv;
+  const parsed = pipelineEnvSchema.safeParse(withDefaults);
   if (!parsed.success) {
     for (const i of parsed.error.issues) problems.push(`${i.path.join(".") || "env"}: ${i.message}`);
     return { ok: false, env: null, problems };
   }
   const env = parsed.data;
-  const needed = [...LIVE_REQUIREMENTS[job], ...(opts.d1 === "remote" ? REMOTE_D1_REQUIREMENTS : [])];
+  const needed = requiredLiveSecrets({
+    job,
+    llm: opts.llm ?? "api",
+    serp: opts.serp ?? "dataforseo",
+    d1: opts.d1,
+  });
   for (const name of needed) {
     const v = env[name];
     if (v === undefined || v === "") problems.push(`${name} is not set`);
