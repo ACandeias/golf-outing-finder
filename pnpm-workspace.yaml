@@ -8,3 +8,11 @@ allowBuilds:
   esbuild: true
   sharp: true
   workerd: true
+
+# Advisories reviewed and accepted. Revisit when a patched version ships.
+auditConfig:
+  ignoreGhsas:
+    # http-cache-semantics <=4.2.0, no patched release (2026-09-18). Only astro's
+    # build-time remote image cache (astro/dist/assets/build/remote.js) uses it; it is
+    # not in the Worker bundle and the site sets no cookies. Reviewed 2026-10-03.
+    - GHSA-ch52-4w7c-c8xp
