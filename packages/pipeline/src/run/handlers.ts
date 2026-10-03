@@ -1,8 +1,8 @@
 import type { BudgetGuard } from "../budget.ts";
+import { courseTypesHandler } from "../courses/course-types-handler.ts";
 import { coursesHandler } from "../courses/monthly.ts";
 import type { D1Port, Snapshot } from "../d1/port.ts";
 import { classify } from "../stages/classify.ts";
-import { courseTypesRequestBuild } from "../stages/course-types.ts";
 import { dedupeUpsert } from "../stages/dedupe-upsert.ts";
 import { discover, planSearch } from "../stages/discover.ts";
 import { extractCollect } from "../stages/extract-collect.ts";
@@ -142,14 +142,7 @@ export const defaultHandlers: StageHandlers = {
   // Workstream D: the monthly edges live in src/courses and src/irs.
   courses: coursesHandler(),
   irs: irsHandler(),
-  "course-types": async ({ ctx, guard }) => {
-    const out = courseTypesRequestBuild(ctx, {
-      courses: [],
-      pages: [],
-      allowance: guard.allowance(),
-    });
-    return { result: out.result };
-  },
+  "course-types": courseTypesHandler(),
 };
 
 /** Handlers that all throw NotImplemented, for runner tests independent of B, C and D progress. */
