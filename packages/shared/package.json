@@ -13,7 +13,10 @@
     "./budget": "./src/budget.ts",
     "./places": "./src/places.ts",
     "./labels": "./src/labels.ts",
-    "./ids": "./src/ids.ts"
+    "./ids": "./src/ids.ts",
+    "./jsonld": "./src/jsonld.ts",
+    "./filters": "./src/filters.ts",
+    "./filter-params": "./src/filter-params.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
