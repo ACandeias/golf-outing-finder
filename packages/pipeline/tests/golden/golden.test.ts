@@ -273,3 +273,73 @@ describe("gc8-nkf-winged-foot: NKF Golf Classic at Winged Foot, 2026-10-19", asy
     },
   );
 });
+
+describe("gc1 to gc8 through dedupe-upsert and publish into a migrated database", async () => {
+  const { MemoryD1 } = await import("../../src/d1/memory.ts");
+  const { dedupeUpsert } = await import("../../src/stages/dedupe-upsert.ts");
+  const { publish } = await import("../../src/stages/publish.ts");
+  const { outingRowSchema } = await import("../../src/stages/rows.ts");
+  const { loadCourses } = await import("./harness.ts");
+
+  goldenTest(
+    "every golden page lands as one published outing, except gc1 which is excluded",
+    gate([...LLM_CHAIN, "dedupe-upsert", "publish"]),
+    async () => {
+      const ctx = await goldenContext();
+      const matchedAll = [];
+      for (const gc of [
+        "gc1-panther-national",
+        "gc2-fordham",
+        "gc3-builders-institute",
+        "gc4-encanto",
+        "gc5-grady",
+        "gc6-two-man-links",
+        "gc7-oakmont-glendale",
+        "gc8-nkf-winged-foot",
+      ] as const) {
+        const entry = await goldenEntry(gc);
+        const { matched } = await runEntry(entry, gc === "gc4-encanto" ? /encanto/i : undefined);
+        matchedAll.push(matched);
+      }
+      const { courses } = await loadCourses();
+      const d1 = new MemoryD1();
+      await d1.apply({ ops: [{ op: "upsert", table: "courses", rows: courses }] });
+      const up = dedupeUpsert(ctx, {
+        outings: matchedAll,
+        existing: { outings: [], organizers: [], sources: [], outingSlugs: [], organizerSlugs: [] },
+        unchanged: [],
+        fetches: [],
+      });
+      expect(up.output.outcomes.map((o) => o.action)).toEqual([
+        "excluded",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+        "insert",
+      ]);
+      await d1.apply(up.output.plan);
+      const rows = (await d1.snapshot()).all("SELECT * FROM outings ORDER BY slug", outingRowSchema);
+      const tz = new Map(courses.map((c) => [c.id, c.time_zone]));
+      const pub = publish(ctx, {
+        outings: rows.map((o) => ({ outing: o, time_zone: tz.get(o.course_id)!, source_urls: [] })),
+        heldSources: [],
+        changed: [],
+      });
+      await d1.apply(pub.output.plan);
+      const after = (await d1.snapshot()).all("SELECT * FROM outings ORDER BY slug", outingRowSchema);
+      expect(after.map((o) => [o.slug, o.published])).toEqual([
+        ["2026/amateurgolf-com-two-man-links-and-father-and-son-torrey-pines-south", 1],
+        ["2026/builders-institute-annual-golf-outing-metropolis", 1],
+        ["2026/fordham-golf-classic-winged-foot", 1],
+        ["2026/grady-charity-golf-scramble-rocky-point", 1],
+        ["2026/ibew-640-25th-annual-golf-classic-encanto", 1],
+        ["2026/nkf-golf-classic-winged-foot", 1],
+        ["2027/charity-golf-tournament-oakmont", 1],
+      ]);
+      expect(pub.output.indexnowUrls).toHaveLength(7);
+    },
+  );
+});

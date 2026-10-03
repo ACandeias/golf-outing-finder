@@ -3,7 +3,7 @@ import { z } from "zod";
 import { MemoryD1 } from "../d1/memory.ts";
 import { sourceIdForUrl } from "../extract/ids.ts";
 import { matched, NOW, outingRow, sourceRow, testCtx } from "../extract/test-helpers.ts";
-import { dedupeUpsert } from "./dedupe-upsert.ts";
+import { dedupeUpsert, slugTitle } from "./dedupe-upsert.ts";
 import { publish } from "./publish.ts";
 import { recheckRollForward, rolledSlug, rolledTitle } from "./recheck-roll-forward.ts";
 import { outingRowSchema, sourceRowSchema } from "./rows.ts";
@@ -225,6 +225,15 @@ describe("dedupe-upsert", () => {
       [sourceIdForUrl("https://example.org/new"), 0, "b", "extract-v1"],
     ]);
     expect(output.plan.ops.filter((o) => o.op === "update" && o.table === "outings")).toHaveLength(2);
+  });
+});
+
+describe("outing slug titles", () => {
+  it("drop the venue the slug already ends with", () => {
+    expect(slugTitle("2026 NKF Golf Classic at Winged Foot Golf Club", "Winged Foot Golf Club")).toBe("2026 NKF Golf Classic");
+    expect(slugTitle("Two Man Links at Torrey Pines", "Torrey Pines Golf Course (South)")).toBe("Two Man Links");
+    expect(slugTitle("Fun at the Lake", "Encanto 18 Golf Course")).toBe("Fun at the Lake");
+    expect(slugTitle("Encanto 18 Golf Course", "Encanto 18 Golf Course")).toBe("Encanto 18 Golf Course");
   });
 });
 

@@ -1,5 +1,5 @@
 import { addDaysIso, monthOf, todayIso } from "@gof/shared/dates";
-import { organizerSlug, outingSlug } from "@gof/shared/slug";
+import { COURSE_SLUG_STOPWORDS, kebab, organizerSlug, outingSlug } from "@gof/shared/slug";
 import { tokenSetSimilarity } from "../classify/similarity.ts";
 import { canonicalUrlFor } from "../extract/canonical.ts";
 import { registrableDomainOf, sourceDomain } from "../extract/domain.ts";
@@ -79,6 +79,31 @@ function first<T>(events: readonly MatchedOuting[], pick: (e: MatchedOuting) => 
     if (v !== null) return v;
   }
   return null;
+}
+
+function courseWords(name: string): Set<string> {
+  return new Set(kebab(name).split("-").filter((w) => w && !COURSE_SLUG_STOPWORDS.has(w)));
+}
+
+/**
+ * The title part of an outing slug without the venue the slug already ends
+ * with: "NKF Golf Classic at Winged Foot Golf Club" at Winged Foot gives "NKF
+ * Golf Classic", so the slug reads `2026/nkf-golf-classic-winged-foot` (SPEC.md
+ * 7.1's example) rather than repeating the course.
+ */
+export function slugTitle(title: string, courseName: string): string {
+  const course = courseWords(courseName);
+  const at = /^(.*\S)\s+at\s+(.+)$/i.exec(title.trim());
+  if (at?.[1] && at[2]) {
+    const tail = [...courseWords(at[2])];
+    if (tail.length > 0 && tail.every((w) => course.has(w))) return at[1];
+  }
+  const idx = title.toLowerCase().indexOf(courseName.toLowerCase());
+  if (idx >= 0) {
+    const rest = `${title.slice(0, idx)} ${title.slice(idx + courseName.length)}`.trim();
+    if (kebab(rest).length > 0) return rest;
+  }
+  return title;
 }
 
 interface Cluster {
@@ -353,7 +378,12 @@ export const dedupeUpsert: DedupeUpsertStage = (ctx, input) => {
     } else {
       action = "insert";
       inserted++;
-      const slug = outingSlug(Number(start.slice(0, 4)), merged.title, top.match.course_name, outingSlugs);
+      const slug = outingSlug(
+        Number(start.slice(0, 4)),
+        slugTitle(merged.title, top.match.course_name),
+        top.match.course_name,
+        outingSlugs,
+      );
       outingSlugs.add(slug);
       row = {
         id: stableId("out", nowMs, `${courseId}|${start}|${organizerId ?? merged.title.toLowerCase()}`),
