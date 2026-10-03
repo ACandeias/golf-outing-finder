@@ -48,6 +48,11 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 ARG BUILD_VERSION=docker
 ENV BUILD_VERSION=${BUILD_VERSION}
+# The Cloudflare adapter prerenders static pages through a local preview server
+# bound to "localhost". Inside a container, localhost resolves to ::1 first for
+# the server and 127.0.0.1 for the client, so the build dies with ECONNREFUSED.
+# Resolving IPv4 first on both sides keeps them on the same address.
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
 RUN pnpm build \
     && node -p "require('./apps/site/node_modules/wrangler/package.json').version" > /tmp/wrangler-version
 # The seed as literal-SQL files (cities, ZIPs, courses from the recorded Overpass
