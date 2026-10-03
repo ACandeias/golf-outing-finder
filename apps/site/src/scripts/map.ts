@@ -7,7 +7,7 @@
 import { AttributionControl, Map as MlMap, NavigationControl, Popup, setWorkerUrl, type GeoJSONSource, type LngLatLike } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import cssUrl from "maplibre-gl/dist/maplibre-gl.css?url";
-import { OPENFREEMAP_ATTRIBUTION_TEXT, OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
+import { OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
 
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 const SOURCE = "outings";
@@ -87,7 +87,9 @@ export async function mountMap(container: HTMLElement, opts: MountOptions = {}):
   });
   map.addControl(new NavigationControl({ showCompass: false }), "top-right");
   map.addControl(
-    new AttributionControl({ compact: false, customAttribution: [OPENFREEMAP_ATTRIBUTION_TEXT, OSM_ATTRIBUTION_TEXT] }),
+    // The OpenFreeMap style already credits "OpenFreeMap © OpenMapTiles Data from
+    // OpenStreetMap"; add it only if a style ever stops doing so.
+    new AttributionControl({ compact: false, customAttribution: [OSM_ATTRIBUTION_TEXT] }),
     "bottom-right",
   );
 

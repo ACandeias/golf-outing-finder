@@ -61,7 +61,7 @@ const year = new Date().getUTCFullYear();
       </div>
     </header>
     <main id="main" tabindex="-1" class={wide ? "wide" : "wrap"}>
-      <Breadcrumbs crumbs={allCrumbs} />
+      {wide ? <div class="wrap"><Breadcrumbs crumbs={allCrumbs} /></div> : <Breadcrumbs crumbs={allCrumbs} />}
       <slot />
     </main>
     <footer class="site-footer">
