@@ -17,9 +17,15 @@ export default defineConfig({
   // and stops the adapter from requiring a SESSION KV binding.
   session: false,
   site: process.env.PUBLIC_SITE_URL ?? "http://localhost:8787",
+  // One URL policy: no trailing slash. Prerendered pages are written as about.html
+  // so the static asset handler serves them at /about without a redirect.
   trailingSlash: "never",
+  build: { format: "file", inlineStylesheets: "always" },
   server: { port: 4321, host: true },
   vite: {
+    // Never inline scripts: the CSP allows scripts from 'self' only, with no
+    // inline hashes to keep in sync.
+    build: { assetsInlineLimit: 0 },
     define: { "import.meta.env.BUILD_VERSION": JSON.stringify(BUILD_VERSION) },
   },
 });

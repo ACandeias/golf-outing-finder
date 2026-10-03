@@ -1,0 +1,50 @@
+---
+import { DATA_ATTRIBUTIONS } from "@gof/shared/places";
+import Base from "../layouts/Base.astro";
+import { correctionsEmail } from "../lib/contact.ts";
+
+export const prerender = true;
+const email = correctionsEmail();
+---
+
+<Base
+  title="About Golf Outing Finder"
+  description="How Golf Outing Finder lists golf outings anyone can pay to enter, how listings are checked, and where our course and map data comes from."
+  path="/about"
+  crumbs={[{ name: "About", path: "/about" }]}
+>
+  <h1>About Golf Outing Finder</h1>
+  <p>
+    Golf Outing Finder lists golf outings in the United States that anyone can pay to enter: charity scrambles, school
+    fundraisers, trade group days, open tournaments and access days, at municipal, public, semi-private, private and resort
+    courses. A $125 muni scramble gets the same listing as a charity day at a private club.
+  </p>
+  <h2>How listings get here</h2>
+  <p>
+    Every night a program looks for outings on organizers' websites and registration platforms, reads the date, course, price
+    and what's included, and matches the outing to a course. When it isn't sure, it holds the listing back instead of
+    publishing it. Each listing links to its source and shows when we last checked it.
+  </p>
+  <p>
+    We write every summary in our own words and never copy organizers' text, images or logos. When a listing says "Charity",
+    we've matched the organizer to IRS records of 501(c)(3) organizations. Other fundraisers say their charity status is
+    unverified.
+  </p>
+  <h2>How the site is paid for</h2>
+  <p>The site is free to use. It may show display ads. Organizers never pay to be listed, and we don't handle registration or payments.</p>
+  <h2>Corrections and removals</h2>
+  <p>
+    Organizers can ask us to fix or remove a listing at <a href={`mailto:${email}`}>{email}</a>. See
+    <a href="/corrections">corrections</a>.
+  </p>
+  <h2>Data sources and credits</h2>
+  <ul>
+    {
+      DATA_ATTRIBUTIONS.map((a) => (
+        <li>
+          <strong>{a.name}</strong>: {a.text} <a href={a.url}>{a.url.replace(/^https:\/\//, "")}</a> ({a.license})
+        </li>
+      ))
+    }
+  </ul>
+</Base>

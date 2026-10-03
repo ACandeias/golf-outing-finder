@@ -1,16 +1,30 @@
 ---
+import { buildBreadcrumbJsonLd } from "@gof/shared/jsonld";
+import Breadcrumbs, { type CrumbLink } from "../components/Breadcrumbs.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { absoluteUrl, canonicalPath } from "../lib/urls.ts";
+
 interface Props {
   title: string;
-  description?: string;
-  canonical?: string;
+  description: string;
+  /** Canonical path (the unfiltered URL). Defaults to the request path. */
+  path?: string;
   noindex?: boolean;
+  /** Breadcrumbs after "Home"; the last one is this page. */
+  crumbs?: CrumbLink[];
+  jsonLd?: unknown[];
+  /** Full-bleed main area (the map page). */
+  wide?: boolean;
 }
 
-import { siteEnv } from "../lib/env.ts";
-
-const { title, description, canonical, noindex } = Astro.props;
-const siteUrl = siteEnv().PUBLIC_SITE_URL;
-const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
+const { title, description, noindex = false, crumbs = [], jsonLd = [], wide = false } = Astro.props;
+const path = canonicalPath(Astro.props.path ?? Astro.url.pathname);
+const canonical = absoluteUrl(path);
+const allCrumbs: CrumbLink[] = [{ name: "Home", path: "/" }, ...crumbs];
+const breadcrumbLd = buildBreadcrumbJsonLd(
+  allCrumbs.map((c, i) => ({ name: c.name, url: absoluteUrl(i === allCrumbs.length - 1 ? path : (c.path ?? path)) })),
+);
+const year = new Date().getUTCFullYear();
 ---
 
 <!doctype html>
@@ -19,33 +33,283 @@ const canonicalHref = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-    {description && <meta name="description" content={description} />}
-    <link rel="canonical" href={canonicalHref} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
-    <style>
-      :root {
-        color-scheme: light dark;
-        --fg: #101418;
-        --bg: #ffffff;
-        --muted: #5b6470;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root { --fg: #e8ecf1; --bg: #101418; --muted: #98a2b3; }
-      }
-      body {
-        margin: 0;
-        font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        color: var(--fg);
-        background: var(--bg);
-      }
-      main { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
-      h1 { font-size: 1.75rem; margin: 0 0 0.5rem; }
-      p.muted { color: var(--muted); }
-    </style>
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0d5c36" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <JsonLd data={breadcrumbLd} />
+    {jsonLd.map((d) => <JsonLd data={d} />)}
+    <slot name="head" />
   </head>
   <body>
-    <main>
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <div class="wrap header-row">
+        <a class="brand" href="/">Golf Outing Finder</a>
+        <nav aria-label="Main">
+          <ul class="nav">
+            <li><a href="/golf-outings">Browse outings</a></li>
+            <li><a href="/map">Map</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" tabindex="-1" class={wide ? "wide" : "wrap"}>
+      <Breadcrumbs crumbs={allCrumbs} />
       <slot />
     </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <nav aria-label="Site">
+          <ul class="footer-links">
+            <li><a href="/about">About</a></li>
+            <li><a href="/corrections">Corrections</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+            <li><a href="/terms">Terms</a></li>
+            <li><a href="/bot">Our crawler</a></li>
+            <li><a href="/listed">Listed here?</a></li>
+          </ul>
+        </nav>
+        <p class="muted small">
+          Golf Outing Finder lists outings anyone can pay to enter. Every listing links to its source; check details with the
+          organizer before you pay. © {year} Golf Outing Finder.
+        </p>
+      </div>
+    </footer>
   </body>
 </html>
+
+<style is:global>
+  :root {
+    color-scheme: light;
+    --fg: #16211b;
+    --bg: #ffffff;
+    --surface: #f4f7f5;
+    --border: #c9d3cd;
+    --muted: #4b5852;
+    --accent: #0d5c36;
+    --accent-fg: #ffffff;
+    --link: #0b5530;
+    --focus: #b35c00;
+    --badge-bg: #e8f1ec;
+    --badge-fg: #123d27;
+    --badge2-bg: #f3ece0;
+    --badge2-fg: #4a3410;
+    --warn-bg: #fff4d6;
+    --warn-fg: #4d3800;
+    --radius: 8px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --fg: #e6ece8;
+      --bg: #101613;
+      --surface: #18211c;
+      --border: #34423a;
+      --muted: #a9b6ae;
+      --accent: #5fc48f;
+      --accent-fg: #08140d;
+      --link: #7fd6a8;
+      --focus: #ffb35c;
+      --badge-bg: #1f3a2b;
+      --badge-fg: #d3f0df;
+      --badge2-bg: #3a3020;
+      --badge2-fg: #f3e2c2;
+      --warn-bg: #3a2f10;
+      --warn-fg: #f8e7b5;
+    }
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  a {
+    color: var(--link);
+    text-underline-offset: 2px;
+  }
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  main:focus {
+    outline: none;
+  }
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  main.wrap {
+    padding-top: 1rem;
+    padding-bottom: 3rem;
+    min-height: 60vh;
+  }
+  main.wide {
+    padding: 0;
+  }
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    margin: 0.5rem 0 0.75rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 2rem 0 0.75rem;
+  }
+  h3 {
+    font-size: 1.1rem;
+    margin: 0 0 0.25rem;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .small {
+    font-size: 0.9rem;
+  }
+  .skip {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    padding: 8px 12px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    z-index: 10;
+    border-radius: var(--radius);
+  }
+  .skip:focus {
+    top: 8px;
+  }
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .header-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--fg);
+    text-decoration: none;
+  }
+  .nav,
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin: 0;
+    padding: 0;
+  }
+  .nav a {
+    display: inline-block;
+    padding: 0.5rem 0;
+  }
+  .site-footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1.5rem 0 2rem;
+  }
+  .footer-links a {
+    display: inline-block;
+    padding: 0.35rem 0;
+  }
+  .crumbs ol {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .crumbs li + li::before {
+    content: "/";
+    margin-right: 0.25rem;
+    color: var(--muted);
+  }
+  .button {
+    display: inline-block;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-weight: 600;
+    text-decoration: none;
+    border: 2px solid var(--accent);
+    font-size: 1rem;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .button.secondary {
+    background: transparent;
+    color: var(--link);
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--badge-bg);
+    color: var(--badge-fg);
+    border: 1px solid var(--border);
+  }
+  .badge.type {
+    background: var(--badge2-bg);
+    color: var(--badge2-fg);
+  }
+  .note {
+    background: var(--warn-bg);
+    color: var(--warn-fg);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+  }
+  .grid-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.25rem 1rem;
+  }
+  .grid-links a {
+    display: inline-block;
+    padding: 0.3rem 0;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  [hidden] {
+    display: none !important;
+  }
+</style>

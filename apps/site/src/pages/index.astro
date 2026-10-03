@@ -1,16 +1,178 @@
 ---
+import { z } from "zod";
+import { countUpcomingByState, listUpcomingOutings, searchCities, zipLookup } from "@gof/db/queries";
+import { buildItemListJsonLd } from "@gof/shared/jsonld";
+import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
+import OutingCard from "../components/OutingCard.astro";
+import { getDb } from "../lib/db.ts";
+import { listToday } from "../lib/clock.ts";
+import { TTL } from "../lib/cache.ts";
+import { setCache } from "../lib/page.ts";
+import { absoluteUrl, cityPath, outingPath, statePath } from "../lib/urls.ts";
 
-export const prerender = false;
+const db = getDb();
+const today = listToday();
+
+// City or ZIP search: resolve and redirect to the city page.
+const qParam = z.string().trim().min(2).max(100).safeParse(Astro.url.searchParams.get("q") ?? "");
+let searchMessage = "";
+let suggestions: { name: string; state: string; slug: string }[] = [];
+if (Astro.url.searchParams.has("q")) {
+  if (!qParam.success) {
+    searchMessage = "Type a city name or a five-digit ZIP code.";
+  } else {
+    const q = qParam.data;
+    if (/^\d{5}$/.test(q)) {
+      const z5 = await zipLookup(db, q);
+      if (z5?.city && z5.state) return Astro.redirect(cityPath(z5.state, z5.city), 302);
+      searchMessage = `We don't know ZIP code ${q} yet. Try the nearest city name.`;
+    } else {
+      const m = /^(.*?)[,\s]+([a-z]{2})$/i.exec(q);
+      const st = m?.[2]?.toUpperCase();
+      const name = (m && st && Object.hasOwn(US_STATES, st) ? (m[1] ?? "") : q).trim();
+      const found = await searchCities(db, name, 50);
+      const inState = st && Object.hasOwn(US_STATES, st) ? found.filter((c) => c.state === st) : found;
+      const exact = inState.filter((c) => c.name.toLowerCase() === name.toLowerCase());
+      const pick = exact.length === 1 ? exact[0] : exact.length === 0 && inState.length === 1 ? inState[0] : undefined;
+      if (pick) return Astro.redirect(cityPath(pick.state, pick.name), 302);
+      suggestions = (exact.length > 1 ? exact : inState).slice(0, 12);
+      searchMessage = suggestions.length > 0 ? `Which ${name}?` : `We couldn't find a city called "${name}". Check the spelling or try a ZIP code.`;
+    }
+  }
+}
+
+const soonest = await listUpcomingOutings(db, { today, limit: 12 });
+const counts = await countUpcomingByState(db, today);
+const countBy = new Map(counts.map((c) => [c.state, c.count]));
+const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
+
+setCache(Astro, TTL.home);
 ---
 
 <Base
-  title="Golf Outing Finder"
-  description="Golf outings anyone can pay to enter, at municipal, public, semi-private, private and resort courses across the US."
+  title="Golf Outings and Charity Tournaments Near You | Golf Outing Finder"
+  description="Find golf outings anyone can pay to enter, from $125 muni scrambles to charity days at private clubs. Dates, prices, what's included and registration links, across the US."
+  path="/"
+  noindex={Astro.url.searchParams.has("q")}
+  jsonLd={[buildItemListJsonLd(soonest.map((o) => absoluteUrl(outingPath(o.slug))))]}
 >
-  <h1>Golf Outing Finder</h1>
-  <p class="muted">
-    Golf outings you can sign up for, from $125 muni scrambles to charity days at private clubs.
-    Listings arrive in Phase 1.
+  <h1>Find a golf outing you can sign up for</h1>
+  <p class="lead">
+    Charity scrambles, school fundraisers, trade group days and open tournaments at municipal, public, semi-private, private and
+    resort courses. Every listing shows the date, the price and how to register.
   </p>
+
+  <form class="search" method="get" action="/" role="search">
+    <label for="q">City or ZIP code</label>
+    <div class="search-row">
+      <input id="q" name="q" type="search" autocomplete="off" placeholder="e.g. Mamaroneck, NY or 10543" maxlength="100" required />
+      <button class="button" type="submit">Search</button>
+    </div>
+  </form>
+  {
+    searchMessage && (
+      <div class="note" role="status">
+        <p>{searchMessage}</p>
+        {suggestions.length > 0 && (
+          <ul class="grid-links">
+            {suggestions.map((c) => (
+              <li>
+                <a href={cityPath(c.state, c.name)}>
+                  {c.name}, {c.state}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )
+  }
+
+  <section aria-labelledby="near">
+    <h2 id="near">Outings near you</h2>
+    <p class="muted" data-near-status aria-live="polite">Share your location to see outings within 100 miles. We don't store it.</p>
+    <button class="button secondary" type="button" data-near-button>Use my location</button>
+    <div class="near-list" data-near-list></div>
+  </section>
+
+  <section aria-labelledby="soonest">
+    <h2 id="soonest">Coming up soon across the US</h2>
+    {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : (
+      <div class="cards">
+        {soonest.map((o) => <OutingCard outing={o} />)}
+      </div>
+    )}
+    <p><a href="/golf-outings">See every state</a></p>
+  </section>
+
+  <section aria-labelledby="states">
+    <h2 id="states">Browse by state</h2>
+    <ul class="grid-links">
+      {
+        states.map(([code, name]) => (
+          <li>
+            <a href={statePath(code)}>{name}</a>
+            {countBy.get(code) ? <span class="muted small"> ({countBy.get(code)})</span> : null}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
 </Base>
+
+<style>
+  .lead {
+    font-size: 1.1rem;
+    max-width: 60ch;
+  }
+  .search {
+    margin: 1.25rem 0;
+    max-width: 560px;
+  }
+  .search label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .search-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .search input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--muted);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 44px;
+  }
+  .cards,
+  .near-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 1rem;
+  }
+  .near-list:not(:empty) {
+    margin-top: 1rem;
+  }
+  .near-list :global(.near-card) {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+  .near-list :global(p) {
+    margin: 0.25rem 0;
+  }
+  .near-list :global(.near-price) {
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  import { initNearYou } from "../scripts/near-you.ts";
+  initNearYou();
+</script>

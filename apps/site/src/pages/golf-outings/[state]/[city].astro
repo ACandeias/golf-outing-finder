@@ -1,0 +1,14 @@
+---
+import CityPage from "../../../components/CityPage.astro";
+import { loadCityPage } from "../../../lib/city-page.ts";
+import { TTL } from "../../../lib/cache.ts";
+import { notFound, setCache } from "../../../lib/page.ts";
+
+export const prerender = false;
+
+const data = await loadCityPage(Astro, false);
+if (!data) return notFound(Astro);
+setCache(Astro, TTL.list);
+---
+
+<CityPage data={data} />

@@ -1,0 +1,34 @@
+---
+import Base from "../layouts/Base.astro";
+import { siteOrigin } from "../lib/urls.ts";
+
+export const prerender = true;
+const origin = siteOrigin();
+const snippet = `<a href="${origin}/"><img src="${origin}/listed-badge.svg" width="200" height="48" alt="Listed on Golf Outing Finder"></a>`;
+---
+
+<Base title="Listed on Golf Outing Finder | Golf Outing Finder" description="A badge organizers can add to their outing page." path="/listed" noindex crumbs={[{ name: "Listed here?", path: "/listed" }]}>
+  <h1>Is your outing listed here?</h1>
+  <p>If your outing is on Golf Outing Finder, you're welcome to add this badge to your event page. It's a plain image and link, with no script.</p>
+  <p><img src="/listed-badge.svg" width="200" height="48" alt="Listed on Golf Outing Finder" /></p>
+  <label for="badge-code">Copy this HTML</label>
+  <textarea id="badge-code" readonly rows="4">{snippet}</textarea>
+</Base>
+
+<style>
+  textarea {
+    width: 100%;
+    max-width: 640px;
+    font: 0.9rem ui-monospace, Menlo, Consolas, monospace;
+    padding: 0.5rem;
+    border: 1px solid var(--muted);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--fg);
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+</style>
