@@ -1,5 +1,5 @@
 import type { BudgetProfile } from "@gof/shared/budget";
-import type { BudgetGuard, Meter } from "./budget.ts";
+import type { BudgetGuard } from "./budget.ts";
 
 export type PipelineMode = "dry-run" | "live";
 
@@ -11,7 +11,7 @@ export interface RunOptions {
 }
 
 export interface RunResult {
-  budgetHits: Meter[];
+  budgetHits: string[];
   counts: Record<string, number>;
 }
 
@@ -33,5 +33,5 @@ export async function runPipeline(opts: RunOptions): Promise<RunResult> {
   for (const stage of stages) {
     counts[stage] = 0;
   }
-  return { budgetHits: opts.guard.hitList(), counts };
+  return { budgetHits: opts.guard.hits().map((h) => h.cap), counts };
 }

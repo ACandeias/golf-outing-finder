@@ -33,13 +33,15 @@ function yamlObject(text: string, file: string): unknown {
   return v;
 }
 
-function withFile<T>(file: string, schema: z.ZodType<T>, value: unknown): T {
+function withFile<S extends z.ZodTypeAny>(file: string, schema: S, value: unknown): z.output<S> {
   const r = schema.safeParse(value);
   if (!r.success) {
-    const issues = r.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ");
+    const issues = r.error.issues
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("; ");
     throw new Error(`${file}: ${issues}`);
   }
-  return r.data;
+  return r.data as z.output<S>;
 }
 
 /** A bare, lowercase host or registrable domain: `golfwithaccess.com`, `support.kidney.org`. */
@@ -47,9 +49,23 @@ export const hostNameSchema = z
   .string()
   .min(1)
   .transform((h) => h.trim().toLowerCase())
-  .pipe(z.string().regex(/^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/, "must be a bare host name like example.com"));
+  .pipe(
+    z
+      .string()
+      .regex(
+        /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/,
+        "must be a bare host name like example.com",
+      ),
+  );
 
-const listOf = <T extends z.ZodTypeAny>(item: T) => z.array(item).nullable().default([]).transform((v) => v ?? []);
+/** A YAML list that may be empty, null or missing. */
+function listOf<T extends z.ZodTypeAny>(item: T): z.ZodType<z.output<T>[], z.ZodTypeDef, unknown> {
+  return z
+    .array(item)
+    .nullable()
+    .optional()
+    .transform((v): z.output<T>[] => v ?? []);
+}
 
 const httpUrl = z
   .string()
@@ -69,16 +85,26 @@ const exclusionsSchema = z
 export type Exclusions = z.infer<typeof exclusionsSchema>;
 
 export function parseExclusionsYaml(text: string): Exclusions {
-  return withFile(OVERRIDE_FILES.exclusions, exclusionsSchema, yamlObject(text, OVERRIDE_FILES.exclusions));
+  return withFile(
+    OVERRIDE_FILES.exclusions,
+    exclusionsSchema,
+    yamlObject(text, OVERRIDE_FILES.exclusions),
+  );
 }
 
 // removals.yaml ---------------------------------------------------------------
 
-const removalsSchema = z.object({ outing_ids: listOf(z.string().min(1)), urls: listOf(httpUrl) }).strict();
+const removalsSchema = z
+  .object({ outing_ids: listOf(z.string().min(1)), urls: listOf(httpUrl) })
+  .strict();
 export type Removals = z.infer<typeof removalsSchema>;
 
 export function parseRemovalsYaml(text: string): Removals {
-  return withFile(OVERRIDE_FILES.removals, removalsSchema, yamlObject(text, OVERRIDE_FILES.removals));
+  return withFile(
+    OVERRIDE_FILES.removals,
+    removalsSchema,
+    yamlObject(text, OVERRIDE_FILES.removals),
+  );
 }
 
 // notable-courses.yaml --------------------------------------------------------
@@ -98,7 +124,11 @@ export interface NotableCourses {
 }
 
 export function parseNotableCoursesYaml(text: string): NotableCourses {
-  const f = withFile(OVERRIDE_FILES.notableCourses, notableSchema, yamlObject(text, OVERRIDE_FILES.notableCourses));
+  const f = withFile(
+    OVERRIDE_FILES.notableCourses,
+    notableSchema,
+    yamlObject(text, OVERRIDE_FILES.notableCourses),
+  );
   const names: string[] = [];
   const osmRefs: string[] = [];
   for (const e of f.courses) {
@@ -129,13 +159,15 @@ const seriesSchema = z
   .superRefine((f, ctx) => {
     const seen = new Set<string>();
     for (const s of f.series) {
-      if (seen.has(s.id)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `duplicate series id ${s.id}` });
+      if (seen.has(s.id))
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `duplicate series id ${s.id}` });
       seen.add(s.id);
     }
   });
 
 export function parseSeriesYaml(text: string): SeriesEntry[] {
-  return withFile(OVERRIDE_FILES.series, seriesSchema, yamlObject(text, OVERRIDE_FILES.series)).series;
+  return withFile(OVERRIDE_FILES.series, seriesSchema, yamlObject(text, OVERRIDE_FILES.series))
+    .series;
 }
 
 // access-operators, tournament-operators (domains); js-platforms, registration-hosts (hosts)
@@ -185,7 +217,10 @@ export function parseOverrides(texts: OverrideTexts): Overrides {
     notableCourses: parseNotableCoursesYaml(texts.notableCourses),
     series: parseSeriesYaml(texts.series),
     accessOperators: parseDomainsYaml(texts.accessOperators, OVERRIDE_FILES.accessOperators),
-    tournamentOperators: parseDomainsYaml(texts.tournamentOperators, OVERRIDE_FILES.tournamentOperators),
+    tournamentOperators: parseDomainsYaml(
+      texts.tournamentOperators,
+      OVERRIDE_FILES.tournamentOperators,
+    ),
     jsPlatforms: parseHostsYaml(texts.jsPlatforms, OVERRIDE_FILES.jsPlatforms),
     registrationHosts: parseHostsYaml(texts.registrationHosts, OVERRIDE_FILES.registrationHosts),
     metros: parseMetrosYaml(texts.metros),
@@ -193,7 +228,10 @@ export function parseOverrides(texts: OverrideTexts): Overrides {
 }
 
 /** Reads data/overrides/*.yaml and data/places/metros.yaml. */
-export async function loadOverrides(dirs: { overrides: string; places: string }): Promise<Overrides> {
+export async function loadOverrides(dirs: {
+  overrides: string;
+  places: string;
+}): Promise<Overrides> {
   const entries = await Promise.all(
     (Object.keys(OVERRIDE_FILES) as OverrideFile[]).map(
       async (k) => [k, await readFile(join(dirs.overrides, OVERRIDE_FILES[k]), "utf8")] as const,

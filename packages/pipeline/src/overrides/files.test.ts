@@ -22,14 +22,25 @@ describe("override files", () => {
   });
 
   it("validates removals and notable entries", async () => {
-    expect(await readRemovals(await tmp("r.yaml", "outing_ids: [s01-a]\nurls: ['https://x.example/a']\n"))).toEqual({
+    expect(
+      await readRemovals(
+        await tmp("r.yaml", "outing_ids: [s01-a]\nurls: ['https://x.example/a']\n"),
+      ),
+    ).toEqual({
       outing_ids: ["s01-a"],
       urls: ["https://x.example/a"],
     });
     await expect(readRemovals(await tmp("r.yaml", "urls: ['not a url']\n"))).rejects.toThrow();
     expect(
-      await readNotableCourses(await tmp("n.yaml", "courses:\n  - Winged Foot Golf Club\n  - way/1\n  - { osm_ref: way/2 }\n")),
+      await readNotableCourses(
+        await tmp(
+          "n.yaml",
+          "courses:\n  - Winged Foot Golf Club\n  - way/1\n  - { osm_ref: way/2 }\n",
+        ),
+      ),
     ).toEqual({ names: ["Winged Foot Golf Club"], osmRefs: ["way/1", "way/2"] });
-    await expect(readRegistrationHosts(await tmp("h.yaml", "hosts: ['https://bad/']\n"))).rejects.toThrow();
+    await expect(
+      readRegistrationHosts(await tmp("h.yaml", "hosts: ['https://bad/']\n")),
+    ).rejects.toThrow();
   });
 });
