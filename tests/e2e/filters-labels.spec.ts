@@ -18,7 +18,10 @@ import {
 const CITY = "/golf-outings/ny/mamaroneck";
 
 test.describe("filter parameters", () => {
-  test("?course_type=private: noindex and a canonical to the unfiltered URL", async ({ request, baseURL }) => {
+  test("?course_type=private: noindex and a canonical to the unfiltered URL", async ({
+    request,
+    baseURL,
+  }) => {
     // 13 Phase 1, item 4: "Given ?course_type=private on a city page, the page has
     // noindex and a canonical to the unfiltered URL". 9.2: "Any URL with a filter
     // parameter gets noindex and a canonical pointing at the unfiltered page".
@@ -39,7 +42,14 @@ test.describe("filter parameters", () => {
     expect(canonicals(html)).toEqual([`${siteOrigin(baseURL)}${CITY}`]);
   });
 
-  for (const query of ["charity=1", "max_price=200", "format=scramble", "singles=1", "distance=25", "from=2026-10-01"]) {
+  for (const query of [
+    "charity=1",
+    "max_price=200",
+    "format=scramble",
+    "singles=1",
+    "distance=25",
+    "from=2026-10-01",
+  ]) {
     test(`?${query} is noindex with the unfiltered canonical`, async ({ request, baseURL }) => {
       // 9.2: every filter parameter (course type, charity only, max price, date range,
       // distance, format, singles welcome) triggers the noindex rule.
@@ -51,7 +61,10 @@ test.describe("filter parameters", () => {
     });
   }
 
-  test("?course_type=private on a charity city page and a state page", async ({ request, baseURL }) => {
+  test("?course_type=private on a charity city page and a state page", async ({
+    request,
+    baseURL,
+  }) => {
     // 9.2 applies to "City and state pages".
     for (const path of ["/charity-golf-tournaments/ny/mamaroneck", "/golf-outings/ny"]) {
       const res = await request.get(`${path}?course_type=private`);

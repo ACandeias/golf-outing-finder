@@ -31,7 +31,11 @@ test("an organizer with no published outing returns 404", async ({ request }) =>
 
 test("unknown state, city and course paths return 404", async ({ request }) => {
   // Inferred from 9.1: these routes render from D1 rows, and there is no row to render.
-  for (const path of ["/golf-outings/zz", "/golf-outings/ny/no-such-city", "/courses/ny/no-such-course"]) {
+  for (const path of [
+    "/golf-outings/zz",
+    "/golf-outings/ny/no-such-city",
+    "/courses/ny/no-such-course",
+  ]) {
     const res = await request.get(path);
     expect(res.status(), path).toBe(404);
   }

@@ -20,7 +20,10 @@ for (const path of PAGES) {
         .analyze();
       const blocking = results.violations
         .filter((v) => v.impact === "serious" || v.impact === "critical")
-        .map((v) => `${v.impact} ${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`);
+        .map(
+          (v) =>
+            `${v.impact} ${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`,
+        );
       expect(blocking).toEqual([]);
     });
   }

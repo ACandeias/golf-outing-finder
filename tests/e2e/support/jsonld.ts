@@ -9,15 +9,23 @@ import { z } from "zod";
 
 const SCHEMA_ORG = /^https?:\/\/schema\.org\/?$/;
 const schemaEnum = (...names: string[]) =>
-  z.string().refine((v) => names.some((n) => v === `https://schema.org/${n}` || v === `http://schema.org/${n}`), {
-    message: `must be one of schema.org ${names.join(", ")}`,
-  });
+  z
+    .string()
+    .refine(
+      (v) => names.some((n) => v === `https://schema.org/${n}` || v === `http://schema.org/${n}`),
+      {
+        message: `must be one of schema.org ${names.join(", ")}`,
+      },
+    );
 
 export const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** 9.4: "startDate with the course's UTC offset when shotgun_time is known". */
 export const ISO_WITH_OFFSET = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?([+-]\d{2}:\d{2})$/;
 
-const absUrl = z.string().url().refine((u) => /^https?:\/\//.test(u), "must be an absolute http(s) URL");
+const absUrl = z
+  .string()
+  .url()
+  .refine((u) => /^https?:\/\//.test(u), "must be an absolute http(s) URL");
 
 /** 9.4: "location as a Place with a PostalAddress". */
 export const PostalAddressModel = z
@@ -27,7 +35,9 @@ export const PostalAddressModel = z
     addressLocality: z.string().min(1).optional(),
     addressRegion: z.string().regex(/^[A-Z]{2}$/),
     postalCode: z.string().min(1).optional(),
-    addressCountry: z.union([z.literal("US"), z.object({ "@type": z.literal("Country"), name: z.literal("US") })]).optional(),
+    addressCountry: z
+      .union([z.literal("US"), z.object({ "@type": z.literal("Country"), name: z.literal("US") })])
+      .optional(),
   })
   .passthrough();
 
@@ -42,12 +52,23 @@ export const OfferModel = z
     price: z.union([z.number().nonnegative(), z.string().regex(/^\d+(\.\d+)?$/)]),
     priceCurrency: z.literal("USD"),
     url: absUrl,
-    availability: schemaEnum("InStock", "LimitedAvailability", "SoldOut", "Discontinued", "PreOrder", "OutOfStock"),
+    availability: schemaEnum(
+      "InStock",
+      "LimitedAvailability",
+      "SoldOut",
+      "Discontinued",
+      "PreOrder",
+      "OutOfStock",
+    ),
   })
   .passthrough();
 
 export const OrganizerModel = z
-  .object({ "@type": z.enum(["Organization", "Person"]), name: z.string().min(1), url: absUrl.optional() })
+  .object({
+    "@type": z.enum(["Organization", "Person"]),
+    name: z.string().min(1),
+    url: absUrl.optional(),
+  })
   .passthrough();
 
 /** 9.4 Event JSON-LD. */
@@ -59,7 +80,12 @@ export const EventModel = z
       message: "startDate must be YYYY-MM-DD or a local time with a UTC offset",
     }),
     endDate: z.string().regex(ISO_DATE).optional(),
-    eventStatus: schemaEnum("EventScheduled", "EventCancelled", "EventPostponed", "EventRescheduled"),
+    eventStatus: schemaEnum(
+      "EventScheduled",
+      "EventCancelled",
+      "EventPostponed",
+      "EventRescheduled",
+    ),
     eventAttendanceMode: schemaEnum("OfflineEventAttendanceMode"),
     location: PlaceModel,
     organizer: OrganizerModel.optional(),
@@ -75,7 +101,9 @@ const ListItemModel = z
     "@type": z.literal("ListItem"),
     position: z.number().int().positive(),
     name: z.string().min(1).optional(),
-    item: z.union([absUrl, z.object({ "@id": absUrl.optional(), url: absUrl.optional() }).passthrough()]).optional(),
+    item: z
+      .union([absUrl, z.object({ "@id": absUrl.optional(), url: absUrl.optional() }).passthrough()])
+      .optional(),
     url: absUrl.optional(),
   })
   .passthrough();
@@ -89,7 +117,8 @@ export const BreadcrumbListModel = z
   .passthrough()
   .superRefine((v, ctx) => {
     v.itemListElement.forEach((li, i) => {
-      if (li.position !== i + 1) ctx.addIssue({ code: "custom", message: `breadcrumb ${i} has position ${li.position}` });
+      if (li.position !== i + 1)
+        ctx.addIssue({ code: "custom", message: `breadcrumb ${i} has position ${li.position}` });
     });
   });
 
@@ -111,10 +140,12 @@ export function parseJsonLd(blocks: readonly string[]): JsonLdNode[] {
     const parsed: unknown = JSON.parse(raw);
     const roots = Array.isArray(parsed) ? parsed : [parsed];
     for (const root of roots) {
-      if (typeof root !== "object" || root === null) throw new Error("JSON-LD root is not an object");
+      if (typeof root !== "object" || root === null)
+        throw new Error("JSON-LD root is not an object");
       const r = root as Record<string, unknown>;
       const ctx = r["@context"];
-      if (typeof ctx !== "string" || !SCHEMA_ORG.test(ctx)) throw new Error(`JSON-LD @context is ${String(ctx)}`);
+      if (typeof ctx !== "string" || !SCHEMA_ORG.test(ctx))
+        throw new Error(`JSON-LD @context is ${String(ctx)}`);
       const graph = r["@graph"];
       if (Array.isArray(graph)) {
         for (const g of graph) if (typeof g === "object" && g !== null) nodes.push(g as JsonLdNode);
@@ -127,7 +158,9 @@ export function parseJsonLd(blocks: readonly string[]): JsonLdNode[] {
 }
 
 export function nodesOfType(nodes: readonly JsonLdNode[], type: string): JsonLdNode[] {
-  return nodes.filter((n) => n["@type"] === type || (Array.isArray(n["@type"]) && n["@type"].includes(type)));
+  return nodes.filter(
+    (n) => n["@type"] === type || (Array.isArray(n["@type"]) && n["@type"].includes(type)),
+  );
 }
 
 /** URLs an ItemList points at, whichever of `url`, `item` or `item.url` it uses. */

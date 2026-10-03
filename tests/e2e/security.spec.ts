@@ -5,7 +5,13 @@ import { expect, test } from "./support/fixtures.ts";
 import { jsonLdBlocks, withoutScripts } from "./support/html.ts";
 import { HOPE_HEROES_EXPECTED_SLUG, NKF_WINGED_FOOT, THRIVERS } from "./support/seed-facts.ts";
 
-const HTML_PAGES = ["/", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`, "/map", "/about"];
+const HTML_PAGES = [
+  "/",
+  "/golf-outings/ny/mamaroneck",
+  `/outings/${NKF_WINGED_FOOT.slug}`,
+  "/map",
+  "/about",
+];
 
 for (const path of HTML_PAGES) {
   test(`security headers on ${path}`, async ({ request }) => {

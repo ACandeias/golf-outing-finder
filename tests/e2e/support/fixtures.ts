@@ -21,7 +21,10 @@ export const test = base.extend<{ blockExternalRequests: void }>({
       });
       await use();
       if (blocked.size > 0) {
-        testInfo.annotations.push({ type: "blocked-offline", description: [...blocked].sort().join(" ") });
+        testInfo.annotations.push({
+          type: "blocked-offline",
+          description: [...blocked].sort().join(" "),
+        });
       }
     },
     { auto: true },
@@ -68,7 +71,10 @@ export async function cardFor(page: Page, slug: string): Promise<CardInfo | null
       }
       el = el.parentElement;
     }
-    return { text: (start.parentElement?.innerText ?? "").replace(/\s+/g, " ").trim(), registerHrefs: [] };
+    return {
+      text: (start.parentElement?.innerText ?? "").replace(/\s+/g, " ").trim(),
+      registerHrefs: [],
+    };
   }, `/outings/${slug}`);
 }
 
@@ -85,16 +91,14 @@ export async function outingLinkSlugs(page: Page): Promise<string[]> {
 
 /** Same-origin link pathnames on the page. */
 export async function linkPaths(page: Page): Promise<string[]> {
-  return page.evaluate(() =>
-    [
-      ...new Set(
-        [...document.querySelectorAll<HTMLAnchorElement>("a[href]")]
-          .map((a) => new URL(a.href, location.href))
-          .filter((u) => u.origin === location.origin)
-          .map((u) => u.pathname),
-      ),
-    ],
-  );
+  return page.evaluate(() => [
+    ...new Set(
+      [...document.querySelectorAll<HTMLAnchorElement>("a[href]")]
+        .map((a) => new URL(a.href, location.href))
+        .filter((u) => u.origin === location.origin)
+        .map((u) => u.pathname),
+    ),
+  ]);
 }
 
 /** Text of the nearest list row or table row around the first link to `path`. */
@@ -104,8 +108,9 @@ export async function rowTextForLink(page: Page, path: string): Promise<string |
       (x) => new URL(x.href, location.href).pathname === p,
     );
     if (!a) return null;
-    const row = a.closest("li, tr, dd, dt") ?? a.parentElement;
-    return (row?.textContent ?? "").replace(/\s+/g, " ").trim();
+    const row = a.closest<HTMLElement>("li, tr, dd, dt") ?? a.parentElement;
+    // innerText separates table cells, where textContent would run "Arizona" "3" "0" together.
+    return (row?.innerText ?? row?.textContent ?? "").replace(/\s+/g, " ").trim();
   }, path);
 }
 

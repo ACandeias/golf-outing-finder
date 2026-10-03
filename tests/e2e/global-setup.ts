@@ -40,7 +40,9 @@ function freePort(): Promise<number> {
     srv.on("error", fail);
     srv.listen(0, "127.0.0.1", () => {
       const addr = srv.address();
-      srv.close(() => (addr && typeof addr === "object" ? ok(addr.port) : fail(new Error("no port"))));
+      srv.close(() =>
+        addr && typeof addr === "object" ? ok(addr.port) : fail(new Error("no port")),
+      );
     });
   });
 }
@@ -82,7 +84,9 @@ async function waitForHealth(origin: string, child: ChildProcess, logFile: strin
   } catch {
     // no log yet
   }
-  throw new Error(`wrangler dev did not become healthy at ${origin}/health (${lastError}).\n${tail}`);
+  throw new Error(
+    `wrangler dev did not become healthy at ${origin}/health (${lastError}).\n${tail}`,
+  );
 }
 
 function stop(child: ChildProcess): Promise<void> {
@@ -125,7 +129,10 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   pnpm(["run", "db:migrate:local", "--persist-to", persist]);
   // The loader honours PIPELINE_NOW outside production (SPEC.md 8.0); pin it to
   // the same day as SITE_NOW so publish decisions match the pages' clock.
-  pnpm(["run", "seed", `--persist-to=${persist}`], { PIPELINE_NOW: SITE_NOW, NODE_ENV: "development" });
+  pnpm(["run", "seed", `--persist-to=${persist}`], {
+    PIPELINE_NOW: SITE_NOW,
+    NODE_ENV: "development",
+  });
   if (process.env.E2E_SKIP_BUILD === "1") {
     log("E2E_SKIP_BUILD=1: using the existing apps/site/dist");
   } else {

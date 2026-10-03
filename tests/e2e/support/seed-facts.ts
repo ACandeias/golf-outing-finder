@@ -45,8 +45,10 @@ export const NKF_WINGED_FOOT = o({
   status: "open",
   startDate: "2026-10-19",
   expectedMonth: null,
-  registrationUrl: "https://support.kidney.org/event/2026-nkf-golf-classic-at-winged-foot-golf-club/e766893",
-  sourceUrl: "https://support.kidney.org/event/2026-nkf-golf-classic-at-winged-foot-golf-club/e766893",
+  registrationUrl:
+    "https://support.kidney.org/event/2026-nkf-golf-classic-at-winged-foot-golf-club/e766893",
+  sourceUrl:
+    "https://support.kidney.org/event/2026-nkf-golf-classic-at-winged-foot-golf-club/e766893",
 });
 
 export const FORDHAM_WINGED_FOOT = o({
@@ -102,7 +104,8 @@ export const ENCANTO = o({
   status: "open",
   startDate: "2026-10-03",
   expectedMonth: null,
-  registrationUrl: "https://azgolf.org/hubfs/%5BAGA%5D/Charity_Invitational_Sanctioned%20Events/IMG_6395.jpeg",
+  registrationUrl:
+    "https://azgolf.org/hubfs/%5BAGA%5D/Charity_Invitational_Sanctioned%20Events/IMG_6395.jpeg",
   sourceUrl: "https://azgolf.org/charity-club-sanctioned-events",
 });
 
@@ -123,7 +126,8 @@ export const THRIVERS = o({
   expectedMonth: null,
   registrationUrl:
     "https://thesecondopinion.networkforgood.com/events/101944-thrivers-survivors-charity-golf-tournament-2026",
-  sourceUrl: "https://thesecondopinion.networkforgood.com/events/101944-thrivers-survivors-charity-golf-tournament",
+  sourceUrl:
+    "https://thesecondopinion.networkforgood.com/events/101944-thrivers-survivors-charity-golf-tournament",
 });
 
 export const GRADY = o({
@@ -222,7 +226,8 @@ export const VALLEY_HOSPITAL_ANNOUNCED = o({
   startDate: "2027-06-07",
   expectedMonth: "2027-06",
   registrationUrl: null,
-  sourceUrl: "https://www.valleyhealth.com/services/auxiliary/auxiliary-events-meetings/auxiliary-golf-outing",
+  sourceUrl:
+    "https://www.valleyhealth.com/services/auxiliary/auxiliary-events-meetings/auxiliary-golf-outing",
 });
 
 /** e17: expected with no expected_month, held `no_date`, never published (8.8). */
@@ -234,7 +239,10 @@ export const HELD_E17_ORGANIZER = "the-buoniconti-fund-to-cure-paralysis";
  * outing_count 0 and must 404 (SPEC.md 9.1). The first is the gc7 decoy: Oakmont
  * Country Club near Glendale, CA.
  */
-export const EMPTY_COURSE_SLUGS = ["ca/oakmont-country-club", "ny/westchester-country-club"] as const;
+export const EMPTY_COURSE_SLUGS = [
+  "ca/oakmont-country-club",
+  "ny/westchester-country-club",
+] as const;
 
 /** Published outings (every seed entry but e17, s14, s15): 13 dated, 16 expected. */
 export const PUBLISHED_OUTING_SLUGS = [

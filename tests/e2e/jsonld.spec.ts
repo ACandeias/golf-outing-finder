@@ -38,13 +38,18 @@ function oneEvent(nodes: JsonLdNode[], path: string): EventLd {
   const events = nodesOfType(nodes, "Event");
   expect(events, `${path} has exactly one Event`).toHaveLength(1);
   const parsed = EventModel.safeParse(events[0]);
-  expect(parsed.success ? null : parsed.error.issues, `${path} Event matches the 9.4 model`).toBeNull();
+  expect(
+    parsed.success ? null : parsed.error.issues,
+    `${path} Event matches the 9.4 model`,
+  ).toBeNull();
   if (!parsed.success) throw parsed.error;
   return parsed.data;
 }
 
 test.describe("Event JSON-LD on outing pages", () => {
-  test("NKF Winged Foot: startDate 2026-10-19T12:00:00-04:00 and the full 9.4 shape", async ({ request }) => {
+  test("NKF Winged Foot: startDate 2026-10-19T12:00:00-04:00 and the full 9.4 shape", async ({
+    request,
+  }) => {
     // 13 Phase 1, item 2: "its Event JSON-LD passes ... and startDate ends in -04:00".
     // seed s06 expected_jsonld_start.
     const path = `/outings/${NKF_WINGED_FOOT.slug}`;
@@ -103,7 +108,9 @@ test.describe("Event JSON-LD on outing pages", () => {
     expect(e.startDate).toBe("2026-11-07T08:30:00-05:00");
   });
 
-  test("expected outings have no Event markup, even with an announced date", async ({ request }) => {
+  test("expected outings have no Event markup, even with an announced date", async ({
+    request,
+  }) => {
     // 9.4: "Expected outings get no Event markup, even when an announced start_date is known";
     // 11: "an expected outing shows its expected month and no Event markup".
     for (const o of [AUTISM_SPEAKS_EXPECTED, VALLEY_HOSPITAL_ANNOUNCED]) {
@@ -140,9 +147,18 @@ test("BreadcrumbList on every page", async ({ request }) => {
 const LIST_PAGES: { path: string; mustInclude: string[] }[] = [
   { path: "/golf-outings", mustInclude: [] },
   { path: "/golf-outings/ny", mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug] },
-  { path: "/golf-outings/ny/mamaroneck", mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug] },
-  { path: "/charity-golf-tournaments/ny/mamaroneck", mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug] },
-  { path: "/courses/ny/winged-foot-golf-club", mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug] },
+  {
+    path: "/golf-outings/ny/mamaroneck",
+    mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug],
+  },
+  {
+    path: "/charity-golf-tournaments/ny/mamaroneck",
+    mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug],
+  },
+  {
+    path: "/courses/ny/winged-foot-golf-club",
+    mustInclude: [NKF_WINGED_FOOT.slug, FORDHAM_WINGED_FOOT.slug],
+  },
   { path: "/organizers/national-kidney-foundation", mustInclude: [NKF_WINGED_FOOT.slug] },
 ];
 

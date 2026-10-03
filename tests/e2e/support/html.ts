@@ -64,7 +64,9 @@ export function jsonLdBlocks(html: string): string[] {
 
 /** The HTML with `<script>` and `<style>` bodies removed: the markup that renders as text. */
 export function withoutScripts(html: string): string {
-  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
 }
 
 /** `<title>` text, entities decoded. */

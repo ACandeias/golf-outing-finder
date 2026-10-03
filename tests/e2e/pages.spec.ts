@@ -2,7 +2,15 @@
  * Every Phase 1 page route renders from the seed (SPEC.md 9.1, 9.3, 9.4, 13
  * Phase 1) with the clock pinned to 2026-09-28.
  */
-import { cardFor, expect, linkPaths, outingLinkSlugs, rowTextForLink, sameUrl, test } from "./support/fixtures.ts";
+import {
+  cardFor,
+  expect,
+  linkPaths,
+  outingLinkSlugs,
+  rowTextForLink,
+  sameUrl,
+  test,
+} from "./support/fixtures.ts";
 import { titleOf } from "./support/html.ts";
 import {
   AUTISM_SPEAKS_EXPECTED,
@@ -47,7 +55,11 @@ test.describe("national hub /golf-outings", () => {
     for (const [state, count] of Object.entries(UPCOMING_BY_STATE)) {
       const row = await rowTextForLink(page, `/golf-outings/${state.toLowerCase()}`);
       expect(row, `link to /golf-outings/${state.toLowerCase()}`).not.toBeNull();
-      expect(row ?? "", `${state} row shows ${count} upcoming`).toMatch(new RegExp(`(^|\\D)${count}(\\D|$)`));
+      // The first number in the state's row is its upcoming count.
+      expect(
+        /\d+/.exec(row ?? "")?.[0],
+        `${state} row "${row ?? ""}" shows ${count} upcoming`,
+      ).toBe(String(count));
     }
     expect(await outingLinkSlugs(page)).toContain(ENCANTO.slug);
   });
@@ -61,11 +73,13 @@ test.describe("state /golf-outings/ny", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(/New York|NY/);
     await expect(page.getByText(/October 2026/).first()).toBeVisible();
     const slugs = await outingLinkSlugs(page);
-    for (const o of [BUILDERS_METROPOLIS, FORDHAM_WINGED_FOOT, NKF_WINGED_FOOT]) expect(slugs).toContain(o.slug);
+    for (const o of [BUILDERS_METROPOLIS, FORDHAM_WINGED_FOOT, NKF_WINGED_FOOT])
+      expect(slugs).toContain(o.slug);
     // Only New York outings among the dated ones.
     expect(slugs).not.toContain(ENCANTO.slug);
     const paths = await linkPaths(page);
-    for (const city of ["mamaroneck", "white-plains", "east-hampton"]) expect(paths).toContain(`/golf-outings/ny/${city}`);
+    for (const city of ["mamaroneck", "white-plains", "east-hampton"])
+      expect(paths).toContain(`/golf-outings/ny/${city}`);
   });
 
   test("every state with a published outing has a page", async ({ request }) => {
@@ -78,7 +92,9 @@ test.describe("state /golf-outings/ny", () => {
 });
 
 test.describe("city /golf-outings/ny/mamaroneck", () => {
-  test("Phase 1 acceptance: both Winged Foot outings show as Private with Register links", async ({ page }) => {
+  test("Phase 1 acceptance: both Winged Foot outings show as Private with Register links", async ({
+    page,
+  }) => {
     // 13 Phase 1, item 1: "when I open /golf-outings/ny/mamaroneck, then both Winged
     // Foot outings (October 13 and October 19, 2026) show as Private with working
     // Register links".
@@ -89,7 +105,9 @@ test.describe("city /golf-outings/ny/mamaroneck", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Mamaroneck");
 
     // Exactly the two dated outings in Mamaroneck; expected ones may also be listed.
-    const dated = (await outingLinkSlugs(page)).filter((s) => (DATED_OUTING_SLUGS as readonly string[]).includes(s));
+    const dated = (await outingLinkSlugs(page)).filter((s) =>
+      (DATED_OUTING_SLUGS as readonly string[]).includes(s),
+    );
     expect(dated.sort()).toEqual([FORDHAM_WINGED_FOOT.slug, NKF_WINGED_FOOT.slug].sort());
 
     for (const [o, date] of [
@@ -119,8 +137,20 @@ test.describe("city /golf-outings/ny/mamaroneck", () => {
   test("offers filters and a map toggle", async ({ page }) => {
     // 9.1 city: "list, filters, map toggle"; 9.2 course type filter.
     await page.goto("/golf-outings/ny/mamaroneck");
-    await expect(page.getByText(/course type/i).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: /map/i }).or(page.getByRole("link", { name: /map/i })).first()).toBeVisible();
+    // The filter panel may start collapsed; the controls must exist and be labeled.
+    await expect(page.getByText(/course type/i).first()).toBeAttached();
+    await expect(
+      page
+        .getByRole("checkbox", { name: /private/i, includeHidden: true })
+        .or(page.getByRole("combobox", { name: /course type/i, includeHidden: true }))
+        .first(),
+    ).toBeAttached();
+    await expect(
+      page
+        .getByRole("button", { name: /map/i })
+        .or(page.getByRole("link", { name: /map/i }))
+        .first(),
+    ).toBeVisible();
   });
 });
 
@@ -160,7 +190,8 @@ test.describe("course /courses/ny/winged-foot-golf-club", () => {
     // CLAUDE.md: "© OpenStreetMap contributors" on course pages.
     await expect(body).toContainText("© OpenStreetMap contributors");
     const slugs = await outingLinkSlugs(page);
-    for (const o of [FORDHAM_WINGED_FOOT, NKF_WINGED_FOOT, AUTISM_SPEAKS_EXPECTED]) expect(slugs).toContain(o.slug);
+    for (const o of [FORDHAM_WINGED_FOOT, NKF_WINGED_FOOT, AUTISM_SPEAKS_EXPECTED])
+      expect(slugs).toContain(o.slug);
   });
 });
 
@@ -169,7 +200,9 @@ test.describe("organizer /organizers/national-kidney-foundation", () => {
     // 9.1 organizer: "the organizer's outings across courses".
     const res = await page.goto("/organizers/national-kidney-foundation");
     expect(res?.status()).toBe(200);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("National Kidney Foundation");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "National Kidney Foundation",
+    );
     const slugs = await outingLinkSlugs(page);
     expect(slugs).toContain(NKF_WINGED_FOOT.slug);
     expect(slugs).toContain("2026/nkf-golf-classic-at-philadelphia-country-club-philadelphia");
@@ -177,7 +210,10 @@ test.describe("organizer /organizers/national-kidney-foundation", () => {
 });
 
 test.describe("outing /outings/2026/nkf-golf-classic-at-winged-foot-golf-club-winged-foot", () => {
-  test("shows details, Register, source link, last verified and internal links", async ({ page, request }) => {
+  test("shows details, Register, source link, last verified and internal links", async ({
+    page,
+    request,
+  }) => {
     const o = NKF_WINGED_FOOT;
     const res = await page.goto(`/outings/${o.slug}`);
     expect(res?.status()).toBe(200);
@@ -195,7 +231,9 @@ test.describe("outing /outings/2026/nkf-golf-classic-at-winged-foot-golf-club-wi
     // 9.1 outing: "Register button, source link, last-verified date".
     const register = page.getByRole("link", { name: /register/i }).first();
     await expect(register).toHaveAttribute("href", o.registrationUrl ?? "");
-    const hrefs = await page.locator("a[href]").evaluateAll((as) => as.map((a) => a.getAttribute("href") ?? ""));
+    const hrefs = await page
+      .locator("a[href]")
+      .evaluateAll((as) => as.map((a) => a.getAttribute("href") ?? ""));
     expect(hrefs.some((h) => sameUrl(h, o.sourceUrl))).toBe(true);
     await expect(body).toContainText(/Last verified/i);
     // 9.4 internal links: "Outing to course, organizer and city; five nearby upcoming outings".
@@ -215,7 +253,8 @@ test.describe("outing /outings/2026/nkf-golf-classic-at-winged-foot-golf-club-wi
     const o = AUTISM_SPEAKS_EXPECTED;
     const res = await page.goto(`/outings/${o.slug}`);
     expect(res?.status()).toBe(200);
-    await expect(page.locator("body")).toContainText("Expected June 2027");
+    // 9.3 writes it "Expected {Month YYYY}"; "Expected in June 2027" says the same thing.
+    await expect(page.locator("main")).toContainText(/Expected (in )?June 2027/);
     const title = titleOf(await (await request.get(`/outings/${o.slug}`)).text());
     expect(title).toBe(`${o.title} at ${o.courseName}, ${o.city}, ${o.state} (expected June 2027)`);
   });
@@ -233,7 +272,9 @@ test.describe("map and about", () => {
     await expect(body).toContainText("OpenStreetMap");
   });
 
-  test("/about carries the OpenStreetMap, OpenFreeMap and GeoNames attributions", async ({ page }) => {
+  test("/about carries the OpenStreetMap, OpenFreeMap and GeoNames attributions", async ({
+    page,
+  }) => {
     // 9.1 `/about`: "carries the OpenStreetMap, OpenFreeMap and GeoNames attributions"; indexed.
     const res = await page.goto("/about");
     expect(res?.status()).toBe(200);

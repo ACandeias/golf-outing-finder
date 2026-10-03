@@ -27,7 +27,10 @@ const FeatureModel = z.object({
   }),
   properties: z.record(z.unknown()),
 });
-const CollectionModel = z.object({ type: z.literal("FeatureCollection"), features: z.array(FeatureModel) });
+const CollectionModel = z.object({
+  type: z.literal("FeatureCollection"),
+  features: z.array(FeatureModel),
+});
 type Feature = z.infer<typeof FeatureModel>;
 
 const MAX_RESULTS = 200;
@@ -38,7 +41,10 @@ async function getCollection(request: APIRequestContext, query: string): Promise
   expect(res.status(), query).toBe(200);
   expect(res.headers()["content-type"] ?? "").toMatch(/application\/(geo\+)?json/);
   const parsed = CollectionModel.safeParse(await res.json());
-  expect(parsed.success ? null : parsed.error.issues, `${query} is a GeoJSON FeatureCollection`).toBeNull();
+  expect(
+    parsed.success ? null : parsed.error.issues,
+    `${query} is a GeoJSON FeatureCollection`,
+  ).toBeNull();
   return parsed.success ? parsed.data.features : [];
 }
 
@@ -57,11 +63,16 @@ function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
 
 const bboxQuery = `bbox=${B.west},${B.south},${B.east},${B.north}`;
 
-test("bbox around Westchester returns the Winged Foot outings and nothing outside the box", async ({ request }) => {
+test("bbox around Westchester returns the Winged Foot outings and nothing outside the box", async ({
+  request,
+}) => {
   // 9.1 "/api/outings: bbox"; 9.6 "clustered markers from /api/outings GeoJSON".
   const features = await getCollection(request, bboxQuery);
   for (const o of [NKF_WINGED_FOOT, FORDHAM_WINGED_FOOT, BUILDERS_METROPOLIS]) {
-    expect(features.some((f) => isOuting(f, o.slug)), o.slug).toBe(true);
+    expect(
+      features.some((f) => isOuting(f, o.slug)),
+      o.slug,
+    ).toBe(true);
   }
   for (const f of features) {
     const [lng, lat] = f.geometry.coordinates;
@@ -71,7 +82,9 @@ test("bbox around Westchester returns the Winged Foot outings and nothing outsid
     expect(lat).toBeLessThanOrEqual(B.north);
   }
   // East Hampton (Maidstone) is outside the box.
-  expect(features.some((f) => isOuting(f, "2026/george-d-yates-golf-outing-maidstone"))).toBe(false);
+  expect(features.some((f) => isOuting(f, "2026/george-d-yates-golf-outing-maidstone"))).toBe(
+    false,
+  );
   // Upcoming only: every feature is one of the dated seed outings in the box.
   expect(features.length).toBe(3);
   // 9.1: "cache 10 minutes".
@@ -89,7 +102,9 @@ test("lat/lng plus radius returns outings near Winged Foot only", async ({ reque
     const [lng, lat] = f.geometry.coordinates;
     expect(haversineKm(c, { lat, lng })).toBeLessThanOrEqual(MILES_10_IN_KM);
   }
-  expect(features.some((f) => isOuting(f, "2026/george-d-yates-golf-outing-maidstone"))).toBe(false);
+  expect(features.some((f) => isOuting(f, "2026/george-d-yates-golf-outing-maidstone"))).toBe(
+    false,
+  );
 });
 
 test("filters apply on the server", async ({ request }) => {

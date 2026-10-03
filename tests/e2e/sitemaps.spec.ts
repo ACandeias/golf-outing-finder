@@ -16,6 +16,7 @@ import {
 } from "./support/seed-facts.ts";
 
 const MAX_URLS_PER_FILE = 45_000;
+const STATIC_PATHS = new Set(["/", "/golf-outings", "/about"]);
 
 async function childSitemaps(request: APIRequestContext): Promise<{ loc: string; xml: string }[]> {
   const res = await request.get("/sitemap-index.xml");
@@ -49,14 +50,22 @@ test("the sitemap index lists child sitemaps under /sitemaps/", async ({ request
     const urls = sitemapLocs(xml);
     // 9.1: "45,000 URLs per file at most".
     expect(urls.length).toBeLessThanOrEqual(MAX_URLS_PER_FILE);
-    // 9.4: "lastmod from updated_at".
-    const entries = xml.match(/<url>/g)?.length ?? 0;
-    const lastmods = xml.match(/<lastmod>\s*\d{4}-\d{2}-\d{2}[^<]*<\/lastmod>/g)?.length ?? 0;
-    expect(lastmods, `${loc} has a lastmod per URL`).toBe(entries);
+    // 9.4: "lastmod from updated_at": every URL backed by D1 rows carries one; the
+    // static pages (home, hub, about) have no updated_at to report.
+    for (const entry of xml.match(/<url>[\s\S]*?<\/url>/g) ?? []) {
+      const path = new URL(sitemapLocs(entry)[0] ?? origin).pathname;
+      if (STATIC_PATHS.has(path)) continue;
+      expect(entry, `${path} has a lastmod`).toMatch(
+        /<lastmod>\s*\d{4}-\d{2}-\d{2}[^<]*<\/lastmod>/,
+      );
+    }
   }
 });
 
-test("children list exactly the indexable outings, courses, organizers and states", async ({ request, baseURL }) => {
+test("children list exactly the indexable outings, courses, organizers and states", async ({
+  request,
+  baseURL,
+}) => {
   // 9.4: "Only indexable pages appear". 9.1: outings "when published and source_gone = 0,
   // including expected outings"; courses "when outing_count >= 1"; organizers "when it
   // has a published outing".
@@ -65,15 +74,21 @@ test("children list exactly the indexable outings, courses, organizers and state
   const paths = urls.map((u) => new URL(u).pathname);
   expect(new Set(urls).size, "no duplicate URLs").toBe(urls.length);
 
-  const outings = paths.filter((p) => p.startsWith("/outings/")).map((p) => p.slice("/outings/".length));
+  const outings = paths
+    .filter((p) => p.startsWith("/outings/"))
+    .map((p) => p.slice("/outings/".length));
   expect(outings.sort()).toEqual([...PUBLISHED_OUTING_SLUGS].sort());
   expect(outings).not.toContain(HELD_E17_SLUG);
 
-  const courses = paths.filter((p) => p.startsWith("/courses/")).map((p) => p.slice("/courses/".length));
+  const courses = paths
+    .filter((p) => p.startsWith("/courses/"))
+    .map((p) => p.slice("/courses/".length));
   expect(courses.sort()).toEqual([...COURSE_SLUGS_WITH_OUTINGS].sort());
   for (const empty of EMPTY_COURSE_SLUGS) expect(courses).not.toContain(empty);
 
-  const organizers = paths.filter((p) => p.startsWith("/organizers/")).map((p) => p.slice("/organizers/".length));
+  const organizers = paths
+    .filter((p) => p.startsWith("/organizers/"))
+    .map((p) => p.slice("/organizers/".length));
   expect(organizers.sort()).toEqual([...PUBLISHED_ORGANIZER_SLUGS].sort());
   expect(organizers).not.toContain(HELD_E17_ORGANIZER);
 
@@ -81,7 +96,12 @@ test("children list exactly the indexable outings, courses, organizers and state
   expect(states.sort()).toEqual([...STATES_WITH_OUTINGS].sort());
 
   // City pages with an upcoming or recent outing (9.1), and their charity twins.
-  for (const p of ["/golf-outings/ny/mamaroneck", "/golf-outings/ny/white-plains", "/golf-outings/az/phoenix", "/golf-outings/ca/la-jolla"]) {
+  for (const p of [
+    "/golf-outings/ny/mamaroneck",
+    "/golf-outings/ny/white-plains",
+    "/golf-outings/az/phoenix",
+    "/golf-outings/ca/la-jolla",
+  ]) {
     expect(paths).toContain(p);
   }
   expect(paths).toContain("/charity-golf-tournaments/ny/mamaroneck");
@@ -95,11 +115,15 @@ test("children list exactly the indexable outings, courses, organizers and state
   for (const u of urls) {
     expect(u.startsWith(origin), u).toBe(true);
     expect(u, "no query strings in sitemaps").not.toContain("?");
-    expect(new URL(u).pathname).not.toMatch(/^\/(map|api|suggest|health|privacy|terms|corrections|bot|listed)(\/|$)/);
+    expect(new URL(u).pathname).not.toMatch(
+      /^\/(map|api|suggest|health|privacy|terms|corrections|bot|listed)(\/|$)/,
+    );
   }
 });
 
-test("every sitemap URL returns 200, is indexable and is its own canonical", async ({ request }) => {
+test("every sitemap URL returns 200, is indexable and is its own canonical", async ({
+  request,
+}) => {
   test.setTimeout(180_000);
   // G3 and 9.4: canonical on every page; sitemaps hold only indexable pages.
   const urls = await allUrls(request);
@@ -114,7 +138,8 @@ test("every sitemap URL returns 200, is indexable and is its own canonical", asy
       }
       const html = await res.text();
       const canon = canonicals(html);
-      if (canon.length !== 1 || canon[0] !== u) failures.push(`${u}: canonical ${JSON.stringify(canon)}`);
+      if (canon.length !== 1 || canon[0] !== u)
+        failures.push(`${u}: canonical ${JSON.stringify(canon)}`);
       if (isNoindex(html, res.headers()["x-robots-tag"])) failures.push(`${u}: noindex`);
     }
   };

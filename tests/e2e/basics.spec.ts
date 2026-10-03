@@ -11,7 +11,10 @@ test("home returns 200 and renders a top-level heading", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
-test("robots.txt disallows /api/ and /suggest and lists the sitemap index", async ({ request, baseURL }) => {
+test("robots.txt disallows /api/ and /suggest and lists the sitemap index", async ({
+  request,
+  baseURL,
+}) => {
   // 9.1 `/robots.txt`: "disallow /api/ and /suggest; list the sitemap index".
   const res = await request.get("/robots.txt");
   expect(res.status()).toBe(200);
