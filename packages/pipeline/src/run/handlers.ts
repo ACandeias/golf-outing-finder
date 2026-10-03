@@ -1,20 +1,10 @@
 import type { BudgetGuard } from "../budget.ts";
-import { courseTypesHandler } from "../courses/course-types-handler.ts";
-import { coursesHandler } from "../courses/monthly.ts";
 import type { D1Port, Snapshot } from "../d1/port.ts";
-import { discoverHandler, fetchHandler, normalizeHandler } from "../fetch/handlers.ts";
-import { classify } from "../stages/classify.ts";
-import { dedupeUpsert } from "../stages/dedupe-upsert.ts";
-import { extractCollect } from "../stages/extract-collect.ts";
-import { extractRequestBuild } from "../stages/extract-request-build.ts";
-import { match } from "../stages/match.ts";
-import { irsHandler } from "../irs/handler.ts";
 import { NotImplemented } from "../stages/not-implemented.ts";
-import { publish } from "../stages/publish.ts";
-import { recheckRollForward } from "../stages/recheck-roll-forward.ts";
 import type { StageName } from "../stages/registry.ts";
 import type { Context, IrsLookup, Ports, StageResult, UpsertPlan } from "../stages/types.ts";
 import type { PipelineState } from "./state.ts";
+import { wiredHandlers, type RunEdges } from "./wire.ts";
 
 /** What a handler gets: the stage Context plus the edges it may use. */
 export interface StageEnv {
@@ -34,7 +24,7 @@ export interface StageEnv {
   /** The run-start snapshot (read-only). */
   snapshot: Snapshot;
   d1: D1Port;
-  /** Network edges; fixture-backed in a dry run (workstream E wires them). */
+  /** Edges shared with workstream D's monthly handlers (live: the batch client and B's fetcher). */
   ports: Partial<Ports>;
   irs: IrsLookup | null;
 }
@@ -50,77 +40,40 @@ export interface HandlerOutcome {
 /**
  * A handler runs one stage: reads its inputs from the snapshot and state, calls
  * edges (consuming the BudgetGuard before each paid or capped call), calls the
- * pure stage function, and stores the output in state. Workstream E replaces
- * these defaults with the wired versions; they only show the data flow and
- * surface NotImplemented from the stubs.
+ * pure stage function, and stores the output in state (src/run/wire.ts).
  */
 export type StageHandler = (env: StageEnv) => Promise<HandlerOutcome>;
 export type StageHandlers = Record<Exclude<StageName, "report">, StageHandler>;
 
-const noIrs: IrsLookup = { byEin: () => null, candidates: () => [] };
+/** Every stage with a handler (all but report, which the runner runs itself). */
+export const HANDLED_STAGES: readonly Exclude<StageName, "report">[] = [
+  "discover",
+  "fetch",
+  "normalize",
+  "extract-request-build",
+  "extract-collect",
+  "classify",
+  "match",
+  "dedupe-upsert",
+  "publish",
+  "recheck-roll-forward",
+  "courses",
+  "irs",
+  "course-types",
+];
 
-export const defaultHandlers: StageHandlers = {
-  // Workstream B: src/fetch/handlers.ts (fixture-backed edges in a dry run).
-  discover: discoverHandler,
-  fetch: fetchHandler,
-  normalize: normalizeHandler,
-  "extract-request-build": async ({ ctx, guard, state }) => {
-    const out = extractRequestBuild(ctx, {
-      pages: state.normalized.filter((p) => !p.unchanged),
-      allowance: guard.allowance(),
-    });
-    state.extractionRequests = out.output.requests;
-    state.extractionMeta = out.output.meta;
-    return { result: out.result };
-  },
-  "extract-collect": async ({ ctx, state }) => {
-    const out = extractCollect(ctx, { results: [], meta: state.extractionMeta });
-    state.extracted = out.output.pages;
-    return { result: out.result, pendingBatchId: null };
-  },
-  classify: async ({ ctx, state, irs: lookup }) => {
-    const out = classify(ctx, {
-      events: state.extracted.flatMap((p) => p.events),
-      irs: lookup ?? noIrs,
-    });
-    state.classified = out.output.outings;
-    return { result: out.result };
-  },
-  match: async ({ ctx, state }) => {
-    const out = match(ctx, { outings: state.classified, courses: [], places: [] });
-    state.matched = out.output.outings;
-    return { result: out.result };
-  },
-  "dedupe-upsert": async ({ ctx, state }) => {
-    const out = dedupeUpsert(ctx, {
-      outings: state.matched,
-      existing: { outings: [], organizers: [], sources: [], outingSlugs: [], organizerSlugs: [] },
-      unchanged: [],
-      fetches: [],
-    });
-    state.upsertOutcomes = out.output.outcomes;
-    return { result: out.result, plan: out.output.plan };
-  },
-  publish: async ({ ctx, state }) => {
-    const out = publish(ctx, { outings: [], heldSources: [], changed: [] });
-    state.publishDecisions = out.output.decisions;
-    state.indexnowUrls = out.output.indexnowUrls;
-    return { result: out.result, plan: out.output.plan };
-  },
-  "recheck-roll-forward": async ({ ctx }) => {
-    const out = recheckRollForward(ctx, { outings: [], sources: [], outingSlugs: [] });
-    return { result: out.result, plan: out.output.plan };
-  },
-  // Workstream D: the monthly edges live in src/courses and src/irs.
-  courses: coursesHandler(),
-  irs: irsHandler(),
-  "course-types": courseTypesHandler(),
-};
+/**
+ * The wired handlers (src/run/wire.ts) over edges built for this run. The CLI
+ * calls this once per run and closes the edges when the run ends.
+ */
+export function defaultHandlers(edges: RunEdges): StageHandlers {
+  return wiredHandlers(edges);
+}
 
-/** Handlers that all throw NotImplemented, for runner tests independent of B, C and D progress. */
+/** Handlers that all throw NotImplemented, for runner tests independent of the real edges. */
 export function stubHandlers(): StageHandlers {
   const out = {} as StageHandlers;
-  for (const name of Object.keys(defaultHandlers) as (keyof StageHandlers)[]) {
+  for (const name of HANDLED_STAGES) {
     out[name] = async () => {
       throw new NotImplemented(name);
     };

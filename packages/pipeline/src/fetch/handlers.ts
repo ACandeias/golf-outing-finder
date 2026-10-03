@@ -297,7 +297,7 @@ export async function normalizeHandler(env: StageEnv): Promise<HandlerOutcome> {
   }
   state.normalized = pages;
   fetchSide(state).failed = failed;
-  await ports.close();
+  // The renderer stays open: the run closes the fetch-side edges when it ends.
   ctx.log.info("normalize", {
     pages: pages.length,
     unchanged: counters.pages_unchanged ?? 0,

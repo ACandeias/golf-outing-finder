@@ -8,7 +8,7 @@ import { runRowSchema } from "../stages/rows.ts";
 import { emptyResult, type Context } from "../stages/types.ts";
 import { newRunRow, runRowPlan } from "./accounting.ts";
 import {
-  defaultHandlers,
+  HANDLED_STAGES,
   stubHandlers,
   type StageHandler,
   type StageHandlers,
@@ -32,7 +32,7 @@ function ctxWith(
 
 const done: StageHandler = async () => ({ result: emptyResult() });
 function allDone(patch: Partial<StageHandlers> = {}): StageHandlers {
-  const h = Object.fromEntries(Object.keys(defaultHandlers).map((k) => [k, done])) as StageHandlers;
+  const h = Object.fromEntries(HANDLED_STAGES.map((k) => [k, done])) as StageHandlers;
   return { ...h, ...patch };
 }
 
@@ -281,7 +281,7 @@ describe("runPipeline writes", () => {
       return { result: emptyResult() };
     };
     const handlers = allDone(
-      Object.fromEntries(Object.keys(defaultHandlers).map((k) => [k, track])),
+      Object.fromEntries(HANDLED_STAGES.map((k) => [k, track])),
     );
     const { outcome } = await run({ stages: selectStages("match,classify", "nightly") }, handlers);
     expect(seen).toEqual(["classify", "match"]);
