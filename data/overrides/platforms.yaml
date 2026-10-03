@@ -1,0 +1,134 @@
+# Listing sources the discovery stage reads (SPEC.md section 8.2, items 4 to 6).
+#
+# Every entry has an `allowed` flag. Platforms and directories stay `false`
+# until the owner has read the site's terms of use and confirmed that reading
+# its public listings is permitted; robots.txt is honored on every fetch either
+# way. Set `allowed: true` (and `terms_checked`, the date you checked) to turn
+# one on. Nothing here is fetched while `allowed` is false.
+#
+# adapter:
+#   page     - the URL itself is the source: queue it and let extraction read
+#              every event on it (association calendars).
+#   links    - fetch the URL and queue links whose URL matches `event_url_pattern`.
+#   sitemap  - fetch the sitemap (or sitemap index, one level down) and queue
+#              <loc> URLs matching `event_url_pattern`.
+# cadence: daily, or weekly (each weekly source gets a fixed night of the week).
+# urls may contain {yyyy-mm}; it expands to this month and the next
+# `months_ahead - 1` months.
+# Platform links are queued only when their title, text or URL mentions golf
+# with outing, tournament, scramble, classic or invitational.
+# Directory index pages are never sources; only their event pages are queued.
+# URLs marked "unverified" are best guesses; check them when turning one on.
+
+platforms:
+  - name: golfstatus
+    allowed: false
+    terms_url: https://golfstatus.com/terms
+    adapter: sitemap
+    cadence: daily
+    urls: [https://golfstatus.com/sitemap.xml] # unverified
+    event_url_pattern: "^https://(www\\.)?golfstatus\\.com/(events|tournaments)/"
+  - name: tourneylinks
+    allowed: false
+    terms_url: https://www.tourneylinks.com/
+    adapter: links
+    cadence: daily
+    urls: [https://www.tourneylinks.com/] # unverified
+    event_url_pattern: "^https://(www\\.)?tourneylinks\\.com/.+"
+  - name: golfgenius
+    allowed: false
+    terms_url: https://www.golfgenius.com/terms
+    adapter: sitemap
+    cadence: daily
+    urls: [https://www.golfgenius.com/sitemap.xml] # unverified
+    event_url_pattern: "^https://(www\\.)?golfgenius\\.com/pages/"
+  - name: birdease
+    allowed: false
+    terms_url: https://birdease.com/terms
+    adapter: sitemap
+    cadence: daily
+    urls: [https://birdease.com/sitemap.xml] # unverified
+    event_url_pattern: "^https://([a-z0-9-]+\\.)?birdease\\.com/"
+  - name: givesmart
+    allowed: false
+    terms_url: https://www.givesmart.com/terms-of-use
+    adapter: sitemap
+    cadence: daily
+    urls: [https://www.givesmart.com/sitemap.xml] # unverified
+    event_url_pattern: "^https://(www\\.)?e\\.givesmart\\.com/events/"
+  - name: onecause
+    allowed: false
+    terms_url: https://www.onecause.com/terms-of-use
+    adapter: sitemap
+    cadence: daily
+    urls: [https://www.onecause.com/sitemap.xml] # unverified
+    event_url_pattern: "^https://(www\\.)?onecause\\.com/"
+  - name: gofundme-pro
+    allowed: false
+    terms_url: https://www.gofundme.com/c/terms
+    adapter: sitemap
+    cadence: daily
+    urls: [https://www.classy.org/sitemap.xml] # unverified
+    event_url_pattern: "^https://(www\\.)?(classy\\.org|pro\\.gofundme\\.com)/(event|events)/"
+  - name: networkforgood
+    allowed: false
+    terms_url: https://www.networkforgood.com/about/terms-of-use/
+    adapter: sitemap
+    cadence: daily
+    urls: [https://www.networkforgood.com/sitemap.xml] # unverified
+    event_url_pattern: "^https://[a-z0-9-]+\\.networkforgood\\.com/events/"
+  - name: eventbrite
+    allowed: false
+    terms_url: https://www.eventbrite.com/help/en-us/articles/541760/eventbrite-terms-of-service/
+    adapter: links
+    cadence: daily
+    urls: [https://www.eventbrite.com/d/united-states/golf-tournament/] # unverified
+    event_url_pattern: "^https://(www\\.)?eventbrite\\.com/e/"
+
+associations:
+  - name: Arizona Golf Association
+    allowed: true
+    adapter: page
+    cadence: weekly
+    urls: [https://azgolf.org/charity-club-sanctioned-events]
+  - name: Southern California Golf Association
+    allowed: true
+    adapter: page
+    cadence: weekly
+    months_ahead: 3
+    urls: ["https://www.scga.org/mobile__calendar/sort/charity-events/{yyyy-mm}"]
+  - name: Colorado Golf Association
+    allowed: true
+    adapter: page
+    cadence: weekly
+    urls: [https://www.coloradogolf.org/charity-events]
+
+directories:
+  - name: Play Private Golf
+    allowed: false
+    terms_url: https://playprivategolf.com/
+    adapter: links
+    cadence: weekly
+    urls: [https://playprivategolf.com/] # unverified
+    event_url_pattern: "^https://(www\\.)?playprivategolf\\.com/.*event"
+  - name: Scramble Hunter
+    allowed: false
+    terms_url: https://scramblehunter.com/
+    adapter: links
+    cadence: weekly
+    urls: [https://scramblehunter.com/]
+    event_url_pattern: "^https://(www\\.)?scramblehunter\\.com/event/[^/]+/?$"
+  - name: charitygolfevent.com
+    allowed: false
+    terms_url: https://charitygolfevent.com/
+    adapter: links
+    cadence: weekly
+    urls: [https://charitygolfevent.com/] # unverified
+    event_url_pattern: "^https://(www\\.)?charitygolfevent\\.com/.+"
+  - name: golfsync.io
+    allowed: false
+    terms_url: https://golfsync.io/
+    adapter: links
+    cadence: weekly
+    urls: [https://golfsync.io/] # unverified
+    event_url_pattern: "^https://(www\\.)?golfsync\\.io/.*event"

@@ -1,0 +1,34 @@
+{
+  "id": "s13-two-man-links-torrey-pines",
+  "recorded": false,
+  "note": "hand-written; replace with pnpm run test:live-extract",
+  "recorded_at": "2026-10-03T00:00:00.000Z",
+  "model": "claude-haiku-4-5",
+  "extractor_version": "extract-v1",
+  "batch_result": {
+    "custom_id": "src_b2560407664e4733e162c6898412bfeafe3f2813",
+    "result": {
+      "type": "succeeded",
+      "message": {
+        "id": "msg_handwritten_s13_two_man_links_torrey_pines",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"events\": [{\"is_outing\": true, \"reject_reason\": null, \"title\": \"AmateurGolf.com 2026 Two Man Links and Father & Son at Torrey Pines\", \"organizer_name\": \"AmateurGolf.com\", \"organizer_ein\": null, \"beneficiary\": null, \"course_name\": \"Torrey Pines Golf Course\", \"venue_address\": null, \"venue_city\": \"La Jolla\", \"venue_state\": \"CA\", \"start_date\": \"2026-12-15\", \"end_date\": \"2026-12-18\", \"shotgun_time\": null, \"format\": \"best_ball\", \"single_price_usd\": 1875, \"foursome_price_usd\": null, \"sponsor_only\": false, \"includes\": [\"gift\"], \"handicap_required\": true, \"status\": \"open\", \"registration_url\": null, \"outing_type_hint\": \"open_tournament\", \"audience\": \"open\", \"audience_note\": null, \"lodging_required\": false, \"summary\": \"A 54-hole two-person best-ball event in San Diego with rounds at Torrey Pines North and South and Coronado; entry can include three nights' lodging, and a commuter option is offered.\", \"evidence\": {\"date\": \"Tuesday, December 15, 2026 - Arrival day\", \"price\": \"Entry fee $1,875–$3,950 per player\", \"venue\": \"Tournament Round 2 at Torrey Pines South\"}}]}"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 3516,
+          "output_tokens": 320,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0
+        }
+      }
+    }
+  }
+}

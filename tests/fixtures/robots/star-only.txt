@@ -1,0 +1,9 @@
+User-agent: Googlebot
+Disallow:
+
+User-agent: *
+User-agent: SomeOtherBot
+Disallow: /private
+Disallow: /search?
+Allow: /private/golf
+Crawl-delay: 90

@@ -1,0 +1,34 @@
+{
+  "id": "s14-panther-national-package",
+  "recorded": false,
+  "note": "hand-written; replace with pnpm run test:live-extract",
+  "recorded_at": "2026-10-03T00:00:00.000Z",
+  "model": "claude-haiku-4-5",
+  "extractor_version": "extract-v1",
+  "batch_result": {
+    "custom_id": "src_d69f1c7ce9616581ff76f6c164c7cf9addca0c71",
+    "result": {
+      "type": "succeeded",
+      "message": {
+        "id": "msg_handwritten_s14_panther_national_package",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"events\": [{\"is_outing\": false, \"reject_reason\": \"resort_package\", \"title\": \"Access Palm Beach Golf Experience\", \"organizer_name\": null, \"organizer_ein\": null, \"beneficiary\": null, \"course_name\": \"Panther National\", \"venue_address\": null, \"venue_city\": \"Palm Beach Gardens\", \"venue_state\": \"FL\", \"start_date\": \"2026-10-13\", \"end_date\": \"2026-10-15\", \"shotgun_time\": null, \"format\": null, \"single_price_usd\": null, \"foursome_price_usd\": null, \"sponsor_only\": false, \"includes\": [\"breakfast\", \"dinner\", \"cart\"], \"handicap_required\": null, \"status\": \"open\", \"registration_url\": null, \"outing_type_hint\": \"access_day\", \"audience\": \"open\", \"audience_note\": null, \"lodging_required\": true, \"summary\": \"A three-day golf trip in Palm Beach Gardens that opens with a round at Panther National. It is sold only as a package with three resort nights, breakfasts and a welcome dinner.\", \"evidence\": {\"date\": \"October 13 to 15, 2026\", \"price\": null, \"venue\": \"with the first round at Panther National\"}}]}"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 2348,
+          "output_tokens": 260,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0
+        }
+      }
+    }
+  }
+}

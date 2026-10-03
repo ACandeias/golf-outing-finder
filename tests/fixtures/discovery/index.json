@@ -1,0 +1,7 @@
+{
+  "_note": "Hand-written listing pages and sitemaps (made-up events, no organizer text) for the discovery tests and the dry run. Keys are the URLs each file stands in for.",
+  "https://www.series.example/golf/events": "series-index.html",
+  "https://platform.example/sitemap.xml": "sitemap-index.xml",
+  "https://platform.example/sitemap-events-1.xml": "sitemap-events-1.xml",
+  "https://scramblehunter.com/": "directory-index.html"
+}

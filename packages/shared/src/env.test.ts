@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BUDGET_CAPS, BUDGET_PROFILES, resolveBudget } from "./budget.ts";
+import { BUDGET_CAPS, BUDGET_PROFILES, budgetJob, resolveBudget } from "./budget.ts";
 import {
   SPEC_ENV_VARS,
   parsePipelineEnv,
@@ -113,8 +113,27 @@ describe("budget profiles (SPEC section 14)", () => {
       MONTHLY_SPEND_CAP_CENTS: 15_000,
     });
   });
+  it("smoke caps every count at 5 to 10 for the owner's first live run", () => {
+    expect(BUDGET_PROFILES.smoke).toEqual({
+      MAX_SERP_QUERIES_PER_RUN: 5,
+      MAX_EXTRACTIONS_PER_RUN: 10,
+      MAX_LLM_INPUT_TOKENS_PER_RUN: 60_000,
+      MAX_COURSE_CLASSIFICATIONS_PER_RUN: 0,
+      MAX_FETCHES_PER_RUN: 10,
+      MAX_RENDERS_PER_RUN: 5,
+      MAX_FETCH_MINUTES: 10,
+      MAX_FETCHES_PER_HOST_PER_RUN: 5,
+      MONTHLY_SPEND_CAP_CENTS: 15_000,
+    });
+    // Never above nightly: smoke only lowers caps.
+    for (const cap of BUDGET_CAPS) {
+      expect(BUDGET_PROFILES.smoke[cap]).toBeLessThanOrEqual(BUDGET_PROFILES.nightly[cap]);
+    }
+    expect(budgetJob("smoke")).toBe("nightly");
+    expect(budgetJob("monthly")).toBe("monthly");
+  });
   it("profiles define every cap and are frozen", () => {
-    for (const p of ["nightly", "monthly"] as const) {
+    for (const p of ["nightly", "monthly", "smoke"] as const) {
       expect(Object.keys(BUDGET_PROFILES[p]).sort()).toEqual([...BUDGET_CAPS].sort());
       expect(Object.isFrozen(BUDGET_PROFILES[p])).toBe(true);
     }

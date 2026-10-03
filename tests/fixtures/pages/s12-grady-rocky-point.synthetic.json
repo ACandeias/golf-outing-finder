@@ -1,0 +1,9 @@
+{
+  "synthetic": true,
+  "note": "Hand-written for golden case gc5 from the seed entry and tests/fixtures/MISSING.md: Scramble Hunter shows these details only to signed-in users, and we use no stored credentials. Written in our own words; not a recording. The registration URL is a placeholder on an allowlisted platform host (golfstatus.com), off the directory's domain, and does not exist.",
+  "url": "https://scramblehunter.com/event/grady-charity-golf-scramble-2026/",
+  "fetched_at": "2026-09-28T12:00:00.000Z",
+  "http_status": 200,
+  "text": "Find a Scramble › FL › Grady Charity Golf Scramble 2026\n\nGrady Charity Golf Scramble 2026\n\nAbout this event\n\nThe Grady Dad's Club runs this annual scramble to raise money for our school. Bring a team or sign up as a single and we will place you in a foursome.\n\nDate: Saturday, November 7, 2026\nShotgun start: 8:30 a.m.\nFormat: four-person scramble\n\nLocation: Rocky Point Golf Course, 4151 Dana Shores Dr, Tampa, FL 33634\n\nEntry fees\nSingle golfer: $150\nFoursome: $600\n\nRegister: https://www.golfstatus.com/tournaments/synthetic-grady-charity-golf-scramble-2026\n\nQuestions go to the Grady Dad's Club through the registration page.",
+  "jsonld": []
+}

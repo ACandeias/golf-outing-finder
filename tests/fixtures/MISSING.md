@@ -25,3 +25,20 @@ Each failure was retried twice before it was listed here.
 - `pages/s15-synthetic-oakmont-glendale.json` is built from the seed's `fixture_text`, with `url: null` and `http_status: null`. No raw HTML exists for it.
 - For s03, s05 and s06, registration happens through a button on the source page itself (Classy and Network for Good), so `registration_url` equals the event page.
 - Third-party API keys found in the recorded pages (Mapbox tokens on s11 and s14, Google Maps browser keys on s02, s03 and s06) are replaced with `REDACTED_CREDENTIAL` in `raw/`. They are the sites' keys, not ours, and GitHub push protection rejects them. The recorder redacts them at record time.
+- Phase 2 adds hand-written stand-ins for the two golden cases these gaps block:
+  `pages/s14-panther-national-package.synthetic.json` (gc1: a three-day package with a resort stay and no
+  golf-only option) and `pages/s12-grady-rocky-point.synthetic.json` (gc5: 2026-11-07, 08:30 shotgun,
+  $150 single and $600 foursome, registration off the directory). Both carry `synthetic: true` and a note;
+  the golden harness prefers a `.synthetic.json` file when one exists and logs that it did.
+- The dry run (`pnpm run pipeline --dry-run`) serves those two stand-ins in place of their raw
+  recordings (as plain HTML built from the fixture text), and serves s15 at
+  `https://fixtures.invalid/s15-synthetic-oakmont-glendale`.
+
+## LLM recordings (Phase 2)
+
+`tests/fixtures/llm/` holds results for the eight golden-case pages only (s01, s02, s04, s06, s12,
+s13, s14, s15), hand-written with `recorded: false` until the owner approves
+`pnpm run test:live-extract`. The other open seed pages (s03, s05, s07, s08, s10, s11; s09 shares
+s01's page) have no result, so in the dry run their batch result comes back
+`errored (fixture_missing)`, they are listed under Errors in the run report, and they create no
+outing. Recording them is part of the same owner-approved `test:live-extract` run.

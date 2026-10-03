@@ -1,0 +1,97 @@
+{
+ "note": "Hand-written Message Batches results for the synthetic pages in pages.json (not recorded from the API). custom_id is the course's osm_ref with '/' as '-'. Scholl Canyon is below 0.7 on purpose, so it stays unknown.",
+ "results": [
+  {
+   "custom_id": "way-35679009",
+   "result": {
+    "type": "succeeded",
+    "message": {
+     "id": "msg_fixture_way_35679009",
+     "type": "message",
+     "role": "assistant",
+     "model": "claude-haiku-4-5",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"course_type\": \"municipal\", \"confidence\": 0.96, \"evidence\": \"owned and operated by the City of San Diego and open to the public every day\"}"
+      }
+     ],
+     "stop_reason": "end_turn",
+     "usage": {
+      "input_tokens": 620,
+      "output_tokens": 38
+     }
+    }
+   }
+  },
+  {
+   "custom_id": "way-30432711",
+   "result": {
+    "type": "succeeded",
+    "message": {
+     "id": "msg_fixture_way_30432711",
+     "type": "message",
+     "role": "assistant",
+     "model": "claude-haiku-4-5",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"course_type\": \"municipal\", \"confidence\": 0.93, \"evidence\": \"one of the public golf courses of NYC Parks\"}"
+      }
+     ],
+     "stop_reason": "end_turn",
+     "usage": {
+      "input_tokens": 620,
+      "output_tokens": 38
+     }
+    }
+   }
+  },
+  {
+   "custom_id": "way-138263843",
+   "result": {
+    "type": "succeeded",
+    "message": {
+     "id": "msg_fixture_way_138263843",
+     "type": "message",
+     "role": "assistant",
+     "model": "claude-haiku-4-5",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"course_type\": \"private\", \"confidence\": 0.95, \"evidence\": \"The course is reserved for members and their guests\"}"
+      }
+     ],
+     "stop_reason": "end_turn",
+     "usage": {
+      "input_tokens": 620,
+      "output_tokens": 38
+     }
+    }
+   }
+  },
+  {
+   "custom_id": "way-196873161",
+   "result": {
+    "type": "succeeded",
+    "message": {
+     "id": "msg_fixture_way_196873161",
+     "type": "message",
+     "role": "assistant",
+     "model": "claude-haiku-4-5",
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"course_type\": \"public\", \"confidence\": 0.55, \"evidence\": \"Weekday and weekend green fees\"}"
+      }
+     ],
+     "stop_reason": "end_turn",
+     "usage": {
+      "input_tokens": 620,
+      "output_tokens": 38
+     }
+    }
+   }
+  }
+ ]
+}
