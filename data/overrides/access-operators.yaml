@@ -1,3 +1,4 @@
-# Domains whose events are paid access days (SPEC.md section 8.5).
-# Example: golfwithaccess.com
-domains: []
+# Domains whose events are paid access days (SPEC.md section 8.5, rule 1).
+# Matched against the registrable domain of an outing's canonical_source_url.
+domains:
+  - golfwithaccess.com

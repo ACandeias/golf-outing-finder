@@ -1,3 +1,9 @@
-# Hosts that always need a headless render (SPEC.md section 8.3).
-# Example: GoFundMe Pro (Classy).
-hosts: []
+# Hosts that always need a headless render (SPEC.md section 8.3). A host matches
+# itself and its subdomains.
+# GoFundMe Pro (formerly Classy) serves event pages from classy.org, gofundme.com
+# and from organizers' own hostnames, such as the National Kidney Foundation's
+# support.kidney.org (golden case gc8).
+hosts:
+  - classy.org
+  - gofundme.com
+  - support.kidney.org

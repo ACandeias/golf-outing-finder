@@ -1,3 +1,6 @@
 # Domains and URL patterns the crawler never fetches or lists (SPEC.md section 8.2).
+# domains: a bare host; it also excludes every subdomain.
+# url_patterns: globs over the full normalized URL; `*` matches anything.
+#   - https://example.org/members/*
 domains: []
 url_patterns: []

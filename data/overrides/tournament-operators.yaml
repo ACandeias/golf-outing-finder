@@ -1,3 +1,4 @@
-# Domains whose events are open tournaments (SPEC.md section 8.5).
-# Example: amateurgolf.com, state golf associations.
-domains: []
+# Domains whose events are open tournaments (SPEC.md section 8.5, rule 2).
+# State golf associations go here as the owner adds them.
+domains:
+  - amateurgolf.com
