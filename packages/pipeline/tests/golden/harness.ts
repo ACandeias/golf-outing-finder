@@ -20,6 +20,7 @@ import { test } from "vitest";
 import { z } from "zod";
 import { resolveBudget } from "@gof/shared/budget";
 import { dollarsToCents } from "@gof/shared/money";
+import { llmRecordingSchema, type LlmRecording } from "../../src/llm/recording.ts";
 import { memoryLogger } from "../../src/lib/logger.ts";
 import { PATHS, REPO_ROOT } from "../../src/lib/paths.ts";
 import { loadOverrides, type Overrides } from "../../src/overrides/load.ts";
@@ -32,7 +33,6 @@ import { isImplemented } from "../../src/stages/not-implemented.ts";
 import { stageImplemented, type StageName } from "../../src/stages/registry.ts";
 import { courseRowSchema, type CourseRow, type SourceKind } from "../../src/stages/rows.ts";
 import {
-  batchResultSchema,
   extractedEventSchema,
   irsRecordSchema,
   normalizedPageSchema,
@@ -178,17 +178,8 @@ export function toNormalizedPage(entry: SeedEntry, loaded: LoadedPage): Normaliz
 
 // LLM recordings ---------------------------------------------------------------
 
-/** tests/fixtures/llm/{id}.json, written by `pnpm run test:live-extract` (owner-gated). */
-export const llmRecordingSchema = z
-  .object({
-    id: z.string(),
-    recorded_at: z.string(),
-    model: z.string(),
-    extractor_version: z.string(),
-    batch_result: batchResultSchema,
-  })
-  .strict();
-export type LlmRecording = z.infer<typeof llmRecordingSchema>;
+/** tests/fixtures/llm/{id}.json (src/llm/recording.ts): recorded, or hand-written with `recorded: false`. */
+export { llmRecordingSchema, type LlmRecording };
 
 export type RecordingLookup =
   | { status: "recorded"; recording: LlmRecording; path: string }

@@ -1,0 +1,34 @@
+{
+  "id": "s12-grady-rocky-point",
+  "recorded": false,
+  "note": "hand-written; replace with pnpm run test:live-extract",
+  "recorded_at": "2026-10-03T00:00:00.000Z",
+  "model": "claude-haiku-4-5",
+  "extractor_version": "extract-v1",
+  "batch_result": {
+    "custom_id": "src_e1c8d2c44e65356ee19f859bab18a2da19edbcbf",
+    "result": {
+      "type": "succeeded",
+      "message": {
+        "id": "msg_handwritten_s12_grady_rocky_point",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"events\": [{\"is_outing\": true, \"reject_reason\": null, \"title\": \"Grady Charity Golf Scramble 2026\", \"organizer_name\": \"Grady Dad's Club\", \"organizer_ein\": null, \"beneficiary\": null, \"course_name\": \"Rocky Point Golf Course\", \"venue_address\": \"4151 Dana Shores Dr\", \"venue_city\": \"Tampa\", \"venue_state\": \"FL\", \"start_date\": \"2026-11-07\", \"end_date\": null, \"shotgun_time\": \"08:30\", \"format\": \"scramble\", \"single_price_usd\": 150, \"foursome_price_usd\": 600, \"sponsor_only\": false, \"includes\": [], \"handicap_required\": null, \"status\": \"open\", \"registration_url\": \"https://www.golfstatus.com/tournaments/synthetic-grady-charity-golf-scramble-2026\", \"outing_type_hint\": \"school_fundraiser\", \"audience\": \"open\", \"audience_note\": null, \"lodging_required\": false, \"summary\": \"A four-person scramble at Rocky Point Golf Course in Tampa run by the Grady Dad's Club to raise money for the school; single golfers are placed on a team.\", \"evidence\": {\"date\": \"Date: Saturday, November 7, 2026\", \"price\": \"Single golfer: $150 Foursome: $600\", \"venue\": \"Rocky Point Golf Course, 4151 Dana Shores Dr, Tampa, FL 33634\"}}]}"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 2357,
+          "output_tokens": 300,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0
+        }
+      }
+    }
+  }
+}

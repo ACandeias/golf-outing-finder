@@ -1,0 +1,34 @@
+{
+  "id": "s06-nkf-winged-foot",
+  "recorded": false,
+  "note": "hand-written; replace with pnpm run test:live-extract",
+  "recorded_at": "2026-10-03T00:00:00.000Z",
+  "model": "claude-haiku-4-5",
+  "extractor_version": "extract-v1",
+  "batch_result": {
+    "custom_id": "src_0a08ee719aed8e86896f64e4404f1f384a5af13f",
+    "result": {
+      "type": "succeeded",
+      "message": {
+        "id": "msg_handwritten_s06_nkf_winged_foot",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"events\": [{\"is_outing\": true, \"reject_reason\": null, \"title\": \"2026 NKF Golf Classic at Winged Foot Golf Club\", \"organizer_name\": \"National Kidney Foundation\", \"organizer_ein\": null, \"beneficiary\": \"National Kidney Foundation\", \"course_name\": \"Winged Foot Golf Club\", \"venue_address\": \"851 Fenimore Rd\", \"venue_city\": \"Mamaroneck\", \"venue_state\": \"NY\", \"start_date\": \"2026-10-19\", \"end_date\": null, \"shotgun_time\": \"12:00\", \"format\": null, \"single_price_usd\": null, \"foursome_price_usd\": 7500, \"sponsor_only\": false, \"includes\": [\"breakfast\", \"lunch\", \"dinner\", \"caddie\", \"range\", \"gift\", \"contests\"], \"handicap_required\": null, \"status\": \"open\", \"registration_url\": null, \"outing_type_hint\": \"charity\", \"audience\": \"open\", \"audience_note\": null, \"lodging_required\": false, \"summary\": \"The National Kidney Foundation's golf day at Winged Foot in Mamaroneck, NY: a noon shotgun with caddies, meals and an awards dinner; top teams can qualify for a national final.\", \"evidence\": {\"date\": \"Monday, October 19, 2026 | 10:00am\", \"price\": \"Foursome 7500.00 USD\", \"venue\": \"Winged Foot Golf Club 851 Fenimore Rd, Mamaroneck, NY 10543\"}}]}"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 2977,
+          "output_tokens": 330,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0
+        }
+      }
+    }
+  }
+}

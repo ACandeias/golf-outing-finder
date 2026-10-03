@@ -1,0 +1,34 @@
+{
+  "id": "s02-builders-institute-metropolis",
+  "recorded": false,
+  "note": "hand-written; replace with pnpm run test:live-extract",
+  "recorded_at": "2026-10-03T00:00:00.000Z",
+  "model": "claude-haiku-4-5",
+  "extractor_version": "extract-v1",
+  "batch_result": {
+    "custom_id": "src_3e3fbba15d028655ed0a167cf75e3c2af3d272df",
+    "result": {
+      "type": "succeeded",
+      "message": {
+        "id": "msg_handwritten_s02_builders_institute_metropolis",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"events\": [{\"is_outing\": true, \"reject_reason\": null, \"title\": \"Builders Institute Annual Golf Outing\", \"organizer_name\": \"The Builders Institute\", \"organizer_ein\": null, \"beneficiary\": null, \"course_name\": \"Metropolis Country Club\", \"venue_address\": \"289 Dobbs Ferry Rd\", \"venue_city\": \"White Plains\", \"venue_state\": \"NY\", \"start_date\": \"2026-10-07\", \"end_date\": null, \"shotgun_time\": \"12:15\", \"format\": null, \"single_price_usd\": null, \"foursome_price_usd\": null, \"sponsor_only\": false, \"includes\": [\"breakfast\", \"lunch\", \"dinner\", \"contests\"], \"handicap_required\": null, \"status\": \"open\", \"registration_url\": null, \"outing_type_hint\": \"business_association\", \"audience\": \"open\", \"audience_note\": null, \"lodging_required\": false, \"summary\": \"The Builders Institute's yearly golf outing at Metropolis Country Club in White Plains, NY, with breakfast, a 12:15 shotgun start, lunch at the turn, a cocktail reception, dinner and a prize raffle.\", \"evidence\": {\"date\": \"Wednesday, October 7, 2026 | 10:30 AM – 7:30 PM\", \"price\": null, \"venue\": \"Metropolis Country Club 289 Dobbs Ferry Rd White Plains, NY 10607\"}}]}"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 2409,
+          "output_tokens": 260,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0
+        }
+      }
+    }
+  }
+}

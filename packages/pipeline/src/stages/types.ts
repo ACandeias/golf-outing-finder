@@ -481,6 +481,12 @@ export type ExtractionRequestMeta = z.infer<typeof extractionRequestMetaSchema>;
 export const extractRequestBuildInputSchema = z.object({
   pages: z.array(normalizedPageSchema),
   allowance: allowanceSchema,
+  /**
+   * Added by workstream C: existing `sources.id` by URL. The request's custom_id
+   * is the source id, so a batch collected on a later run maps back to its
+   * source row; URLs without a row get the deterministic `sourceIdForUrl`.
+   */
+  source_ids: z.record(z.string(), customIdSchema).optional(),
 });
 export type ExtractRequestBuildInput = z.infer<typeof extractRequestBuildInputSchema>;
 
@@ -532,6 +538,12 @@ export const extractedEventSchema = extractionEventSchema.extend({
   confidence: z.number().min(0).max(1),
   jsonld_start_date: isoDate.nullable(),
   directory_host: z.string().nullable(),
+  /**
+   * Added by workstream C (amendment A3): why the event is held on its source
+   * (`status_unknown`, `low_confidence`, `no_date` from collect;
+   * `course_unmatched` from match). Held events never create an outings row.
+   */
+  hold_reason: holdReasonSchema.nullable().default(null),
 });
 export type ExtractedEvent = z.infer<typeof extractedEventSchema>;
 
