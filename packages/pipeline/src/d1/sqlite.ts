@@ -13,7 +13,8 @@ export function openSqlite(path: string, opts: { readOnly?: boolean } = {}): Sql
 
 /** Loads a `wrangler d1 export` dump in one transaction (seconds become milliseconds). */
 export function loadDump(db: Sqlite, dumpSql: string): void {
-  db.exec("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;");
+  // MEMORY, not OFF: with the journal off, SQLite cannot roll back a failed load.
+  db.exec("PRAGMA journal_mode = MEMORY; PRAGMA synchronous = OFF;");
   db.exec("BEGIN;");
   try {
     db.exec(dumpSql);
