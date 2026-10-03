@@ -2,16 +2,14 @@ import type { BudgetGuard } from "../budget.ts";
 import { courseTypesHandler } from "../courses/course-types-handler.ts";
 import { coursesHandler } from "../courses/monthly.ts";
 import type { D1Port, Snapshot } from "../d1/port.ts";
+import { discoverHandler, fetchHandler, normalizeHandler } from "../fetch/handlers.ts";
 import { classify } from "../stages/classify.ts";
 import { dedupeUpsert } from "../stages/dedupe-upsert.ts";
-import { discover, planSearch } from "../stages/discover.ts";
 import { extractCollect } from "../stages/extract-collect.ts";
 import { extractRequestBuild } from "../stages/extract-request-build.ts";
-import { planFetch } from "../stages/fetch-plan.ts";
 import { match } from "../stages/match.ts";
 import { irsHandler } from "../irs/handler.ts";
 import { NotImplemented } from "../stages/not-implemented.ts";
-import { normalize } from "../stages/normalize.ts";
 import { publish } from "../stages/publish.ts";
 import { recheckRollForward } from "../stages/recheck-roll-forward.ts";
 import type { StageName } from "../stages/registry.ts";
@@ -62,36 +60,10 @@ export type StageHandlers = Record<Exclude<StageName, "report">, StageHandler>;
 const noIrs: IrsLookup = { byEin: () => null, candidates: () => [] };
 
 export const defaultHandlers: StageHandlers = {
-  discover: async ({ ctx, guard, state }) => {
-    const search = planSearch(ctx, {
-      metros: [...ctx.overrides.metros],
-      courses: [],
-      allowance: guard.allowance(),
-    });
-    state.serpQueries = search.output.queries;
-    const out = discover(ctx, {
-      recheck: [],
-      submissions: [],
-      listings: [],
-      serpResults: [],
-      recentlyFetched: [],
-      heldSources: [],
-      allowance: guard.allowance(),
-    });
-    state.queue = out.output.queue;
-    state.processedSubmissionIds = out.output.processedSubmissionIds;
-    return { result: out.result };
-  },
-  fetch: async ({ ctx, guard, state }) => {
-    const out = planFetch(ctx, { queue: state.queue, allowance: guard.allowance() });
-    state.fetchPlan = out.output.items;
-    return { result: out.result };
-  },
-  normalize: async ({ ctx, state }) => {
-    const out = normalize(ctx, { pages: state.fetched, previousHashes: {} });
-    state.normalized = out.output.pages;
-    return { result: out.result };
-  },
+  // Workstream B: src/fetch/handlers.ts (fixture-backed edges in a dry run).
+  discover: discoverHandler,
+  fetch: fetchHandler,
+  normalize: normalizeHandler,
   "extract-request-build": async ({ ctx, guard, state }) => {
     const out = extractRequestBuild(ctx, {
       pages: state.normalized.filter((p) => !p.unchanged),

@@ -229,7 +229,7 @@ type LookupCallback = (
  */
 export function guardedLookup(
   resolver: Resolver,
-): (hostname: string, options: { all?: boolean; family?: number }, cb: LookupCallback) => void {
+): (hostname: string, options: { all?: boolean; family?: number | string }, cb: LookupCallback) => void {
   return (hostname, options, cb) => {
     const host = hostname.replace(/^\[|\]$/g, "");
     const resolved = isIP(host) !== 0 ? Promise.resolve([host]) : resolver(host);
