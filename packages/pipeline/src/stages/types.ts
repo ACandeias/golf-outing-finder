@@ -260,6 +260,12 @@ export const listingLinkSchema = z.object({
   text: z.string().nullable(),
   /** Directory event pages: the off-directory registration link, when shown. */
   registration_url: httpUrl.nullable(),
+  /**
+   * Added by workstream E: the source kind when the listing knows it better than
+   * `found_via` does (the dry run's seed listing marks organizer pages). Absent
+   * means the kind follows `found_via`.
+   */
+  kind: sourceKindSchema.optional(),
 });
 export type ListingLink = z.infer<typeof listingLinkSchema>;
 

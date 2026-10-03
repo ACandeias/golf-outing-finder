@@ -284,7 +284,13 @@ export const discover: DiscoverStage = (ctx, input) => {
       }
       continue;
     }
-    add({ rawUrl: l.url, found_via: l.found_via, recheck_outing_id: null, directory_host: null });
+    add({
+      rawUrl: l.url,
+      found_via: l.found_via,
+      ...(l.kind ? { kind: l.kind } : {}),
+      recheck_outing_id: null,
+      directory_host: null,
+    });
   }
 
   // Held sources waiting for a second source.

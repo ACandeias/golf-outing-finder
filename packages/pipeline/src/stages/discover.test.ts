@@ -295,6 +295,37 @@ describe("discover: sources, dedupe and exclusions", () => {
     expect(out.output.skipped.filter((s) => s.reason === "not_golf")).toHaveLength(2);
   });
 
+  it("keeps a listing's own source kind when it gives one (workstream E)", () => {
+    const out = discover(
+      ctx,
+      input({
+        listings: [
+          {
+            found_via: "series",
+            origin: "fixtures",
+            url: "https://org.example/golf-classic",
+            title: null,
+            text: null,
+            registration_url: null,
+            kind: "organizer",
+          },
+          {
+            found_via: "series",
+            origin: "fixtures",
+            url: "https://org.example/other",
+            title: null,
+            text: null,
+            registration_url: null,
+          },
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => [q.url, q.kind, q.bypass_dedupe])).toEqual([
+      ["https://org.example/golf-classic", "organizer", true],
+      ["https://org.example/other", "series", true],
+    ]);
+  });
+
   it("enqueues a directory event page with its host, plus its off-directory registration link", () => {
     const out = discover(
       ctx,

@@ -18,6 +18,40 @@ const FIXTURES = join(REPO_ROOT, "tests/fixtures");
 export const FIXTURE_ADDRESS = "93.184.216.34";
 
 const pageFixtureSchema = z.object({ url: z.string().nullable(), http_status: z.number().nullable() });
+const syntheticPageSchema = z.object({
+  url: z.string().nullable(),
+  text: z.string(),
+  jsonld: z.array(z.unknown()),
+  synthetic: z.literal(true).optional(),
+});
+
+/** The URL a page fixture stands for; s15 has none, so it gets the reserved .invalid TLD. */
+export function fixturePageUrl(id: string, url: string | null): string {
+  return url ?? `https://fixtures.invalid/${id}`;
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * A plain HTML document for a page fixture that has no usable raw HTML: the
+ * hand-written `*.synthetic.json` stand-ins (gc1's page is gone, gc5's sits
+ * behind a login) and the synthetic gc7 page. Text is escaped and split into
+ * paragraphs; JSON-LD blocks ride along as script tags, as on a real page.
+ */
+export function syntheticHtml(text: string, jsonld: readonly unknown[]): string {
+  const lines = text
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  const title = escapeHtml(lines[0] ?? "Fixture");
+  const scripts = jsonld
+    .map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, "\\u003c")}</script>`)
+    .join("");
+  const body = lines.map((l) => `<p>${escapeHtml(l)}</p>`).join("\n");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${title}</title>${scripts}</head><body><main><article>${body}</article></main></body></html>`;
+}
 
 export interface FixtureDoc {
   status: number;
@@ -25,14 +59,36 @@ export interface FixtureDoc {
   body: string;
 }
 
-/** URL → document, from the recorded seed pages and the discovery fixtures. */
+/**
+ * URL → document, from the recorded seed pages and the discovery fixtures. A
+ * page with a hand-written `{id}.synthetic.json` stand-in is served from that
+ * text instead of its raw recording (the golden harness prefers it the same
+ * way), and a page fixture with no raw HTML at all (s15) is served from its
+ * text at its `fixturePageUrl`.
+ */
 export function loadFixtureDocs(root = FIXTURES): Map<string, FixtureDoc> {
   const docs = new Map<string, FixtureDoc>();
   const pagesDir = join(root, "pages");
-  for (const f of readdirSync(pagesDir).filter((f) => f.endsWith(".json") && !f.includes(".synthetic."))) {
+  const files = readdirSync(pagesDir).sort();
+  for (const f of files.filter((f) => f.endsWith(".synthetic.json"))) {
+    const id = f.replace(/\.synthetic\.json$/, "");
+    const page = syntheticPageSchema.parse(JSON.parse(readFileSync(join(pagesDir, f), "utf8")));
+    const url = fixturePageUrl(id, page.url);
+    if (!docs.has(url))
+      docs.set(url, { status: 200, contentType: "text/html; charset=utf-8", body: syntheticHtml(page.text, page.jsonld) });
+  }
+  for (const f of files.filter((f) => f.endsWith(".json") && !f.includes(".synthetic."))) {
     const id = f.replace(/\.json$/, "");
     const raw = join(root, "raw", `${id}.html`);
-    const page = pageFixtureSchema.parse(JSON.parse(readFileSync(join(pagesDir, f), "utf8")));
+    const parsed: unknown = JSON.parse(readFileSync(join(pagesDir, f), "utf8"));
+    const page = pageFixtureSchema.parse(parsed);
+    if (!page.url && !existsSync(raw)) {
+      const text = syntheticPageSchema.safeParse(parsed);
+      const url = fixturePageUrl(id, null);
+      if (text.success && !docs.has(url))
+        docs.set(url, { status: 200, contentType: "text/html; charset=utf-8", body: syntheticHtml(text.data.text, text.data.jsonld) });
+      continue;
+    }
     if (!page.url || !existsSync(raw) || docs.has(page.url)) continue;
     docs.set(page.url, {
       status: page.http_status ?? 200,
