@@ -25,3 +25,8 @@ Each failure was retried twice before it was listed here.
 - `pages/s15-synthetic-oakmont-glendale.json` is built from the seed's `fixture_text`, with `url: null` and `http_status: null`. No raw HTML exists for it.
 - For s03, s05 and s06, registration happens through a button on the source page itself (Classy and Network for Good), so `registration_url` equals the event page.
 - Third-party API keys found in the recorded pages (Mapbox tokens on s11 and s14, Google Maps browser keys on s02, s03 and s06) are replaced with `REDACTED_CREDENTIAL` in `raw/`. They are the sites' keys, not ours, and GitHub push protection rejects them. The recorder redacts them at record time.
+- Phase 2 adds hand-written stand-ins for the two golden cases these gaps block:
+  `pages/s14-panther-national-package.synthetic.json` (gc1: a three-day package with a resort stay and no
+  golf-only option) and `pages/s12-grady-rocky-point.synthetic.json` (gc5: 2026-11-07, 08:30 shotgun,
+  $150 single and $600 foursome, registration off the directory). Both carry `synthetic: true` and a note;
+  the golden harness prefers a `.synthetic.json` file when one exists and logs that it did.

@@ -2,7 +2,7 @@
 
 A nationwide directory of golf outings that anyone can pay to enter, at municipal, public, semi-private, private and resort courses. It's free to use, earns money only from display ads, and runs unattended. The build spec is [`SPEC.md`](SPEC.md) (v1.1) and the working rules for contributors and agents are in [`CLAUDE.md`](CLAUDE.md).
 
-Status: **Phase 1** in progress (workstream A done: typed queries, places data, course import, matcher, seed loader). Phase 0 delivered the scaffold, schema, empty site, CI, Docker and seed fixtures.
+Status: **Phase 2** in progress. Workstream A (pipeline skeleton) is done: stage contracts, overrides loader, budget guard, runs accounting, CLI, D1 edge and the golden-test harness; see [`packages/pipeline/README.md`](packages/pipeline/README.md). Phase 1 delivered every site route from seed data; Phase 0 the scaffold, schema, CI, Docker and seed fixtures.
 
 ## Run locally in Docker
 
@@ -101,7 +101,13 @@ packages/db/              Drizzle schema (src/schema.ts) mirroring SPEC 7.1
   migrations/0000_init.sql  the D1 schema; tests/ apply it to SQLite and check it
 packages/shared/          zod env schemas, budget profiles, slug/date/money utils, extraction schema,
                           places helpers and attributions, display-label table, ULIDs
-packages/pipeline/        nightly and monthly pipeline CLI (Phase 2), loaders (Phase 1)
+packages/pipeline/        nightly and monthly pipeline CLI (Phase 2), loaders (Phase 1); see its README
+  src/stages/             pure stage contracts (types.ts), row schemas, stubs, report stage
+  src/run/                runner, runs-row accounting, stage handlers, step summary
+  src/d1/                 D1 edge: wrangler export/execute and an in-memory port
+  src/budget.ts           budget guard: per-run caps, monthly spend cap, cost estimates
+  src/overrides/          zod readers for data/overrides and metros.yaml
+  tests/golden/           golden-case harness and gc1..gc8 tests
   src/match/              course matcher (SPEC 8.6)
   src/courses/            Overpass client, OSM course-type rules, course importer
   src/places/             GeoNames parsing, places:build, city locator
@@ -113,8 +119,10 @@ data/overrides/           YAML the owner edits (SPEC 7.2)
 data/places/              GeoNames subsets for the seed states and metros.yaml
 seed/outings.json         32 seed entries and the golden cases (SPEC 11)
 seed/guides/              guide drafts (Phase 3)
-tests/fixtures/           raw/ HTML and pages/ normalized records of the seed pages; MISSING.md;
-                          courses.json (recorded Overpass subset, © OpenStreetMap contributors)
+tests/fixtures/           raw/ HTML and pages/ normalized records of the seed pages (plus hand-written
+                          *.synthetic.json for gc1 and gc5); MISSING.md; llm/ recorded extractions;
+                          courses.json (recorded Overpass subset, © OpenStreetMap contributors);
+                          irs-subset.csv (synthetic IRS BMF rows)
 docker/entrypoint.sh      runner entrypoint: migrate, seed, serve
 Dockerfile                dev, builder and runner stages
 docker-compose.yml        site service (default) and dev profile services
