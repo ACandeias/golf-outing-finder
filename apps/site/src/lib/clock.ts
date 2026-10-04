@@ -17,3 +17,8 @@ export function requestNow(): number {
 export function listToday(nowMs: number = requestNow()): string {
   return localToday(nowMs, LIST_TIME_ZONE);
 }
+
+/** The site's current year (from the list zone's today), for the tee sheet's date column. */
+export function siteYear(nowMs: number = requestNow()): number {
+  return Number(listToday(nowMs).slice(0, 4));
+}

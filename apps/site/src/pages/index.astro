@@ -6,7 +6,7 @@ import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
 import TeeSheet from "../components/TeeSheet.astro";
 import { getDb } from "../lib/db.ts";
-import { listToday } from "../lib/clock.ts";
+import { listToday, siteYear } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../lib/urls.ts";
@@ -99,7 +99,7 @@ setCache(Astro, TTL.home);
     <h2 id="near">Outings near you</h2>
     <p class="muted" data-near-status aria-live="polite">Share your location to see outings within 100 miles. We don't store it.</p>
     <button class="button secondary" type="button" data-near-button>Use my location</button>
-    <ul class="tee-sheet" data-near-list></ul>
+    <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
   </section>
 
   <section aria-labelledby="states">

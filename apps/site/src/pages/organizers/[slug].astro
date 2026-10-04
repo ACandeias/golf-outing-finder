@@ -64,7 +64,7 @@ setCache(Astro, TTL.list);
     past.length > 0 && (
       <section aria-labelledby="past">
         <h2 id="past">Past outings</h2>
-        <TeeSheet outings={past} />
+        <TeeSheet outings={past} alwaysYear />
       </section>
     )
   }

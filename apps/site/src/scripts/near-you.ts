@@ -60,9 +60,9 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 }
 
 /** One tee sheet row, the same markup as TeeSheetRow.astro (text only, no HTML parsing). */
-function row(p: OutingFeatureProps): HTMLElement {
+function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElement {
   const li = el("li", "tee-row");
-  const d = dateBlock({ status: p.status, startDate: p.startDate ?? null });
+  const d = dateBlock({ status: p.status, startDate: p.startDate ?? null }, { currentYear });
   const date = el("p", "tee-date data");
   date.setAttribute("aria-hidden", "true");
   add(date, el("span", "tee-date-top", d.top), el("span", "tee-date-big", d.big), el("span", "tee-date-bottom", d.bottom));
@@ -133,7 +133,9 @@ export function initNearYou(): void {
           const items = features
             .map((f) => (typeof f === "object" && f !== null ? (f as { properties?: unknown }).properties : null))
             .filter(isProps);
-          list.replaceChildren(...items.map(row));
+          const year = Number(list.dataset.year);
+          const currentYear = Number.isInteger(year) && year > 2000 ? year : undefined;
+          list.replaceChildren(...items.map((p) => row(p, currentYear)));
           status.textContent =
             items.length === 0
               ? "No upcoming outings within 100 miles yet. The list above shows the soonest ones nationwide."

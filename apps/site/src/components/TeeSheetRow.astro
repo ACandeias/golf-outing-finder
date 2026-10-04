@@ -2,6 +2,7 @@
 import type { OutingListItem } from "@gof/db/queries";
 import { haversineKm, KM_PER_MILE, type LatLng } from "@gof/shared/places";
 import Labels from "./Labels.astro";
+import { siteYear } from "../lib/clock.ts";
 import { dateBlock } from "../lib/date-block.ts";
 import { outingView } from "../lib/outing-view.ts";
 import { verifiedDate } from "../lib/format.ts";
@@ -13,11 +14,13 @@ interface Props {
   center?: LatLng | null;
   /** Hidden by the active filters (the browser script can show it again). */
   hidden?: boolean;
+  /** Always show the year in the date column (past outings). */
+  alwaysYear?: boolean;
 }
 
-const { outing: o, center = null, hidden = false } = Astro.props;
+const { outing: o, center = null, hidden = false, alwaysYear = false } = Astro.props;
 const v = outingView(o);
-const d = dateBlock(o);
+const d = dateBlock(o, { currentYear: siteYear(), alwaysYear });
 const distanceMiles = center ? haversineKm(center, o.course) / KM_PER_MILE : null;
 const registerHref = o.registrationUrl ?? o.canonicalSourceUrl;
 // "$400 per player, $1,600 per foursome" reads as two lines in the price column.
@@ -47,6 +50,7 @@ const priceKnown = o.singlePriceCents !== null || o.foursomePriceCents !== null;
       <span class="visually-hidden">{v.when}. </span>{o.course.name}, {v.place}{v.time && <span class="tee-time">, {v.time}</span>}
     </p>
     <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
+    <p class="tee-verified data">Last verified {verifiedDate(o.lastVerified)}</p>
     {v.includes && <p class="tee-note data">{v.includes}</p>}
     {o.audienceNote && <p class="tee-note data muted">{o.audienceNote}</p>}
   </div>
@@ -66,6 +70,5 @@ const priceKnown = o.singlePriceCents !== null || o.foursomePriceCents !== null;
         </a>
       )
     }
-    <span class="small muted">Last verified {verifiedDate(o.lastVerified)}</span>
   </div>
 </li>
