@@ -235,6 +235,21 @@ describe("HostGate", () => {
     expect(maxRunning).toBe(1);
     expect(starts).toEqual([0, 5000, 17_000]);
   });
+
+  it("is re-entrant for the host it already holds, and still keeps the spacing", async () => {
+    let t = 0;
+    const starts: string[] = [];
+    const gate = new HostGate({ clock: { nowMs: () => t }, sleep: async (ms) => void (t += ms) });
+    const out = await gate.run("a.example", 0, async () => {
+      starts.push(`outer@${t}`);
+      return gate.run("a.example", 0, async () => {
+        starts.push(`inner@${t}`);
+        return 7;
+      });
+    });
+    expect(out).toBe(7);
+    expect(starts).toEqual(["outer@0", "inner@5000"]);
+  });
 });
 
 describe("createPageFetcher", () => {
@@ -283,6 +298,29 @@ describe("createPageFetcher", () => {
     });
     const p = await createPageFetcher(deps(fn)).fetchPage(item("https://example.org/e"), guardFor());
     expect(p).toMatchObject({ outcome: "robots_blocked", url: "https://other.example/blocked" });
+  });
+
+  it("a same-host redirect from https to http fetches the http origin's robots.txt inside the held gate", async () => {
+    // Seen live (2026-10-03): the http origin's robots.txt went through the host
+    // gate the page request already held, the promise never settled and the run ended.
+    const { fn, calls } = fakeFetch({
+      "https://example.org/robots.txt": () => new Response("User-agent: *\nDisallow:\n"),
+      "https://example.org/a": () => new Response(null, { status: 301, headers: { location: "http://example.org/a/" } }),
+      "http://example.org/robots.txt": () => new Response("User-agent: *\nDisallow:\n"),
+      "http://example.org/a/": () => html("<p>Golf outing</p>"),
+    });
+    let t = 0;
+    const f = createPageFetcher(
+      deps(fn, { clock: { nowMs: () => t }, sleep: async (ms) => void (t += ms) }),
+    );
+    const p = await f.fetchPage(item("https://example.org/a"), guardFor());
+    expect(p).toMatchObject({ outcome: "ok", url: "http://example.org/a/" });
+    expect(calls.map((c) => c.url)).toEqual([
+      "https://example.org/robots.txt",
+      "https://example.org/a",
+      "http://example.org/robots.txt",
+      "http://example.org/a/",
+    ]);
   });
 
   it("maps statuses to outcomes", async () => {

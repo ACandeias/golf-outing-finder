@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import type { Clock } from "../stages/types.ts";
 
 export type Sleep = (ms: number) => Promise<void>;
@@ -16,6 +17,8 @@ export class HostGate {
   private readonly clock: Clock;
   private readonly sleep: Sleep;
   private readonly floorMs: number;
+  /** Hosts the current async call chain holds (a robots.txt fetch during a redirect re-enters). */
+  private readonly held = new AsyncLocalStorage<ReadonlySet<string>>();
 
   constructor(opts: { clock: Clock; sleep?: Sleep; floorMs?: number }) {
     this.clock = opts.clock;
@@ -25,6 +28,14 @@ export class HostGate {
 
   async run<T>(host: string, spacingMs: number, fn: () => Promise<T>): Promise<T> {
     const key = host.toLowerCase();
+    const holding = this.held.getStore();
+    if (holding?.has(key)) {
+      // Re-entry from inside this host's own slot (a redirect to the host's other
+      // origin needs that origin's robots.txt): waiting on our own tail would never
+      // end. Run in place, still spaced from the previous request.
+      await this.space(key, spacingMs);
+      return fn();
+    }
     const prev = this.tails.get(key) ?? Promise.resolve();
     let release!: () => void;
     const mine = new Promise<void>((r) => (release = r));
@@ -32,17 +43,21 @@ export class HostGate {
     this.tails.set(key, tail);
     await prev;
     try {
-      const gap = Math.max(this.floorMs, spacingMs);
-      const last = this.lastStart.get(key);
-      if (last !== undefined) {
-        const wait = last + gap - this.clock.nowMs();
-        if (wait > 0) await this.sleep(wait);
-      }
-      this.lastStart.set(key, this.clock.nowMs());
-      return await fn();
+      await this.space(key, spacingMs);
+      return await this.held.run(new Set([...(holding ?? []), key]), fn);
     } finally {
       release();
       if (this.tails.get(key) === tail) this.tails.delete(key);
     }
+  }
+
+  private async space(key: string, spacingMs: number): Promise<void> {
+    const gap = Math.max(this.floorMs, spacingMs);
+    const last = this.lastStart.get(key);
+    if (last !== undefined) {
+      const wait = last + gap - this.clock.nowMs();
+      if (wait > 0) await this.sleep(wait);
+    }
+    this.lastStart.set(key, this.clock.nowMs());
   }
 }
