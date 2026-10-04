@@ -276,12 +276,39 @@ export interface FetchAllResult {
  * order. Before each item it checks MAX_FETCH_MINUTES and the per-host cap;
  * when the fetch or time budget runs out every remaining item is deferred.
  */
+/**
+ * The longest one page may take, all in: robots, redirects, body, PDF text and a
+ * render. Every step has its own limit (20 s fetch, 25 s render); this watchdog
+ * catches a promise that never settles at all, which would otherwise leave
+ * Node with nothing to wait on and end the process mid-run with exit code 0
+ * (seen on the first local nightly run, 2026-10-03).
+ */
+export const PAGE_WATCHDOG_MS = 120_000;
+
+class PageStalled extends Error {}
+
 export async function fetchAll(
   items: readonly FetchPlanItem[],
   fetcher: PageFetcher,
   budget: BudgetCheck,
-  opts: { parallelHosts?: number } = {},
+  opts: {
+    parallelHosts?: number;
+    pageTimeoutMs?: number;
+    /** Called with the URL of a page the watchdog gave up on. */
+    onStall?: (url: string) => void;
+    /** Called after every page with (done, total). */
+    onProgress?: (done: number, total: number) => void;
+  } = {},
 ): Promise<FetchAllResult> {
+  const watchdogMs = opts.pageTimeoutMs ?? PAGE_WATCHDOG_MS;
+  let done = 0;
+  const guarded = (item: FetchPlanItem): Promise<FetchedPage> => {
+    let timer: NodeJS.Timeout | undefined;
+    const stall = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new PageStalled(item.url)), watchdogMs);
+    });
+    return Promise.race([fetcher.fetchPage(item, budget), stall]).finally(() => clearTimeout(timer));
+  };
   const byHost = new Map<string, FetchPlanItem[]>();
   for (const it of items) {
     const list = byHost.get(it.host) ?? [];
@@ -310,8 +337,15 @@ export async function fetchAll(
           break;
         }
         try {
-          pages[index.get(item) ?? 0] = await fetcher.fetchPage(item, budget);
+          pages[index.get(item) ?? 0] = await guarded(item);
+          opts.onProgress?.(++done, items.length);
         } catch (err) {
+          if (err instanceof PageStalled) {
+            // The host gate is still held by the stuck request: defer the host's remaining pages.
+            opts.onStall?.(item.url);
+            deferred.push(...queue.slice(i));
+            break;
+          }
           if (err instanceof FetchBudgetExhausted) {
             stopped = true;
             deferred.push(...queue.slice(i));

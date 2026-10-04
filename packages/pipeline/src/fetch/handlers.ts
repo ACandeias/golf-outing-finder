@@ -246,7 +246,12 @@ export async function fetchHandler(env: StageEnv): Promise<HandlerOutcome> {
   guard.startFetchTimer();
   const plan = planFetch(ctx, { queue: state.queue, allowance: guard.allowance() });
   state.fetchPlan = plan.output.items;
-  const fetched = await fetchAll(plan.output.items, env.ports.fetcher ?? ports.fetcher, guard);
+  const fetched = await fetchAll(plan.output.items, env.ports.fetcher ?? ports.fetcher, guard, {
+    onStall: (url) => ctx.log.warn("fetch: page did not settle; deferred with the rest of its host", { url }),
+    onProgress: (done, total) => {
+      if (done % 100 === 0) ctx.log.info("fetch progress", { done, of: total });
+    },
+  });
   state.fetched = fetched.pages;
   const deferred = [...plan.output.deferred, ...fetched.deferred.map(toQueueEntry)];
   const bookkeeping = queueBookkeeping(ctx.now, {

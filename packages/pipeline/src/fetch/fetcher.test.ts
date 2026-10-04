@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BudgetGuard } from "../budget.ts";
 import { staticResolver } from "../net/ssrf.ts";
 import type { Renderer } from "../render/renderer.ts";
-import type { FetchPlanItem } from "../stages/types.ts";
+import type { FetchedPage, FetchPlanItem, PageFetcher } from "../stages/types.ts";
 import {
   createPageFetcher,
   fetchAll,
@@ -390,6 +390,26 @@ describe("fetchAll", () => {
     const r = await fetchAll(items, f, b);
     expect(r.pages.map((p) => p.url)).toEqual(["https://a.example/p0", "https://b.example/p0"]);
     expect(r.deferred).toHaveLength(4);
+  });
+
+  it("a page that never settles is deferred with the rest of its host; other hosts carry on", async () => {
+    const { fn } = fakeFetch(pages(["a.example", "b.example"]));
+    const inner = createPageFetcher(deps(fn, { hostSpacingMs: 0 }));
+    const f: PageFetcher = {
+      fetchPage: (it, budget) =>
+        it.url === "https://a.example/p1" ? new Promise<FetchedPage>(() => {}) : inner.fetchPage(it, budget),
+    };
+    const items = ["a.example", "b.example"].flatMap((h) => [0, 1, 2].map((i) => item(`https://${h}/p${i}`)));
+    const stalled: string[] = [];
+    const r = await fetchAll(items, f, guardFor(), { pageTimeoutMs: 20, onStall: (u) => stalled.push(u) });
+    expect(stalled).toEqual(["https://a.example/p1"]);
+    expect(r.deferred.map((d) => d.url)).toEqual(["https://a.example/p1", "https://a.example/p2"]);
+    expect(r.pages.map((p) => p.url)).toEqual([
+      "https://a.example/p0",
+      "https://b.example/p0",
+      "https://b.example/p1",
+      "https://b.example/p2",
+    ]);
   });
 
   it("stops when MAX_FETCH_MINUTES has passed", async () => {

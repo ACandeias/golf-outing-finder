@@ -178,8 +178,19 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  // A promise that never settles leaves Node with nothing to wait on, and it
+  // would exit 0 mid-run. Treat that as the failure it is.
+  let settled = false;
+  process.on("beforeExit", () => {
+    if (settled) return;
+    console.error("pipeline: the event loop emptied before the run finished (a promise never settled); exit 1");
+    process.exit(1);
+  });
   main(process.argv.slice(2))
-    .then((r) => process.exit(r.exitCode))
+    .then((r) => {
+      settled = true;
+      process.exit(r.exitCode);
+    })
     .catch((err: unknown) => {
       console.error(err instanceof Error ? (err.stack ?? err.message) : err);
       process.exit(1);
