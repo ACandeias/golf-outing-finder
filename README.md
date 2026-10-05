@@ -239,6 +239,29 @@ About 20 minutes on the first weekend of the month. `d1` below is short for `pnp
 6. **Merge Dependabot PRs** once CI passes. This also keeps the repo active. GitHub disables a public repo's scheduled workflows after 60 days without a commit. If that happens, re-enable `nightly` and `monthly` in the Actions tab.
 7. **Test the failure email** about once a quarter: run nightly by hand with `fail_stage: discover` and check that the email arrives.
 
+## Ads and consent (Phase 4)
+
+Ads and analytics are off until their Worker vars are set (`apps/site/wrangler.toml` `[vars]` or the dashboard, then redeploy). With everything empty there is no slot markup, no ad or analytics script and an empty `/ads.txt`. SPEC sections 6 and 9.5 have the details.
+
+| Variable | Purpose |
+| --- | --- |
+| `ADS_PROVIDER` | `adsense` (default), `journey` or `raptive`. Switching it changes only the script include, `/ads.txt` and the CSP origins; slot markup is the same |
+| `PUBLIC_ADSENSE_CLIENT` | `ca-pub-` plus 16 digits. Turns AdSense slots on and serves `google.com, pub-..., DIRECT, f08c47fec0942fa0` at `/ads.txt` |
+| `PUBLIC_ADSENSE_SLOT_LIST`, `PUBLIC_ADSENSE_SLOT_OUTING`, `PUBLIC_ADSENSE_SLOT_SIDEBAR` | Optional AdSense ad unit ids for the in-list, below-details and outing sidebar units |
+| `PUBLIC_GA4_ID` | `G-...`. Loads GA4 through gtag.js with Consent Mode v2 |
+| `ADS_SITE_ID`, `ADS_SCRIPT_URL` | Raptive: the site id (or the script URL). Journey: the script URL from its dashboard |
+| `ADS_TXT_REDIRECT_URL` | Journey or Raptive: the network-hosted ads.txt that `/ads.txt` redirects to |
+
+Ads, analytics and the consent message run on server-rendered pages (lists, outings, home, map). Prerendered pages (about, privacy, terms, guides and the rest) are built before Worker vars exist, so they carry none.
+
+Owner tasks:
+
+1. Apply for AdSense with the site's domain and wait for site approval. Keep Auto ads off; the site places manual units.
+2. Create three display ad units (in-list, below details, sidebar) and put their ids in the `PUBLIC_ADSENSE_SLOT_*` vars along with `PUBLIC_ADSENSE_CLIENT`. Check `https://{domain}/ads.txt`.
+3. In AdSense, Privacy & messaging: create and publish a European regulations message (EEA, UK, Switzerland), and in its settings turn on consent mode for advertising and analytics so the message updates Consent Mode. The AdSense tag deploys the message; no extra script is needed.
+4. Check the message from an EU location (a VPN is fine): it should appear on the first visit, ads and GA4 should wait for the answer, and the footer "Privacy choices" button should reopen it.
+5. Optional: set `PUBLIC_GA4_ID`. For Journey or Raptive, copy the script URL or site id and the hosted ads.txt URL from the network's dashboard, and point its ad placements at the `[data-ad-placement]` boxes.
+
 ## Security
 
 Every GitHub Action is pinned to a full 40-character commit SHA, and workflows default to `permissions: contents: read`. Scraped text is rendered as text only. The crawler identifies itself as `GolfOutingFinderBot/1.0 (+{SITE_URL}/bot)` and honors robots.txt. See SPEC section 10.

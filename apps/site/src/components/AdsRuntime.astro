@@ -1,0 +1,22 @@
+---
+/**
+ * Consent, analytics and ads bootstrap for server-rendered pages (SPEC.md 9.5).
+ * The config travels as data attributes on a <template>, read by the bundled
+ * same-origin module below: no inline script, nothing for the CSP to hash, and no
+ * set:html. Prerendered pages don't render this (their HTML is built before any
+ * Worker var exists), so they load no ad or analytics script.
+ */
+import { runtimeAttributes, type AdsConfig } from "../lib/ads.ts";
+
+interface Props {
+  config: AdsConfig;
+}
+
+const attrs = runtimeAttributes(Astro.props.config);
+---
+
+<template id="gof-ads-config" {...attrs}></template>
+<script>
+  import { initAds } from "../scripts/ads.ts";
+  initAds();
+</script>

@@ -66,6 +66,41 @@ describe("env schemas cover SPEC section 6", () => {
     expect(() => parseSiteEnv({ ...base, BING_SITE_VERIFICATION: 'abc"def12345' })).toThrow();
   });
 
+  it("validates the ads and analytics vars (Phase 4, SPEC.md 9.5)", () => {
+    const base = { PUBLIC_SITE_URL: "https://golfoutingfinder.com" };
+    const empty = parseSiteEnv({
+      ...base,
+      PUBLIC_ADSENSE_CLIENT: "",
+      PUBLIC_GA4_ID: " ",
+      PUBLIC_ADSENSE_SLOT_LIST: "",
+      ADS_SITE_ID: "",
+      ADS_SCRIPT_URL: "",
+      ADS_TXT_REDIRECT_URL: "",
+    });
+    expect(empty.PUBLIC_ADSENSE_CLIENT).toBe("");
+    expect(empty.PUBLIC_GA4_ID).toBe("");
+    expect(empty.PUBLIC_ADSENSE_SLOT_LIST).toBe("");
+    expect(empty.ADS_SITE_ID).toBeUndefined();
+    expect(empty.ADS_SCRIPT_URL).toBeUndefined();
+    expect(empty.ADS_TXT_REDIRECT_URL).toBeUndefined();
+    const set = parseSiteEnv({
+      ...base,
+      PUBLIC_ADSENSE_CLIENT: "ca-pub-0000000000000000",
+      PUBLIC_GA4_ID: "G-ABC123XYZ",
+      PUBLIC_ADSENSE_SLOT_OUTING: "1234567890",
+      ADS_PROVIDER: "raptive",
+      ADS_SITE_ID: "5f3a2b1c",
+      ADS_TXT_REDIRECT_URL: "https://ads.adthrive.com/sites/5f3a2b1c/ads.txt",
+    });
+    expect(set.PUBLIC_ADSENSE_SLOT_OUTING).toBe("1234567890");
+    expect(set.ADS_SITE_ID).toBe("5f3a2b1c");
+    expect(() => parseSiteEnv({ ...base, PUBLIC_ADSENSE_CLIENT: "ca-pub-abc" })).toThrow(/publisher id/);
+    expect(() => parseSiteEnv({ ...base, PUBLIC_GA4_ID: "UA-1-1" })).toThrow(/GA4/);
+    expect(() => parseSiteEnv({ ...base, PUBLIC_ADSENSE_SLOT_SIDEBAR: "12ab" })).toThrow(/ad unit id/);
+    expect(() => parseSiteEnv({ ...base, ADS_SCRIPT_URL: "http://example.com/x.js" })).toThrow(/https/);
+    expect(() => parseSiteEnv({ ...base, ADS_TXT_REDIRECT_URL: "not a url" })).toThrow();
+  });
+
   it("takes GITHUB_REPOSITORY (set by Actions) as optional owner/name", () => {
     const base = { PUBLIC_SITE_URL: "https://x.example" };
     expect(parsePipelineEnv(base).GITHUB_REPOSITORY).toBeUndefined();

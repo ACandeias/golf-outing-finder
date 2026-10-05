@@ -12,8 +12,19 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NODE_ENV = "production"
 PUBLIC_SITE_URL = "http://localhost:8787"
+# Ads and analytics (SPEC.md 6, 9.5). All empty means no ad slots, no ad or
+# analytics script and an empty /ads.txt. AdSense: PUBLIC_ADSENSE_CLIENT
+# (ca-pub-...) turns slots on; the slot ids are the ad unit ids per placement.
+# Raptive: ADS_SITE_ID (or ADS_SCRIPT_URL). Journey: ADS_SCRIPT_URL from its
+# dashboard. ADS_TXT_REDIRECT_URL: the network-hosted ads.txt (Journey, Raptive).
 ADS_PROVIDER = "adsense"
 PUBLIC_ADSENSE_CLIENT = ""
+PUBLIC_ADSENSE_SLOT_LIST = ""
+PUBLIC_ADSENSE_SLOT_OUTING = ""
+PUBLIC_ADSENSE_SLOT_SIDEBAR = ""
+ADS_SITE_ID = ""
+ADS_SCRIPT_URL = ""
+ADS_TXT_REDIRECT_URL = ""
 PUBLIC_GA4_ID = ""
 INDEXNOW_KEY = ""
 # Search Console and Bing Webmaster Tools tokens (the content value only). The home

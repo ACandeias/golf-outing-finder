@@ -8,7 +8,8 @@ import { NKF_WINGED_FOOT } from "./support/seed-facts.ts";
 import { SAMPLE_GUIDE_PATH } from "./support/guide-facts.ts";
 
 const PAGES = [
-  ...new Set(["/", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`, "/guides", SAMPLE_GUIDE_PATH]),
+  // /golf-outings/ny has list ad units (the e2e server runs with ads on).
+  ...new Set(["/", "/golf-outings/ny", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`, "/guides", SAMPLE_GUIDE_PATH]),
 ];
 
 for (const path of PAGES) {

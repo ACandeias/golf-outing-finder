@@ -7,6 +7,8 @@ import { milesToKm } from "@gof/shared/places";
 import Base from "../../../layouts/Base.astro";
 import Labels from "../../../components/Labels.astro";
 import TeeSheet from "../../../components/TeeSheet.astro";
+import AdSlot from "../../../components/AdSlot.astro";
+import { siteAdsConfig } from "../../../lib/ads-env.ts";
 import { getDb } from "../../../lib/db.ts";
 import { listToday, requestNow } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
@@ -85,114 +87,149 @@ const crumbs = [
   { name: o.title, path },
 ];
 
+// Two columns with a desktop sidebar unit only when ads are on (SPEC.md 9.5).
+const adsOn = siteAdsConfig().enabled;
+
 setCache(Astro, TTL.list);
 ---
 
 <Base title={title} description={description} path={path} noindex={o.sourceGone} crumbs={crumbs} jsonLd={event ? [event] : []}>
-  <article class="outing">
-    <h1>{o.title}</h1>
-    <p class="where data">
-      <a href={coursePath(o.course.slug)}>{o.course.name}</a>, {v.place}
-    </p>
-    <p class="when data">{v.when}{v.time && <span class="when-time">, {v.time}</span>}</p>
-    <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
-
-    {o.sourceGone && <p class="note">The organizer's page for this outing is gone. Check with the organizer before making plans.</p>}
-    {o.status === "cancelled" && <p class="note alert">The organizer has cancelled this outing.</p>}
-    {passed && <p class="note">This outing has already been played.{next && <> The next one is <a href={outingPath(next.slug)}>{next.title}</a>.</>}</p>}
-    {
-      v.isExpected && (
-        <p class="note">
-          {o.startDate
-            ? "The organizer has announced this date, but registration isn't confirmed open yet."
-            : "This outing usually runs every year. We'll update this page when the organizer posts the date."}
+  <div class:list={["outing-layout", { "has-sidebar": adsOn }]}>
+    <div class="outing-main">
+      <article class="outing">
+        <h1>{o.title}</h1>
+        <p class="where data">
+          <a href={coursePath(o.course.slug)}>{o.course.name}</a>, {v.place}
         </p>
-      )
-    }
+        <p class="when data">{v.when}{v.time && <span class="when-time">, {v.time}</span>}</p>
+        <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
 
-    {o.summary && <p class="summary">{o.summary}</p>}
+        {o.sourceGone && <p class="note">The organizer's page for this outing is gone. Check with the organizer before making plans.</p>}
+        {o.status === "cancelled" && <p class="note alert">The organizer has cancelled this outing.</p>}
+        {passed && <p class="note">This outing has already been played.{next && <> The next one is <a href={outingPath(next.slug)}>{next.title}</a>.</>}</p>}
+        {
+          v.isExpected && (
+            <p class="note">
+              {o.startDate
+                ? "The organizer has announced this date, but registration isn't confirmed open yet."
+                : "This outing usually runs every year. We'll update this page when the organizer posts the date."}
+            </p>
+          )
+        }
 
-    <div class="actions">
-      {
-        canRegister && (
-          <a class="button" href={o.registrationUrl ?? o.canonicalSourceUrl} rel="nofollow noopener" target="_blank">
-            {o.registrationUrl ? "Register" : "See site"}
-            <span class="visually-hidden"> (opens the organizer's site)</span>
-          </a>
-        )
-      }
-      <span class="small muted">Last verified {verifiedDate(o.lastVerified)}</span>
-    </div>
+        {o.summary && <p class="summary">{o.summary}</p>}
 
-    <h2>Details</h2>
-    <dl class="details scorecard">
-      <div><dt>When</dt><dd class="num">{v.when}{v.time && <>, {v.time}</>}</dd></div>
-      <div>
-        <dt>Course</dt>
-        <dd>
-          <a href={coursePath(o.course.slug)}>{o.course.name}</a>
-          {o.course.street && <>, {o.course.street}</>}, {v.place}{o.course.zip && <> {o.course.zip}</>}
-        </dd>
-      </div>
-      <div><dt>Course type</dt><dd>{v.courseTypeLabel}</dd></div>
-      <div>
-        <dt>Outing type</dt>
-        <dd>
-          {o.label}
-          {o.label === "Charity" && <span class="muted"> (listed as a 501(c)(3) in IRS records)</span>}
-        </dd>
-      </div>
-      {o.format && <div><dt>Format</dt><dd>{FORMAT_LABELS[o.format]}</dd></div>}
-      <div><dt>Price</dt><dd class="num">{v.price}</dd></div>
-      {v.includes && <div><dt>What's included</dt><dd>{v.includes}</dd></div>}
-      {o.handicapRequired !== null && <div><dt>Handicap</dt><dd>{o.handicapRequired ? "A handicap is required" : "No handicap needed"}</dd></div>}
-      {o.audienceNote && <div><dt>Who it's for</dt><dd>{o.audienceNote}</dd></div>}
-      {
-        o.organizer && (
+        <div class="actions">
+          {
+            canRegister && (
+              <a class="button" href={o.registrationUrl ?? o.canonicalSourceUrl} rel="nofollow noopener" target="_blank">
+                {o.registrationUrl ? "Register" : "See site"}
+                <span class="visually-hidden"> (opens the organizer's site)</span>
+              </a>
+            )
+          }
+          <span class="small muted">Last verified {verifiedDate(o.lastVerified)}</span>
+        </div>
+
+        <h2>Details</h2>
+        <dl class="details scorecard">
+          <div><dt>When</dt><dd class="num">{v.when}{v.time && <>, {v.time}</>}</dd></div>
           <div>
-            <dt>Organizer</dt>
-            <dd><a href={organizerPath(o.organizer.slug)}>{o.organizer.name}</a></dd>
+            <dt>Course</dt>
+            <dd>
+              <a href={coursePath(o.course.slug)}>{o.course.name}</a>
+              {o.course.street && <>, {o.course.street}</>}, {v.place}{o.course.zip && <> {o.course.zip}</>}
+            </dd>
           </div>
+          <div><dt>Course type</dt><dd>{v.courseTypeLabel}</dd></div>
+          <div>
+            <dt>Outing type</dt>
+            <dd>
+              {o.label}
+              {o.label === "Charity" && <span class="muted"> (listed as a 501(c)(3) in IRS records)</span>}
+            </dd>
+          </div>
+          {o.format && <div><dt>Format</dt><dd>{FORMAT_LABELS[o.format]}</dd></div>}
+          <div><dt>Price</dt><dd class="num">{v.price}</dd></div>
+          {v.includes && <div><dt>What's included</dt><dd>{v.includes}</dd></div>}
+          {o.handicapRequired !== null && <div><dt>Handicap</dt><dd>{o.handicapRequired ? "A handicap is required" : "No handicap needed"}</dd></div>}
+          {o.audienceNote && <div><dt>Who it's for</dt><dd>{o.audienceNote}</dd></div>}
+          {
+            o.organizer && (
+              <div>
+                <dt>Organizer</dt>
+                <dd><a href={organizerPath(o.organizer.slug)}>{o.organizer.name}</a></dd>
+              </div>
+            )
+          }
+          <div><dt>Source</dt><dd><a href={o.canonicalSourceUrl} rel="nofollow noopener">{sourceHost}</a></dd></div>
+          <div><dt>Last verified</dt><dd class="num">{verifiedDate(o.lastVerified)}</dd></div>
+        </dl>
+        <p class="small muted">
+          We summarize outings in our own words from the organizer's page. Prices and details can change, so confirm them with the
+          organizer before you pay. Something wrong? <a href="/corrections">Tell us</a>.
+        </p>
+        {
+          newcomerGuides.length > 0 && (
+            <p class="small newcomer">
+              New to outings?{" "}
+              {newcomerGuides.map((g, i) => (
+                <>
+                  {i > 0 && " · "}
+                  <a href={g.path}>{g.title}</a>
+                </>
+              ))}
+            </p>
+          )
+        }
+      </article>
+
+      <AdSlot placement="outing" />
+
+      {
+        nearby.length > 0 && (
+          <section aria-labelledby="nearby">
+            <h2 id="nearby">Upcoming outings nearby</h2>
+            <TeeSheet outings={nearby} />
+          </section>
         )
       }
-      <div><dt>Source</dt><dd><a href={o.canonicalSourceUrl} rel="nofollow noopener">{sourceHost}</a></dd></div>
-      <div><dt>Last verified</dt><dd class="num">{verifiedDate(o.lastVerified)}</dd></div>
-    </dl>
-    <p class="small muted">
-      We summarize outings in our own words from the organizer's page. Prices and details can change, so confirm them with the
-      organizer before you pay. Something wrong? <a href="/corrections">Tell us</a>.
-    </p>
+      <p class="more data">
+        More: <a href={coursePath(o.course.slug)}>outings at {o.course.name}</a>
+        {o.course.city && <> · <a href={cityPath(o.course.state, o.course.city)}>outings in {o.course.city}</a></>}
+        {o.organizer && <> · <a href={organizerPath(o.organizer.slug)}>outings by {o.organizer.name}</a></>}
+      </p>
+    </div>
     {
-      newcomerGuides.length > 0 && (
-        <p class="small newcomer">
-          New to outings?{" "}
-          {newcomerGuides.map((g, i) => (
-            <>
-              {i > 0 && " · "}
-              <a href={g.path}>{g.title}</a>
-            </>
-          ))}
-        </p>
+      adsOn && (
+        <div class="outing-side">
+          <AdSlot placement="sidebar" />
+        </div>
       )
     }
-  </article>
-
-  {
-    nearby.length > 0 && (
-      <section aria-labelledby="nearby">
-        <h2 id="nearby">Upcoming outings nearby</h2>
-        <TeeSheet outings={nearby} />
-      </section>
-    )
-  }
-  <p class="more data">
-    More: <a href={coursePath(o.course.slug)}>outings at {o.course.name}</a>
-    {o.course.city && <> · <a href={cityPath(o.course.state, o.course.city)}>outings in {o.course.city}</a></>}
-    {o.organizer && <> · <a href={organizerPath(o.organizer.slug)}>outings by {o.organizer.name}</a></>}
-  </p>
+  </div>
 </Base>
 
 <style>
+  /* Desktop: content and a 300px ad column (SPEC.md 9.5). Phones and tablets: one column, no sidebar. */
+  @media (min-width: 1024px) {
+    .outing-layout.has-sidebar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 0 2.5rem;
+      align-items: start;
+    }
+    .outing-side {
+      position: sticky;
+      top: 1rem;
+      padding-top: 1rem;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    .outing-side {
+      display: none;
+    }
+  }
   .where {
     font-size: 1.125rem;
     margin: 0 0 0.25rem;

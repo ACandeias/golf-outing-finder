@@ -1,0 +1,102 @@
+---
+/**
+ * A provider-neutral ad container (SPEC.md 9.5): a labelled, fixed-height box the
+ * browser script fills lazily as it nears the viewport. Its height is reserved up
+ * front (lib/ads.ts AD_HEIGHTS), so a unit arriving late can't move the page.
+ * Renders nothing when ads are off, which is the default in dev and CI.
+ *
+ * The markup is the same for every network; the AdSense adapter adds its <ins> in
+ * the browser, and Journey or Raptive target these boxes from their dashboards.
+ */
+import { adSlotView, type AdPlacement } from "../lib/ads.ts";
+import { siteAdsConfig } from "../lib/ads-env.ts";
+
+interface Props {
+  placement: AdPlacement;
+  /** The unit's place among the page's list units (mobile cap). */
+  ordinal?: number;
+  /** Render as a <li> inside a tee sheet. */
+  listItem?: boolean;
+}
+
+const { placement, ordinal = 0, listItem = false } = Astro.props;
+const view = Astro.isPrerendered ? null : adSlotView(siteAdsConfig(), placement, { ordinal });
+---
+
+{
+  view &&
+    (listItem ? (
+      <li class:list={["ad-row", ...view.classes.filter((c) => c.startsWith("ad-desktop") || c.startsWith("ad-wide"))]} data-ad-row>
+        <div class:list={view.classes} role="group" aria-label="Advertisement" {...view.attrs}>
+          <p class="ad-label" aria-hidden="true">Advertisement</p>
+          <div class="ad-box" data-ad-box />
+        </div>
+      </li>
+    ) : (
+      <div class:list={view.classes} role="group" aria-label="Advertisement" {...view.attrs}>
+        <p class="ad-label" aria-hidden="true">Advertisement</p>
+        <div class="ad-box" data-ad-box />
+      </div>
+    ))
+}
+
+<style is:global>
+  /*
+   * Reserved heights (lib/ads.ts AD_HEIGHTS): list 280px on phones (300x250 or
+   * 336x280) and 90px from 720px (728x90); below an outing's details 280px; the
+   * desktop sidebar 600px (300x600). The box clips anything taller.
+   */
+  .ad-slot {
+    --ad-h: 280px;
+    margin: 1.5rem 0;
+    contain: layout paint;
+  }
+  .ad-sidebar {
+    --ad-h: 600px;
+    margin: 0;
+  }
+  @media (min-width: 720px) {
+    .ad-list {
+      --ad-h: 90px;
+    }
+  }
+  .ad-label {
+    margin: 0 0 0.25rem;
+    height: 1.125rem;
+    font-family: var(--sans);
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    max-width: none;
+  }
+  .ad-box {
+    height: var(--ad-h) !important;
+    width: 100%;
+    overflow: hidden;
+    contain: strict;
+  }
+  .ad-row {
+    max-width: none;
+    padding: 0.75rem;
+    border-bottom: 1.5px solid var(--rule);
+  }
+  .ad-row .ad-slot {
+    margin: 0;
+  }
+  @media (max-width: 719.98px) {
+    /* At most three units on a phone (SPEC.md 9.5). */
+    .ad-desktop-only {
+      display: none !important;
+    }
+    .ad-row {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    .ad-wide-only {
+      display: none !important;
+    }
+  }
+</style>

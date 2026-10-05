@@ -13,6 +13,16 @@ Product doc: https://claude.ai/code/artifact/a182964d-da53-4a9e-b128-adc756bed08
 - `removals.yaml` URLs are compared after URL normalization, and a removed URL is never queued or fetched again; an outing removed by id is never rechecked (§8.0).
 - `nightly.yml` takes `fail_stage` (none or a nightly stage) and `weekly_report` as `workflow_dispatch` inputs, passed to the script through env vars (§12).
 
+**2026-10-04.** Phase 4, ads and consent (§6, §9.5, §10):
+
+- New Worker vars, all optional and empty by default: `PUBLIC_ADSENSE_SLOT_LIST`, `PUBLIC_ADSENSE_SLOT_OUTING`, `PUBLIC_ADSENSE_SLOT_SIDEBAR` (AdSense ad unit ids per placement), `ADS_SITE_ID` (Raptive's site id; its script URL is built from it), `ADS_SCRIPT_URL` (the network's script from its dashboard; required for Journey, whose tag is site-specific), `ADS_TXT_REDIRECT_URL` (Journey and Raptive host the site's ads.txt; `/ads.txt` 301s there, one hop as the IAB ads.txt spec allows). `PUBLIC_ADSENSE_CLIENT` and `PUBLIC_GA4_ID` are now format-checked.
+- Ads are on when the configured provider can serve: AdSense with `PUBLIC_ADSENSE_CLIENT`, Raptive with `ADS_SITE_ID` or `ADS_SCRIPT_URL`, Journey with `ADS_SCRIPT_URL`. Off, no slot markup renders at all.
+- Placement: list units go after the 3rd, 11th, 19th ... result, counted across month sections and over the rows the URL's filters leave shown, and only where another result follows, so a list of three or fewer has none and a list never ends on an ad. After browser filtering a unit stays only between two shown results. Lists with units: state, city, charity city, national hub "Soonest", course and organizer "Upcoming". List units past the third are hidden below 720px; the outing page's sidebar unit shows only at 1024px and up, so a phone gets at most three.
+- Reserved heights: list 280px on phones and 90px from 720px (728x90); below an outing's details 280px; sidebar 600px (300x600). Boxes clip taller creatives. A Playwright test with a stub ad script holds CLS under 0.1 on a list and an outing page, phone and desktop.
+- Consent Mode v2 defaults are set before any Google script loads: `ad_storage`, `ad_user_data`, `ad_personalization` and `analytics_storage` denied in the EEA, the UK and Switzerland (`region` parameter, `wait_for_update: 500`), granted elsewhere; `ads_data_redaction` on. Google Privacy & messaging, deployed by the AdSense tag, is the consent message and sends the update. GA4 (gtag.js, only with `PUBLIC_GA4_ID`) sets no cookies in those regions until consent.
+- The consent, analytics and ad bootstrap is a same-origin bundled module that reads its config from data attributes rendered at request time (no inline script). It runs on server-rendered pages only; prerendered pages (about, privacy, terms, bot, listed, corrections, guides) are built before Worker vars exist and load no ad or analytics script. A footer "Privacy choices" button reopens the consent message where it applies.
+- CSP stays report-only. Server-rendered responses add the origins of the configured ad network and GA4; static assets keep the base policy from `public/_headers`, which a unit test keeps equal to the Worker's. AdSense supports only a strict nonce-based policy when enforced, so enforcing later means nonces, not this allowlist.
+
 **2026-10-03.** Fixes from the first local live runs:
 
 - Contradiction fix: the spec wants upcoming outings, but in autumn the current-year search queries return past ones. From September 1 the year-bearing search templates also run with next year, and from December 1 only with next year (§8.2).
@@ -145,7 +155,9 @@ Check each item's current docs before implementing. Pin exact versions in the lo
 | `INDEXNOW_KEY` | Actions secret, and a Worker var so the site can serve `/{key}.txt` | |
 | `TURNSTILE_SECRET` | Worker secret | |
 | `PUBLIC_SITE_URL` | Worker var, and set in the nightly env from the `PUBLIC_SITE_URL` Actions variable | Domain pending: golfoutingfinder.com, fallback findgolfoutings.com. Also used in the crawler's user agent |
-| `PUBLIC_ADSENSE_CLIENT`, `PUBLIC_GA4_ID`, `ADS_PROVIDER` | Worker vars | |
+| `PUBLIC_ADSENSE_CLIENT`, `PUBLIC_GA4_ID`, `ADS_PROVIDER` | Worker vars | `ca-pub-` plus 16 digits; `G-...`; `adsense`, `journey` or `raptive` (default `adsense`). Empty client and GA4 id mean no ads and no analytics |
+| `PUBLIC_ADSENSE_SLOT_LIST`, `PUBLIC_ADSENSE_SLOT_OUTING`, `PUBLIC_ADSENSE_SLOT_SIDEBAR` | Worker vars, optional | AdSense ad unit ids for the list, below-details and sidebar placements (§9.5) |
+| `ADS_SITE_ID`, `ADS_SCRIPT_URL`, `ADS_TXT_REDIRECT_URL` | Worker vars, optional | Journey and Raptive: the site id, the network's script URL from its dashboard (https), and the network-hosted ads.txt that `/ads.txt` redirects to |
 | `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | Worker vars, optional | Search Console and Bing Webmaster Tools tokens. The home page renders `google-site-verification` and `msvalidate.01` meta tags only when set; DNS verification needs neither |
 | `PIPELINE_NOW`, `SITE_NOW` | Test and local env only | ISO date or timestamp that replaces the clock. Ignored when `NODE_ENV === 'production'` |
 | Budget caps, `MONTHLY_SPEND_CAP_CENTS`, `MAX_FETCH_MINUTES`, `MAX_FETCHES_PER_HOST_PER_RUN` | env with defaults in code | See section 14 |
@@ -564,7 +576,7 @@ The platform and directory flags apply to every source above, not only to items 
 | `/health` | Worker JSON, no cache | no | `{ "ok": true }` plus the build version, for uptime checks |
 | `/sitemap-index.xml`, `/sitemaps/*.xml` | Worker, cache 6 hours | n/a | generated from D1, 45,000 URLs per file at most |
 | `/robots.txt` | Worker | n/a | disallow `/api/` and `/suggest`; list the sitemap index |
-| `/ads.txt` | Worker, generated from env | n/a | the configured publisher line (Phase 4) |
+| `/ads.txt` | Worker, generated from env, cache 1 day | n/a | the configured publisher line (Phase 4), or for Journey and Raptive a redirect to the network-hosted file |
 | `/{INDEXNOW_KEY}.txt` | Worker | n/a | the IndexNow key |
 
 ### 9.2 Filters

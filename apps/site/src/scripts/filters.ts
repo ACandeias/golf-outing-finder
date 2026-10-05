@@ -16,6 +16,7 @@ import {
   type FormatFilter,
   type ListingFilters,
 } from "@gof/shared/filters";
+import { visibleListAds } from "../lib/ads.ts";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -73,6 +74,18 @@ function apply(form: HTMLFormElement): void {
     card.hidden = !ok;
     if (ok) shown++;
   }
+  // A list ad unit stays only between two shown results: never above the first or
+  // after the last (SPEC.md 9.5). Positions don't move as filters change.
+  const items = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-filter-group] [data-outing], [data-filter-group] [data-ad-row]"),
+  );
+  const adRows = items.filter((el) => el.hasAttribute("data-ad-row"));
+  const keep = visibleListAds(
+    items.map((el) => (el.hasAttribute("data-ad-row") ? { kind: "ad" as const } : { kind: "row" as const, shown: !el.hidden })),
+  );
+  adRows.forEach((el, i) => {
+    el.hidden = !keep[i];
+  });
   for (const group of Array.from(document.querySelectorAll<HTMLElement>("[data-filter-group]"))) {
     group.hidden = group.querySelector("[data-outing]:not([hidden])") === null;
   }

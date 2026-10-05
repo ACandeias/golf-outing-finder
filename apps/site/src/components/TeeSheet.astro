@@ -7,8 +7,10 @@
 import type { OutingListItem } from "@gof/db/queries";
 import type { ListingFilters } from "@gof/shared/filters";
 import type { LatLng } from "@gof/shared/places";
+import AdSlot from "./AdSlot.astro";
 import TeeSheetRow from "./TeeSheetRow.astro";
 import { isVisible } from "../lib/listing.ts";
+import type { ListAd } from "../lib/ads.ts";
 
 interface Props {
   outings: readonly OutingListItem[];
@@ -17,13 +19,23 @@ interface Props {
   filters?: ListingFilters;
   /** Always show the year in the date column (a course's past outings). */
   alwaysYear?: boolean;
+  /** List ad units (lib/ads.ts listAdSlots), by row index into `outings`. */
+  adSlots?: readonly ListAd[];
 }
 
-const { outings, center = null, filters, alwaysYear = false } = Astro.props;
+const { outings, center = null, filters, alwaysYear = false, adSlots = [] } = Astro.props;
+const adAfter = new Map(adSlots.map((a) => [a.afterIndex, a.ordinal]));
 ---
 
 <ul class="tee-sheet">
-  {outings.map((o) => <TeeSheetRow outing={o} center={center} hidden={filters ? !isVisible(o, filters, center) : false} alwaysYear={alwaysYear} />)}
+  {
+    outings.map((o, i) => (
+      <>
+        <TeeSheetRow outing={o} center={center} hidden={filters ? !isVisible(o, filters, center) : false} alwaysYear={alwaysYear} />
+        {adAfter.has(i) && <AdSlot placement="list" ordinal={adAfter.get(i)} listItem />}
+      </>
+    ))
+  }
 </ul>
 
 <style is:global>
@@ -45,7 +57,7 @@ const { outings, center = null, filters, alwaysYear = false } = Astro.props;
     padding: 0.875rem 0.75rem 1rem;
     border-bottom: 1.5px solid var(--rule);
   }
-  .tee-row:nth-child(even of :not([hidden])) {
+  .tee-row:nth-child(even of .tee-row:not([hidden])) {
     background: var(--surface);
   }
   .tee-row p {
