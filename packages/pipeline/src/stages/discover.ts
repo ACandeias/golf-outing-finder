@@ -254,7 +254,7 @@ export const discover: DiscoverStage = (ctx, input) => {
     input.allowance.MAX_FETCHES_PER_RUN ?? ctx.caps.MAX_FETCHES_PER_RUN,
   );
   const due = input.recheck
-    .filter((c) => recheckDue(c, now))
+    .filter((c) => input.force_recheck === true || recheckDue(c, now))
     .sort((a, b) => Date.parse(a.last_verified) - Date.parse(b.last_verified));
   const recheckUrls = new Set<string>();
   for (const c of due) {

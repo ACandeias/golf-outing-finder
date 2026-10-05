@@ -86,6 +86,8 @@ describe("parseCliArgs", () => {
   it("--prioritize-states takes USPS codes, upper-cased and de-duplicated", () => {
     expect(parseCliArgs(["--prioritize-states=ny, NJ,ct,NY"], ENV).prioritizeStates).toEqual(["NY", "NJ", "CT"]);
     expect(() => parseCliArgs(["--prioritize-states=NY,XX"], ENV)).toThrow(/--prioritize-states/);
+    expect(parseCliArgs([], ENV).recheckAll).toBe(false);
+    expect(parseCliArgs(["--recheck-all"], ENV).recheckAll).toBe(true);
   });
 
   it("allows --now only outside production", () => {

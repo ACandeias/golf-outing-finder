@@ -298,6 +298,7 @@ pnpm run pipeline --dry-run --d1=local            # the local wrangler D1 instea
 | `--llm=api\|claude-cli` | LLM provider (`LLM_PROVIDER`; default `api`). `claude-cli` needs no `ANTHROPIC_API_KEY`. Live only. |
 | `--serp=dataforseo\|claude-search\|fixture` | SERP provider (`SERP_PROVIDER`; default `dataforseo` live). `claude-search` needs no `SERP_API_KEY`. Live only. |
 | `--prioritize-states=NY,NJ,CT` | Search those states' metros and courses tonight, first. |
+| `--recheck-all` | Recheck every published open or waitlist outing tonight, due or not, within the 40% recheck share (oldest `last_verified` first). Useful after an extractor version bump. |
 
 Exit codes: 0 OK; 1 when a stage throws, `--fail-stage` fired, more than 20% of fetches errored
 (network and 5xx only), a dry run tried the network, or `--strict` met a stub; 2 on a usage error or

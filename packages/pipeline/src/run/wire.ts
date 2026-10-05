@@ -137,6 +137,8 @@ export interface RunEdgesOptions {
   prioritizeStates?: readonly string[];
   /** Test double for `claude -p` (claude-cli and claude-search); never a real process in tests. */
   claudeSpawner?: ClaudeSpawner;
+  /** `--recheck-all`: recheck every published open or waitlist outing tonight. */
+  forceRecheck?: boolean;
 }
 
 /** A BatchClient that constructs the real one on first use (no SDK client unless a batch is sent). */
@@ -196,10 +198,11 @@ export function createRunEdges(o: RunEdgesOptions): RunEdges {
         mode === "live"
           ? built
           : { ...built, listings: concatListings(built.listings, await seedListingSource(loadFixtureDocs())) };
-      const ports: FetchSidePorts =
-        o.prioritizeStates && o.prioritizeStates.length > 0
-          ? { ...withSeed, prioritizeStates: [...o.prioritizeStates] }
-          : withSeed;
+      const ports: FetchSidePorts = {
+        ...withSeed,
+        ...(o.prioritizeStates && o.prioritizeStates.length > 0 ? { prioritizeStates: [...o.prioritizeStates] } : {}),
+        ...(o.forceRecheck ? { forceRecheck: true } : {}),
+      };
       return o.decorateFetchSide ? o.decorateFetchSide(ports) : ports;
     })();
     return side;

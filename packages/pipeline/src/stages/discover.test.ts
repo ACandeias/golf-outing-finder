@@ -325,6 +325,12 @@ describe("discover: platforms.yaml applies to search results and rechecks", () =
 });
 
 describe("discover: recheck queue", () => {
+  it("force_recheck queues every published outing, due or not (within the 40% share)", () => {
+    const fresh = recheck("o2", "2026-12-01", "2026-09-28T11:00:00Z");
+    expect(discover(ctx, input({ recheck: [fresh] })).output.queue).toEqual([]);
+    expect(discover(ctx, input({ recheck: [fresh], force_recheck: true })).output.queue.map((q) => q.recheck_outing_id)).toEqual(["o2"]);
+  });
+
   it("rechecks every 7 days when more than 30 days out, else every 48 hours", () => {
     const out = discover(
       ctx,

@@ -129,6 +129,7 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       llm: opts.llm,
       serp: opts.serp,
       prioritizeStates: opts.prioritizeStates,
+      forceRecheck: opts.recheckAll,
       ...deps.edges,
     });
     closeEdges = () => edges.close();

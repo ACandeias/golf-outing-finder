@@ -28,6 +28,8 @@ export interface CliOptions {
   serp: SerpProvider;
   /** `--prioritize-states=NY,NJ,CT`: search those states' metros and courses tonight, first. */
   prioritizeStates: string[];
+  /** `--recheck-all`: recheck every published open or waitlist outing tonight (within the 40% share). */
+  recheckAll: boolean;
 }
 
 export class CliUsageError extends Error {
@@ -40,7 +42,7 @@ export class CliUsageError extends Error {
 export const USAGE = `pnpm run pipeline [--dry-run | --live] [--budget=nightly|monthly|smoke] [--stages=a,b,c]
                   [--fail-stage=<stage>] [--now=<ISO date>] [--strict] [--d1=local|remote|memory]
                   [--persist-to=<dir>] [--llm=api|claude-cli]
-                  [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT]`;
+                  [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT] [--recheck-all]`;
 
 /**
  * Parses the pipeline CLI (SPEC.md 8.0, 12). `--dry-run` is the default and uses
@@ -72,6 +74,7 @@ export function parseCliArgs(
         llm: { type: "string" },
         serp: { type: "string" },
         "prioritize-states": { type: "string" },
+        "recheck-all": { type: "boolean", default: false },
       },
       strict: true,
       allowPositionals: false,
@@ -175,5 +178,6 @@ export function parseCliArgs(
     llm,
     serp,
     prioritizeStates,
+    recheckAll: values["recheck-all"],
   };
 }
