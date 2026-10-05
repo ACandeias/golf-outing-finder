@@ -16,7 +16,8 @@
     "./ids": "./src/ids.ts",
     "./jsonld": "./src/jsonld.ts",
     "./filters": "./src/filters.ts",
-    "./filter-params": "./src/filter-params.ts"
+    "./filter-params": "./src/filter-params.ts",
+    "./guides": "./src/guides.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
