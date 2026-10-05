@@ -9,10 +9,20 @@ import {
   type GofDb,
 } from "@gof/db/queries";
 import { absoluteUrl, charityCityPath, cityPath, statePath } from "./urls.ts";
+import { GUIDES_PATH, guidePath, publishedSiteGuides } from "./guides.ts";
 
 export const URLS_PER_SITEMAP = 45_000;
 
-export const SITEMAP_KINDS = ["pages", "states", "cities", "charity-cities", "courses", "organizers", "outings"] as const;
+export const SITEMAP_KINDS = [
+  "pages",
+  "guides",
+  "states",
+  "cities",
+  "charity-cities",
+  "courses",
+  "organizers",
+  "outings",
+] as const;
 export type SitemapKind = (typeof SITEMAP_KINDS)[number];
 
 export interface SitemapUrl {
@@ -25,6 +35,15 @@ export async function sitemapUrls(db: GofDb, kind: SitemapKind, today: string): 
   switch (kind) {
     case "pages":
       return ["/", "/golf-outings", "/about"].map((p) => ({ loc: absoluteUrl(p) }));
+    case "guides": {
+      // Published guides only, in every build: drafts never reach a sitemap. /guides
+      // joins once there is a published guide, dated by the newest one.
+      const guides = await publishedSiteGuides();
+      if (guides.length === 0) return [];
+      const urls = guides.map((g) => ({ loc: absoluteUrl(guidePath(g.id)), lastmod: g.data.updated }));
+      const newest = urls.reduce((a, u) => (u.lastmod > a ? u.lastmod : a), "");
+      return [{ loc: absoluteUrl(GUIDES_PATH), lastmod: newest }, ...urls];
+    }
     case "states":
       return (await sitemapStatesCurrent(db, today)).map((r) => ({ loc: absoluteUrl(statePath(r.state)), lastmod: r.lastmod }));
     case "cities":
