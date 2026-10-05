@@ -90,6 +90,12 @@ describe("parseCliArgs", () => {
     expect(parseCliArgs(["--recheck-all"], ENV).recheckAll).toBe(true);
   });
 
+  it("--weekly-report posts (or, in a dry run, renders) the weekly issue on any day", () => {
+    expect(parseCliArgs([], ENV).weeklyReport).toBe(false);
+    expect(parseCliArgs(["--weekly-report"], ENV).weeklyReport).toBe(true);
+    expect(parseCliArgs(["--live", "--weekly-report"], ENV).weeklyReport).toBe(true);
+  });
+
   it("allows --now only outside production", () => {
     expect(parseCliArgs(["--now=2026-09-28"], ENV).now).toBe("2026-09-28");
     expect(() => parseCliArgs(["--now=2026-09-28"], { NODE_ENV: "production" })).toThrow(

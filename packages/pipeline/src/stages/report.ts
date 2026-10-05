@@ -3,8 +3,11 @@ import {
   budgetHitSchema,
   emptyResult,
   stageErrorSchema,
+  type BudgetHit,
   type Counter,
+  type ReportInput,
   type ReportStage,
+  type StageError,
   type StageStatus,
 } from "./types.ts";
 
@@ -28,7 +31,7 @@ function mdInert(text: string, max: number): string {
     .slice(0, max);
 }
 
-function usd(cents: number): string {
+export function usd(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
@@ -39,6 +42,30 @@ function parseJsonArray(text: string): unknown[] {
   } catch {
     return [];
   }
+}
+
+/** A runs row's `budget_hits` column, the entries that validate. */
+export function parseBudgetHits(text: string): BudgetHit[] {
+  return parseJsonArray(text).flatMap((h) => {
+    const r = budgetHitSchema.safeParse(h);
+    return r.success ? [r.data] : [];
+  });
+}
+
+/** A runs row's `errors` column, the entries that validate. */
+export function parseStageErrors(text: string): StageError[] {
+  return parseJsonArray(text).flatMap((e) => {
+    const r = stageErrorSchema.safeParse(e);
+    return r.success ? [r.data] : [];
+  });
+}
+
+/** The "Holds by reason" table (SPEC.md 8.10): every reason, sources and outings. */
+export function holdsTable(holds: ReportInput["holds"]): string[] {
+  const lines = ["| Reason | Sources | Outings |", "| --- | --- | --- |"];
+  for (const reason of holdReasonSchema.options)
+    lines.push(`| ${reason} | ${holds.sources[reason] ?? 0} | ${holds.outings[reason] ?? 0} |`);
+  return lines;
 }
 
 const STATUS_LABEL: Record<StageStatus["status"], string> = {
@@ -97,19 +124,10 @@ export const report: ReportStage = (_ctx, input) => {
 
   lines.push("### Holds by reason");
   lines.push("");
-  lines.push("| Reason | Sources | Outings |");
-  lines.push("| --- | --- | --- |");
-  for (const reason of holdReasonSchema.options) {
-    lines.push(
-      `| ${reason} | ${input.holds.sources[reason] ?? 0} | ${input.holds.outings[reason] ?? 0} |`,
-    );
-  }
+  lines.push(...holdsTable(input.holds));
   lines.push("");
 
-  const hits = parseJsonArray(run.budget_hits).flatMap((h) => {
-    const r = budgetHitSchema.safeParse(h);
-    return r.success ? [r.data] : [];
-  });
+  const hits = parseBudgetHits(run.budget_hits);
   lines.push("### Budget hits");
   lines.push("");
   if (hits.length === 0) lines.push("None.");
@@ -119,10 +137,7 @@ export const report: ReportStage = (_ctx, input) => {
     );
   lines.push("");
 
-  const errors = parseJsonArray(run.errors).flatMap((e) => {
-    const r = stageErrorSchema.safeParse(e);
-    return r.success ? [r.data] : [];
-  });
+  const errors = parseStageErrors(run.errors);
   const shown = errors.filter((e) => e.kind !== "not_implemented");
   lines.push("### Errors");
   lines.push("");

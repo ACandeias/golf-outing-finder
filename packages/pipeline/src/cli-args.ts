@@ -30,6 +30,8 @@ export interface CliOptions {
   prioritizeStates: string[];
   /** `--recheck-all`: recheck every published open or waitlist outing tonight (within the 40% share). */
   recheckAll: boolean;
+  /** `--weekly-report`: post the weekly report issue on any day (a dry run renders it instead). */
+  weeklyReport: boolean;
 }
 
 export class CliUsageError extends Error {
@@ -42,7 +44,8 @@ export class CliUsageError extends Error {
 export const USAGE = `pnpm run pipeline [--dry-run | --live] [--budget=nightly|monthly|smoke] [--stages=a,b,c]
                   [--fail-stage=<stage>] [--now=<ISO date>] [--strict] [--d1=local|remote|memory]
                   [--persist-to=<dir>] [--llm=api|claude-cli]
-                  [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT] [--recheck-all]`;
+                  [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT] [--recheck-all]
+                  [--weekly-report]`;
 
 /**
  * Parses the pipeline CLI (SPEC.md 8.0, 12). `--dry-run` is the default and uses
@@ -75,6 +78,7 @@ export function parseCliArgs(
         serp: { type: "string" },
         "prioritize-states": { type: "string" },
         "recheck-all": { type: "boolean", default: false },
+        "weekly-report": { type: "boolean", default: false },
       },
       strict: true,
       allowPositionals: false,
@@ -179,5 +183,6 @@ export function parseCliArgs(
     serp,
     prioritizeStates,
     recheckAll: values["recheck-all"],
+    weeklyReport: values["weekly-report"],
   };
 }

@@ -95,7 +95,13 @@ export const pipelineEnvSchema = z.object({
   CLOUDFLARE_ACCOUNT_ID: optionalString,
   D1_DATABASE_ID: optionalString,
   INDEXNOW_KEY: optionalString,
+  /** The weekly report issue (SPEC.md 8.10): `github.token` with `issues: write`. */
   GH_TOKEN: optionalString,
+  /** `owner/name`; GitHub Actions sets it. The weekly issue is posted only when it is set. */
+  GITHUB_REPOSITORY: optionalString.refine(
+    (v) => v === undefined || /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/(?!\.\.?$)[A-Za-z0-9._-]{1,100}$/.test(v),
+    { message: "GITHUB_REPOSITORY must be owner/name" },
+  ),
   PIPELINE_NOW: optionalClock,
   LLM_PROVIDER: optionalEnum(llmProviderSchema),
   SERP_PROVIDER: optionalEnum(serpProviderSchema),

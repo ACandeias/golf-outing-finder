@@ -66,6 +66,16 @@ describe("env schemas cover SPEC section 6", () => {
     expect(() => parseSiteEnv({ ...base, BING_SITE_VERIFICATION: 'abc"def12345' })).toThrow();
   });
 
+  it("takes GITHUB_REPOSITORY (set by Actions) as optional owner/name", () => {
+    const base = { PUBLIC_SITE_URL: "https://x.example" };
+    expect(parsePipelineEnv(base).GITHUB_REPOSITORY).toBeUndefined();
+    expect(parsePipelineEnv({ ...base, GITHUB_REPOSITORY: "ACandeias/golf_outing" }).GITHUB_REPOSITORY).toBe(
+      "ACandeias/golf_outing",
+    );
+    expect(() => parsePipelineEnv({ ...base, GITHUB_REPOSITORY: "../x" })).toThrow(/owner\/name/);
+    expect(() => parsePipelineEnv({ ...base, GITHUB_REPOSITORY: "a/b/c" })).toThrow(/owner\/name/);
+  });
+
   it("validates clock overrides and cap overrides", () => {
     expect(parsePipelineEnv({ PUBLIC_SITE_URL: "https://x.example", PIPELINE_NOW: "2026-09-28" }).PIPELINE_NOW).toBe(
       "2026-09-28",
