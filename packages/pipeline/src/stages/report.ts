@@ -13,6 +13,11 @@ export const FETCH_ERROR_RATE_LIMIT = 0.2;
 
 /** Text from runs rows and errors can carry scraped text: keep it inert in Markdown. */
 export function mdCell(text: string): string {
+  return mdInert(text, 300);
+}
+
+/** mdCell with a longer limit, for the cost note. */
+function mdInert(text: string, max: number): string {
   return text
     .replace(/[\r\n]+/g, " ")
     .replace(/&/g, "&amp;")
@@ -20,7 +25,7 @@ export function mdCell(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/\|/g, "\\|")
     .replace(/`/g, "'")
-    .slice(0, 300);
+    .slice(0, max);
 }
 
 function usd(cents: number): string {
@@ -70,7 +75,7 @@ export const report: ReportStage = (_ctx, input) => {
   lines.push(`## Pipeline run \`${mdCell(run.id)}\` (${run.kind}, ${input.mode})`);
   lines.push("");
   lines.push(`Started ${run.started_at}${run.finished_at ? `, finished ${run.finished_at}` : ""}.`);
-  lines.push(`Estimated cost: ${usd(run.est_cost_cents)}.`);
+  lines.push(input.cost_note ? mdInert(input.cost_note, 1000) : `Estimated cost: ${usd(run.est_cost_cents)}.`);
   lines.push("");
   lines.push("| Stage | Status | Time |");
   lines.push("| --- | --- | --- |");

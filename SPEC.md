@@ -5,6 +5,13 @@ Product doc: https://claude.ai/code/artifact/a182964d-da53-4a9e-b128-adc756bed08
 
 ## Changelog
 
+**2026-10-03.** Fixes from the first local live runs:
+
+- Contradiction fix: the spec wants upcoming outings, but in autumn the current-year search queries return past ones. From September 1 the year-bearing search templates also run with next year, and from December 1 only with next year (§8.2).
+- Extraction: a year comes only from the page, never from the fetched date; an event whose page states an earlier year is past; a free event is not an outing; a foursome price only when the page states one. The post-check enforces all four (§8.4).
+- Dedupe: the same course and date with titles 0.8 or more alike is one outing even when organizer names differ or are missing (§8.7).
+- Every discovered URL honors `platforms.yaml`, whichever source found it: a page on a platform or directory with `allowed: false` is skipped, an outing that only such pages support doesn't publish, and a platform listing or search page never becomes an outing's canonical source (§8.2).
+
 **2026-09-29 (v1.1).** Amendments from the spec QA pass, applied in Phase 0 so the spec, schema, seed and tests agree before code is written:
 
 - A1 Multi-event extraction: the extractor returns `{ "events": [...] }`, up to 25 per page, with `is_outing` and `reject_reason` on each event (§8.4).
@@ -393,6 +400,9 @@ Sources in priority order. Normalize every URL (lowercase host, strip tracking p
 6. **Directories.** Play Private Golf, Scramble Hunter, charitygolfevent.com and golfsync.io, weekly. Enqueue each listing's event page and the organizer and registration links found on it. A directory *index* page never publishes. A directory *event* page (one event per page) may publish when its `registration_url` resolves to a domain other than the directory's; its `canonical_source_url` is then the registration page.
 7. **Search by place.** Through DataForSEO (Google organic, standard queue). For each metro in `metros.yaml`: `golf outing {city} {year}`, `charity golf tournament {city} {year}`, `golf scramble {city} {month}`. Weekly from April through September and monthly the rest of the year, spread evenly across nights so each night stays under the cap.
 8. **Search by course.** For courses with `outing_count > 0` or `notable = 1`: `"{course name}" golf outing {year}` and `"{course name}" golf classic register`, monthly.
+9. **The coming season.** `{year}` in items 7 and 8 is the current year until August 31; from September 1 each such query also runs with next year (`golf outing Mamaroneck NY 2027`), and from December 1 only with next year.
+
+The platform and directory flags apply to every source above, not only to items 4 and 6. A page on a platform or directory with `allowed: false` is skipped whether search, a series page, a submission, a recheck or an earlier queue row found it, and an outing that only such pages support doesn't publish. A platform listing or search page (`listing_url_pattern` in `platforms.yaml`) never becomes an outing's canonical source while another page supports the outing, and an outing whose canonical source is one doesn't publish.
 
 ### 8.3 Fetch
 
@@ -451,6 +461,7 @@ Sources in priority order. Normalize every URL (lowercase host, strip tracking p
 }
 ```
 
+- The year of an event comes only from the page (its date line, title, posting date or URL), never from the fetched date; an event whose page states an earlier year is past. A free event (price 0, or "free" with no entry fee) is not an outing: `is_outing` false, `reject_reason` other. `foursome_price_usd` only when the page states it, never four times the single price. The post-check below enforces each.
 - Validate every event with zod after the call: dates parse; a new outing's start date is today (course-local) or later; prices fall between $0 and $25,000; the summary is 300 characters or fewer and contains no URLs; evidence quotes are 20 words or fewer. Prices convert to integer cents.
 - `registration_url` must be http or https. It is kept when its registrable domain equals the page's or its host is listed in `data/overrides/registration-hosts.yaml` (golfstatus.com, tourneylinks.com, golfgenius.com, birdease.com, givesmart.com, onecause.com, classy.org, gofundme.com, networkforgood.com, eventbrite.com, zeffy.com, givebutter.com, qgiv.com, donorbox.org, bloomerang.co, givecampus.com, and any host the owner adds). Otherwise it is dropped and the card shows "See site".
 - An event with `status: unknown` is held on its source with `hold_reason = 'status_unknown'`.
@@ -494,7 +505,7 @@ Sources in priority order. Normalize every URL (lowercase host, strip tracking p
 
 ### 8.7 Dedupe and upsert
 
-- The same course and start date with organizer-name similarity of 0.8 or more is the same outing. Merge fields, preferring the organizer's own page, then a platform page, then a directory. `canonical_source_url` is the organizer page when one exists.
+- The same course and start date with organizer-name similarity of 0.8 or more, or title similarity of 0.8 or more (ignoring years, ordinals, "annual" and the organizers' names) even when the organizer names differ or are missing, is the same outing. The organizers' names stay in when a title names its own organizer by a word the other organizer's name lacks ("Rotary Golf Day" and "Lions Golf Day" are two outings). An existing outing whose every source was re-extracted in this run without yielding it is retracted (confidence 0, so it is held). Merge fields, preferring the organizer's own page, then a platform page, then a directory. `canonical_source_url` is the organizer page when one exists.
 - Slugs are `{year}/{kebab(title without the year)}-{course short slug}`, with `-2`, `-3` on collision, and never change once published. The course short slug is the kebab of the course name with stopwords removed (golf, club, country, cc, gc, course, links, the, and, of, at), cut to 40 characters at a hyphen boundary.
 - Organizer slugs are `kebab(name)`, `-2` on collision. City slugs are `kebab(name)`, unique within a state.
 - A source that yields several events links to each resulting outing through `source_outings`.

@@ -11,7 +11,13 @@ import { AnthropicBatchClient } from "../llm/batch-client.ts";
 import { emptyOverrides } from "../overrides/load.ts";
 import type { BatchClient, Context } from "../stages/types.ts";
 import { llmFixtureIndex } from "./fixture-world.ts";
-import { createRunEdges, pendingNightlyBatch } from "./wire.ts";
+import { createRunEdges, pendingNightlyBatch, wiredHandlers } from "./wire.ts";
+import { BudgetGuard } from "../budget.ts";
+import { MemoryD1 } from "../d1/memory.ts";
+import { EXTRACT_SYSTEM_PROMPT } from "../extract/prompt.ts";
+import { extractionOutputFormat } from "../extract/output-schema.ts";
+import { ClaudeCliBatchClient, type ClaudeSpawner } from "../llm/claude-cli.ts";
+import { emptyState } from "./state.ts";
 
 const ctx: Context = {
   now: new Date("2026-09-28T12:00:00Z"),
@@ -101,6 +107,82 @@ describe("run edges", () => {
     expect(await edges.fetchSide()).toBe(side);
     await edges.close();
     expect(closed).toBe(1);
+  });
+
+  it("--llm=claude-cli: extraction and course types share one claude -p client; no Anthropic client, no API key", () => {
+    const spawner: ClaudeSpawner = async () => {
+      throw new Error("not spawned in this test");
+    };
+    const edges = createRunEdges({ ctx, mode: "live", env: {}, llm: "claude-cli", serp: "claude-search", claudeSpawner: spawner, indexnow: null });
+    expect(edges.extractionBatch()).toBeInstanceOf(ClaudeCliBatchClient);
+    expect(edges.ports().batch).toBe(edges.extractionBatch());
+    expect(edges.claudeCli()).toBe(edges.extractionBatch());
+    expect(edges.costNote(123)).toMatch(/^Estimated cost at API rates: \$1\.23, covered by subscription/);
+    // API providers: no note, no claude-cli client.
+    const api = createRunEdges({ ctx, mode: "live", env: {}, indexnow: null });
+    expect(api.costNote(123)).toBeNull();
+    expect(api.claudeCli()).toBeNull();
+    // A dry run ignores the provider and replays fixtures.
+    const dry = createRunEdges({ ctx, mode: "dry-run", env: {}, llm: "claude-cli", claudeSpawner: spawner });
+    expect(dry.extractionBatch()).not.toBeInstanceOf(ClaudeCliBatchClient);
+    expect(dry.llm).toBe("api");
+  });
+
+  it("extract-collect with claude-cli skips an API batch left pending and meters actual input tokens", async () => {
+    const answer = JSON.stringify({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      structured_output: { events: [] },
+      usage: { input_tokens: 5000, output_tokens: 40 },
+      total_cost_usd: 0.01,
+    });
+    let spawned = 0;
+    const spawner: ClaudeSpawner = async () => {
+      spawned++;
+      return { exitCode: 0, stdout: answer, stderr: "", timedOut: false };
+    };
+    const edges = createRunEdges({ ctx, mode: "live", env: {}, llm: "claude-cli", claudeSpawner: spawner, indexnow: null });
+    const snapshot = runsDb([["run_api", "nightly", "2026-09-27T07:15:00Z", "msgbatch_api", ["extract-collect"]]]);
+    const guard = new BudgetGuard({ caps: resolveBudget("nightly"), now: ctx.now });
+    const state = emptyState();
+    const url = "https://example.org/outing";
+    state.extractionRequests = [
+      {
+        custom_id: "src_a",
+        page_url: url,
+        est_input_tokens: 3000,
+        params: {
+          model: "claude-haiku-4-5",
+          system: [{ type: "text", text: EXTRACT_SYSTEM_PROMPT }],
+          messages: [{ role: "user", content: "<page>x</page>" }],
+          output_config: { format: extractionOutputFormat() },
+        },
+      },
+    ];
+    state.extractionMeta = [
+      { custom_id: "src_a", page_url: url, kind: "organizer", hash: "a".repeat(64), jsonld_events: [], directory_host: null },
+    ];
+    const handler = wiredHandlers(edges)["extract-collect"];
+    const out = await handler({
+      stage: "extract-collect",
+      mode: "live",
+      runId: "run_now",
+      markProgress: async () => {},
+      ctx,
+      guard,
+      state,
+      snapshot,
+      d1: new MemoryD1(),
+      ports: {},
+      irs: null,
+    });
+    expect(spawned).toBe(1);
+    expect(out.pendingBatchId).toBeNull();
+    expect(state.extracted).toHaveLength(1);
+    // 3,000 estimated up front, 2,000 more once the actual 5,000 were known.
+    expect(guard.spent("MAX_LLM_INPUT_TOKENS_PER_RUN")).toBe(5000);
+    expect(guard.spent("MAX_EXTRACTIONS_PER_RUN")).toBe(1);
   });
 
   it("maps every recorded fixture page to its recording by custom_id (the source id)", () => {

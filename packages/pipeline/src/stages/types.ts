@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { platformRuleSchema } from "../discovery/platform-policy.ts";
 import { BUDGET_CAPS, type Budget, type BudgetCap } from "@gof/shared/budget";
 import { extractionEventSchema, holdReasonSchema, type HoldReason } from "@gof/shared/schemas";
 import type { Overrides } from "../overrides/load.ts";
@@ -99,6 +100,7 @@ export const EXTRA_COUNTERS = [
   "indexnow_urls",
   "courses_imported",
   "irs_records",
+  "outings_retracted",
 ] as const;
 export type ExtraCounter = (typeof EXTRA_COUNTERS)[number];
 
@@ -277,9 +279,17 @@ export const searchPlanInputSchema = z.object({
       name: z.string(),
       outing_count: z.number().int(),
       notable: z.boolean(),
+      /** The course's state, for `prioritize_states`. */
+      state: z.string().nullable().optional(),
     }),
   ),
   allowance: allowanceSchema,
+  /**
+   * `--prioritize-states`: metros and courses in these states are searched
+   * tonight whatever their spread night, ahead of everything else, in this
+   * order. Empty or absent: the plain schedule.
+   */
+  prioritize_states: z.array(z.string().length(2)).optional(),
 });
 export type SearchPlanInput = z.infer<typeof searchPlanInputSchema>;
 export const searchPlanOutputSchema = z.object({ queries: z.array(serpQuerySchema) });
@@ -308,6 +318,10 @@ export const discoverInputSchema = z.object({
    */
   pending: z.array(discoveryQueueRowSchema).optional(),
   allowance: allowanceSchema,
+  /** platforms.yaml as rules (discovery/platform-policy.ts): every discovered URL honors `allowed` and listing pages. */
+  platform_rules: z.array(platformRuleSchema).optional(),
+  /** `--recheck-all`: every published open or waitlist outing is due tonight (still within the 40% share). */
+  force_recheck: z.boolean().optional(),
 });
 export type DiscoverInput = z.infer<typeof discoverInputSchema>;
 
@@ -316,7 +330,7 @@ export const discoverOutputSchema = z.object({
   skipped: z.array(
     z.object({
       url: z.string(),
-      reason: z.enum(["excluded", "recent", "duplicate", "invalid", "not_golf"]),
+      reason: z.enum(["excluded", "recent", "duplicate", "invalid", "not_golf", "platform_not_allowed", "platform_listing"]),
     }),
   ),
   /** Submissions consumed by this run, to mark processed. */
@@ -481,6 +495,8 @@ export const extractionRequestMetaSchema = z.object({
   hash: sha256,
   jsonld_events: z.array(jsonLdEventSchema),
   directory_host: z.string().nullable(),
+  /** The page text sent to the model, for the year, free and foursome post-checks (absent for an earlier run's batch). */
+  page_text: z.string().optional(),
 });
 export type ExtractionRequestMeta = z.infer<typeof extractionRequestMetaSchema>;
 
@@ -794,6 +810,18 @@ export const dedupeUpsertInputSchema = z.object({
   }),
   /** Pages whose hash was unchanged: only `last_verified` moves (SPEC.md 8.3). */
   unchanged: z.array(z.object({ url: httpUrl, recheck_outing_id: z.string().nullable() })),
+  /**
+   * Existing dated outings linked (source_outings) to a page collected this run,
+   * with every source URL each one has. An outing all of whose sources were
+   * re-extracted this run and that no event matched any more is retracted.
+   */
+  linked: z
+    .array(z.object({ outing_id: z.string(), status: z.string(), source_urls: z.array(z.string()) }))
+    .optional(),
+  /** Pages whose extraction was collected this run. */
+  collected: z.array(z.string()).optional(),
+  /** platforms.yaml as rules: a listing page is never the canonical source while a cluster has another page. */
+  platform_rules: z.array(platformRuleSchema).optional(),
   /** Fetch outcomes per source URL, for `sources` bookkeeping (status, consecutive_gone, error). */
   fetches: z.array(
     z.object({
@@ -849,6 +877,11 @@ export const publishInputSchema = z.object({
   heldSources: z.array(sourceRowSchema),
   /** Outing ids whose content changed in this run (IndexNow). */
   changed: z.array(z.string()),
+  /**
+   * platforms.yaml as rules: an outing whose canonical source is a platform listing page, or that only
+   * pages on a disallowed platform or directory support, never publishes.
+   */
+  platform_rules: z.array(platformRuleSchema).optional(),
 });
 export type PublishInput = z.infer<typeof publishInputSchema>;
 
@@ -905,6 +938,8 @@ export interface ReportInput {
   /** Holds by reason across `sources` and `outings` after the run (SPEC.md 8.10). */
   holds: { sources: HoldCounts; outings: HoldCounts };
   strict: boolean;
+  /** Replaces the cost line when a subscription-backed provider (claude -p) ran. */
+  cost_note?: string | null;
 }
 
 export interface ReportOutput {

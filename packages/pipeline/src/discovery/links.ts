@@ -76,11 +76,22 @@ const NAV_PATH =
 export function looksLikeEventLink(link: PageLink, indexUrl: string): boolean {
   if (link.url === normalizeUrl(indexUrl)) return false;
   let path: string;
+  let host: string;
+  let indexHost: string;
   try {
-    path = new URL(link.url).pathname;
+    const u = new URL(link.url);
+    path = u.pathname;
+    host = u.hostname.toLowerCase().replace(/^www\./, "");
+    indexHost = new URL(indexUrl).hostname.toLowerCase().replace(/^www\./, "");
   } catch {
     return false;
   }
-  if (path === "/" || NAV_PATH.test(path)) return false;
+  if (NAV_PATH.test(path)) return false;
+  // A site root is navigation on the index's own host, but a per-event site on
+  // another host or subdomain (ACS: akroncanton.acsgolf.org).
+  if (path === "/") {
+    if (host === indexHost) return false;
+    return /event|golf|classic|tournament|outing|invitational|scramble/i.test(`${host} ${link.text}`);
+  }
   return /event|golf|classic|tournament|outing|invitational|scramble/i.test(`${path} ${link.text}`);
 }

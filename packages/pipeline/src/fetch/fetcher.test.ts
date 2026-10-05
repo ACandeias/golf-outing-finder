@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BudgetGuard } from "../budget.ts";
 import { staticResolver } from "../net/ssrf.ts";
 import type { Renderer } from "../render/renderer.ts";
-import type { FetchPlanItem } from "../stages/types.ts";
+import type { FetchedPage, FetchPlanItem, PageFetcher } from "../stages/types.ts";
 import {
   createPageFetcher,
   fetchAll,
@@ -235,6 +235,21 @@ describe("HostGate", () => {
     expect(maxRunning).toBe(1);
     expect(starts).toEqual([0, 5000, 17_000]);
   });
+
+  it("is re-entrant for the host it already holds, and still keeps the spacing", async () => {
+    let t = 0;
+    const starts: string[] = [];
+    const gate = new HostGate({ clock: { nowMs: () => t }, sleep: async (ms) => void (t += ms) });
+    const out = await gate.run("a.example", 0, async () => {
+      starts.push(`outer@${t}`);
+      return gate.run("a.example", 0, async () => {
+        starts.push(`inner@${t}`);
+        return 7;
+      });
+    });
+    expect(out).toBe(7);
+    expect(starts).toEqual(["outer@0", "inner@5000"]);
+  });
 });
 
 describe("createPageFetcher", () => {
@@ -283,6 +298,29 @@ describe("createPageFetcher", () => {
     });
     const p = await createPageFetcher(deps(fn)).fetchPage(item("https://example.org/e"), guardFor());
     expect(p).toMatchObject({ outcome: "robots_blocked", url: "https://other.example/blocked" });
+  });
+
+  it("a same-host redirect from https to http fetches the http origin's robots.txt inside the held gate", async () => {
+    // Seen live (2026-10-03): the http origin's robots.txt went through the host
+    // gate the page request already held, the promise never settled and the run ended.
+    const { fn, calls } = fakeFetch({
+      "https://example.org/robots.txt": () => new Response("User-agent: *\nDisallow:\n"),
+      "https://example.org/a": () => new Response(null, { status: 301, headers: { location: "http://example.org/a/" } }),
+      "http://example.org/robots.txt": () => new Response("User-agent: *\nDisallow:\n"),
+      "http://example.org/a/": () => html("<p>Golf outing</p>"),
+    });
+    let t = 0;
+    const f = createPageFetcher(
+      deps(fn, { clock: { nowMs: () => t }, sleep: async (ms) => void (t += ms) }),
+    );
+    const p = await f.fetchPage(item("https://example.org/a"), guardFor());
+    expect(p).toMatchObject({ outcome: "ok", url: "http://example.org/a/" });
+    expect(calls.map((c) => c.url)).toEqual([
+      "https://example.org/robots.txt",
+      "https://example.org/a",
+      "http://example.org/robots.txt",
+      "http://example.org/a/",
+    ]);
   });
 
   it("maps statuses to outcomes", async () => {
@@ -390,6 +428,26 @@ describe("fetchAll", () => {
     const r = await fetchAll(items, f, b);
     expect(r.pages.map((p) => p.url)).toEqual(["https://a.example/p0", "https://b.example/p0"]);
     expect(r.deferred).toHaveLength(4);
+  });
+
+  it("a page that never settles is deferred with the rest of its host; other hosts carry on", async () => {
+    const { fn } = fakeFetch(pages(["a.example", "b.example"]));
+    const inner = createPageFetcher(deps(fn, { hostSpacingMs: 0 }));
+    const f: PageFetcher = {
+      fetchPage: (it, budget) =>
+        it.url === "https://a.example/p1" ? new Promise<FetchedPage>(() => {}) : inner.fetchPage(it, budget),
+    };
+    const items = ["a.example", "b.example"].flatMap((h) => [0, 1, 2].map((i) => item(`https://${h}/p${i}`)));
+    const stalled: string[] = [];
+    const r = await fetchAll(items, f, guardFor(), { pageTimeoutMs: 20, onStall: (u) => stalled.push(u) });
+    expect(stalled).toEqual(["https://a.example/p1"]);
+    expect(r.deferred.map((d) => d.url)).toEqual(["https://a.example/p1", "https://a.example/p2"]);
+    expect(r.pages.map((p) => p.url)).toEqual([
+      "https://a.example/p0",
+      "https://b.example/p0",
+      "https://b.example/p1",
+      "https://b.example/p2",
+    ]);
   });
 
   it("stops when MAX_FETCH_MINUTES has passed", async () => {

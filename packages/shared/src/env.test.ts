@@ -6,6 +6,7 @@ import {
   parseSiteEnv,
   pipelineEnvSchema,
   requireSecret,
+  requiredLiveSecrets,
   resolveNow,
   siteEnvSchema,
 } from "./env.ts";
@@ -56,6 +57,46 @@ describe("env schemas cover SPEC section 6", () => {
       parsePipelineEnv({ PUBLIC_SITE_URL: "https://x.example", MAX_SERP_QUERIES_PER_RUN: "5" })
         .MAX_SERP_QUERIES_PER_RUN,
     ).toBe(5);
+  });
+});
+
+describe("LLM and SERP providers", () => {
+  const base = { PUBLIC_SITE_URL: "https://x.example" };
+
+  it("defaults to no provider override and accepts the subscription-backed ones", () => {
+    const env = parsePipelineEnv(base);
+    expect(env.LLM_PROVIDER).toBeUndefined();
+    expect(env.SERP_PROVIDER).toBeUndefined();
+    const sub = parsePipelineEnv({ ...base, LLM_PROVIDER: "claude-cli", SERP_PROVIDER: "claude-search", CLAUDE_CLI_CONCURRENCY: "2" });
+    expect(sub).toMatchObject({ LLM_PROVIDER: "claude-cli", SERP_PROVIDER: "claude-search", CLAUDE_CLI_CONCURRENCY: 2 });
+  });
+
+  it("rejects an unknown provider and an out-of-range concurrency", () => {
+    expect(() => parsePipelineEnv({ ...base, LLM_PROVIDER: "openai" })).toThrow();
+    expect(() => parsePipelineEnv({ ...base, SERP_PROVIDER: "google" })).toThrow();
+    expect(() => parsePipelineEnv({ ...base, CLAUDE_CLI_CONCURRENCY: "0" })).toThrow();
+    expect(() => parsePipelineEnv({ ...base, CLAUDE_CLI_CONCURRENCY: "9" })).toThrow();
+  });
+
+  it("a live run needs only the secrets its providers and D1 target use", () => {
+    expect(requiredLiveSecrets({ job: "nightly", llm: "api", serp: "dataforseo", d1: "remote" })).toEqual([
+      "PUBLIC_SITE_URL",
+      "ANTHROPIC_API_KEY",
+      "SERP_API_KEY",
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "D1_DATABASE_ID",
+    ]);
+    expect(requiredLiveSecrets({ job: "nightly", llm: "claude-cli", serp: "claude-search", d1: "local" })).toEqual([]);
+    expect(requiredLiveSecrets({ job: "nightly", llm: "claude-cli", serp: "dataforseo", d1: "local" })).toEqual([
+      "SERP_API_KEY",
+    ]);
+    expect(requiredLiveSecrets({ job: "monthly", llm: "api", serp: "dataforseo", d1: "local" })).toEqual([
+      "ANTHROPIC_API_KEY",
+    ]);
+    expect(requiredLiveSecrets({ job: "nightly", llm: "api", serp: "fixture", d1: "memory" })).toEqual([
+      "ANTHROPIC_API_KEY",
+    ]);
   });
 });
 

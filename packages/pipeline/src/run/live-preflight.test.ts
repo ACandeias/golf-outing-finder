@@ -58,6 +58,34 @@ describe("livePreflight", () => {
   });
 });
 
+describe("livePreflight with subscription-backed providers", () => {
+  it("claude-cli and claude-search on the local D1 need no secret at all", () => {
+    const r = livePreflight("nightly", {}, { d1: "local", llm: "claude-cli", serp: "claude-search", wranglerToml: TOML_PLACEHOLDER });
+    expect(r).toMatchObject({ ok: true, problems: [] });
+    expect(r.env?.PUBLIC_SITE_URL).toBe("http://localhost:8787");
+  });
+
+  it("asks only for the key of the provider that still needs one", () => {
+    expect(livePreflight("nightly", {}, { d1: "local", llm: "claude-cli", serp: "dataforseo" }).problems).toEqual([
+      "SERP_API_KEY is not set",
+    ]);
+    expect(livePreflight("nightly", {}, { d1: "local", llm: "api", serp: "claude-search" }).problems).toEqual([
+      "ANTHROPIC_API_KEY is not set",
+    ]);
+  });
+
+  it("the remote D1 still needs the Cloudflare secrets and the site URL", () => {
+    const r = livePreflight("nightly", { NODE_ENV: "production" }, {
+      d1: "remote",
+      llm: "claude-cli",
+      serp: "claude-search",
+      wranglerToml: TOML_OK,
+    });
+    expect(r.ok).toBe(false);
+    expect(r.problems.join(" ")).toMatch(/PUBLIC_SITE_URL/);
+  });
+});
+
 describe("pnpm run pipeline --live without its secrets", () => {
   it("refuses to start: exit 2, a clear message, no runs row, nothing fetched", async () => {
     const err: string[] = [];

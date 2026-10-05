@@ -23,7 +23,14 @@ describe("loadOverrides on the committed files", () => {
     expect(o.exclusions).toEqual({ domains: [], url_patterns: [] });
     expect(o.removals).toEqual({ outing_ids: [], urls: [] });
     expect(o.notableCourses).toEqual({ names: [], osmRefs: [] });
-    expect(o.series).toEqual([]);
+    expect(o.series.map((s) => s.id)).toEqual([
+      "nkf-golf-classic",
+      "acs-golf-classic",
+      "met-pga-foundation",
+      "nj-golf-foundation",
+      "ct-pga-events",
+    ]);
+    for (const s of o.series) expect(s.index_url).toMatch(/^https:\/\//);
     expect(o.accessOperators).toContain("golfwithaccess.com");
     expect(o.tournamentOperators).toContain("amateurgolf.com");
     expect(o.jsPlatforms).toEqual(expect.arrayContaining(["classy.org", "support.kidney.org"]));

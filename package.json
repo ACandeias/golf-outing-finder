@@ -26,7 +26,8 @@
     "pipeline": "pnpm --filter @gof/pipeline start",
     "test:live-extract": "pnpm --filter @gof/pipeline start:live-extract",
     "format": "prettier --write .",
-    "docker:up": "docker compose up --build site"
+    "docker:up": "docker compose up --build site",
+    "docker:up:local": "docker compose -f docker-compose.yml -f docker-compose.local.yml up --build site"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

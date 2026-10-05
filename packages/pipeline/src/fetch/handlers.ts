@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { HandlerOutcome, StageEnv } from "../run/handlers.ts";
 import type { PipelineState } from "../run/state.ts";
 import { runSerpQueries } from "../serp/fixture.ts";
+import { EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { sqlValue } from "../sql/literal.ts";
 import { discover, planSearch } from "../stages/discover.ts";
 import { planFetch, queueBookkeeping } from "../stages/fetch-plan.ts";
@@ -154,12 +155,16 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
   const courses = valid(
     env,
     "course",
-    snapshot.all("SELECT id, name, outing_count, notable FROM courses WHERE outing_count > 0 OR notable = 1", looseRow),
+    snapshot.all(
+      "SELECT id, name, outing_count, notable, state FROM courses WHERE outing_count > 0 OR notable = 1",
+      looseRow,
+    ),
     z.object({
       id: z.string(),
       name: z.string(),
       outing_count: z.number().int(),
       notable: z.union([z.boolean(), z.number()]).transform((v) => v === true || v === 1),
+      state: z.string().nullable().optional(),
     }),
   );
 
@@ -168,7 +173,13 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     metros: ctx.overrides.metros.map((m) => ({ name: m.name, state: m.state, population: m.population })),
     courses,
     allowance: guard.allowance(),
+    ...(ports.prioritizeStates?.length ? { prioritize_states: [...ports.prioritizeStates] } : {}),
   });
+  if (ports.prioritizeStates?.length)
+    ctx.log.info("search: prioritized states first", {
+      states: ports.prioritizeStates.join(","),
+      queries: search.output.queries.length,
+    });
   state.serpQueries = search.output.queries;
   const serp = env.ports.serp ?? ports.serp;
   const serpResults = await runSerpQueries(serp, search.output.queries, guard);
@@ -186,6 +197,8 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     heldSources,
     pending,
     allowance: guard.allowance(),
+    ...(ports.platformRules ? { platform_rules: [...ports.platformRules] } : {}),
+    ...(ports.forceRecheck ? { force_recheck: true } : {}),
   });
   state.queue = out.output.queue;
   state.processedSubmissionIds = out.output.processedSubmissionIds;
@@ -236,7 +249,12 @@ export async function fetchHandler(env: StageEnv): Promise<HandlerOutcome> {
   guard.startFetchTimer();
   const plan = planFetch(ctx, { queue: state.queue, allowance: guard.allowance() });
   state.fetchPlan = plan.output.items;
-  const fetched = await fetchAll(plan.output.items, env.ports.fetcher ?? ports.fetcher, guard);
+  const fetched = await fetchAll(plan.output.items, env.ports.fetcher ?? ports.fetcher, guard, {
+    onStall: (url) => ctx.log.warn("fetch: page did not settle; deferred with the rest of its host", { url }),
+    onProgress: (done, total) => {
+      if (done % 100 === 0) ctx.log.info("fetch progress", { done, of: total });
+    },
+  });
   state.fetched = fetched.pages;
   const deferred = [...plan.output.deferred, ...fetched.deferred.map(toQueueEntry)];
   const bookkeeping = queueBookkeeping(ctx.now, {
@@ -260,7 +278,8 @@ export async function normalizeHandler(env: StageEnv): Promise<HandlerOutcome> {
   const ports = await portsFor(env);
   const previousHashes: Record<string, string> = {};
   for (const r of snapshot.all(
-    "SELECT url, content_hash FROM sources WHERE content_hash IS NOT NULL",
+    // A hash from an older extractor version doesn't count: the page is extracted again under the new rules.
+    `SELECT url, content_hash FROM sources WHERE content_hash IS NOT NULL AND extractor_version = ${sqlValue(EXTRACTOR_VERSION)}`,
     z.object({ url: z.string(), content_hash: z.string() }),
   )) {
     if (/^[0-9a-f]{64}$/.test(r.content_hash)) previousHashes[r.url] = r.content_hash;

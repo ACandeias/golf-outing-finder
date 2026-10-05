@@ -23,6 +23,8 @@ What happens:
 4. On start, `docker/entrypoint.sh` applies D1 migrations with `wrangler d1 migrations apply gof --local --persist-to /data`. If the `outings` table is empty, it applies the seed SQL files with `wrangler d1 execute gof --local --file`. Then it runs `wrangler dev --local --ip 0.0.0.0 --port 8787 --persist-to /data`.
 5. The local D1 database lives on the named volume `d1-data` mounted at `/data`, so it survives restarts. Run `docker compose down -v` to reset it.
 
+**Serving the host's database.** `pnpm run docker:up:local` (`docker compose -f docker-compose.yml -f docker-compose.local.yml up --build site`) replaces the `d1-data` volume with a bind mount of `./apps/site/.wrangler/state` at `/data`, so the container serves whatever the host writes there: `pnpm run seed`, `pnpm run courses:import --live`, or a pipeline run with `--d1=local --persist-to apps/site/.wrangler/state`. wrangler keeps the database under `<dir>/v3/d1` in both places. The entrypoint still applies pending migrations, and seeds only when `outings` is empty, so a database the pipeline filled is served as it is. Avoid writing from the host while the container serves a page that writes; both share one SQLite file.
+
 `.env` settings: `PUBLIC_SITE_URL` (default `http://localhost:8787`), `SITE_NOW` (pins the clock, ignored when `NODE_ENV=production`), and `NODE_ENV` (default `development`).
 
 Dev toolchain containers, which bind-mount the repo, sit behind the `dev` profile:
@@ -100,6 +102,18 @@ PIPELINE_NOW=2026-09-28 MAX_SERP_QUERIES_PER_RUN=5 pnpm run pipeline --dry-run -
 PIPELINE_NOW=2026-09-28 pnpm run pipeline --dry-run --fail-stage=fetch                    # exits 1, runs row keeps the error
 pnpm run pipeline --live --budget=smoke                                                   # first live run (secrets required)
 ```
+
+**On the Claude subscription, locally.** With Claude Code logged in on this machine (`claude -p` works), a live run needs no API key and no DataForSEO account:
+
+```bash
+pnpm run pipeline --live --budget=smoke --llm=claude-cli --serp=claude-search \
+  --d1=local --persist-to apps/site/.wrangler/state
+pnpm run pipeline --live --budget=nightly --llm=claude-cli --serp=claude-search \
+  --d1=local --persist-to apps/site/.wrangler/state --prioritize-states=NY,NJ,CT
+pnpm run docker:up:local     # serve the result on http://localhost:8787
+```
+
+`--llm=claude-cli` runs each extraction as `claude -p` on claude-haiku-4-5 with the same prompt and JSON schema as the Batches path; `--serp=claude-search` answers each search query with `claude -p` and only its WebSearch tool. The caps apply as usual; the report gives the cost at API rates and says the subscription covered it. Load the courses first (`pnpm run courses:import --live --persist-to apps/site/.wrangler/state`), or most outings are held as `course_unmatched`. See `packages/pipeline/README.md`, "Subscription-backed providers".
 
 The dry run uses an in-memory D1 loaded with the fixture places and courses, the recorded seed pages in `tests/fixtures/raw` (and the hand-written stand-ins in `tests/fixtures/pages/*.synthetic.json`), the LLM results in `tests/fixtures/llm`, the SERP and listing fixtures, and the IRS subset. On the pinned date it creates and publishes 9 outings from 14 pages, excludes gc1 and holds 3 calendar entries whose course isn't in the fixtures. The smoke profile caps every count at 5 to 10 (5 searches, 10 fetches, 10 extractions); in Actions, run the nightly workflow by hand and choose `smoke`.
 

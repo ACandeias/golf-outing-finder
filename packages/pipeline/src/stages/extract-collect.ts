@@ -8,8 +8,11 @@ import { lenientZoneForState } from "../extract/state-tz.ts";
 import {
   cleanEvidence,
   containsUrl,
+  isFreeEvent,
   PUBLISH_CONFIDENCE,
   scoreConfidence,
+  statedFoursome,
+  yearProblem,
 } from "../extract/validate.ts";
 import {
   emptyResult,
@@ -108,6 +111,19 @@ function validateEvent(
   }
   const endDate = e.end_date !== null && startDate !== null && e.end_date >= startDate ? e.end_date : null;
 
+  // The year must come from the page, never from the fetch date (amended 2026-10-03).
+  if (startDate !== null && jl === null) {
+    const why = yearProblem({
+      startDate,
+      evidenceDate: e.evidence.date,
+      pageText: m.page_text ?? null,
+      url: m.page_url,
+      title: e.title,
+      currentYear: ctx.now.getUTCFullYear(),
+    });
+    if (why) return { ok: false, reason: why };
+  }
+
   // A new outing starts today or later, course-local; the course isn't known yet,
   // so use the state's westernmost zone (publish checks again with the course's).
   if (startDate !== null) {
@@ -121,7 +137,16 @@ function validateEvent(
     venue: cleanEvidence(e.evidence.venue),
   };
   const single = e.single_price_usd === null ? null : dollarsToCents(e.single_price_usd);
-  const foursome = e.foursome_price_usd === null ? null : dollarsToCents(e.foursome_price_usd);
+  const foursome =
+    e.foursome_price_usd === null ||
+    !statedFoursome(e.single_price_usd, e.foursome_price_usd, m.page_text ?? null)
+      ? null
+      : dollarsToCents(e.foursome_price_usd);
+  // A free event is not an outing anyone pays to enter.
+  if (looksLikeOuting(e) && isFreeEvent(e)) {
+    e.is_outing = false;
+    e.reject_reason = "other";
+  }
   const confidence = scoreConfidence({
     hasDateEvidence: startDate !== null && (evidence.date !== null || jl !== null),
     hasCourseName: e.course_name !== null,

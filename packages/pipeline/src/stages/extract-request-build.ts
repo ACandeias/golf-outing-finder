@@ -100,6 +100,7 @@ export const extractRequestBuild: ExtractRequestBuildStage = (ctx, input) => {
       hash: page.hash,
       jsonld_events: page.jsonld_events,
       directory_host: page.directory_host,
+      page_text: page.text,
     });
   }
 

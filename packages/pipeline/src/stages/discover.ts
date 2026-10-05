@@ -1,4 +1,5 @@
 import { localToday } from "@gof/shared/dates";
+import { blockedAsSource } from "../discovery/platform-policy.ts";
 import { normalizeUrl, hostOf } from "../discovery/url.ts";
 import { isExcludedUrl } from "../overrides/load.ts";
 import {
@@ -89,35 +90,58 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   const now = ctx.now;
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth(); // 0-based
+  // SPEC.md 8.2 as amended 2026-10-03: the coming season. From September 1 the
+  // year-bearing templates also run with next year; from December 1 only with it.
+  const years = month >= 11 ? [year + 1] : month >= 8 ? [year, year + 1] : [year];
   const monthName = MONTHS[month] ?? "";
   const dayNumber = Math.floor(now.getTime() / DAY_MS);
   const dom = now.getUTCDate() - 1;
   const days = daysInMonthUtc(now);
   const weekly = month >= 3 && month <= 8;
 
-  const queries: SerpQuery[] = [];
+  const priority = (input.prioritize_states ?? []).map((s) => s.toUpperCase());
+  const rank = (state: string | null | undefined): number => {
+    const i = state ? priority.indexOf(state.toUpperCase()) : -1;
+    return i < 0 ? priority.length : i;
+  };
+  // Prioritized states first (in the order given; metros before courses within
+  // a state), then tonight's regular schedule. The cap below cuts from the end.
+  const planned: { rank: number; seq: number; queries: SerpQuery[] }[] = [];
+  let seq = 0;
   input.metros.forEach((m, i) => {
+    const r = rank(m.state);
     const tonight = weekly ? i % 7 === dayNumber % 7 : i % days === dom;
-    if (!tonight) return;
+    if (!tonight && r === priority.length) return;
     const city = `${m.name} ${m.state}`;
     const subject = `${m.name}, ${m.state}`;
-    queries.push(
-      { kind: "place", q: `golf outing ${city} ${year}`, subject },
-      { kind: "place", q: `charity golf tournament ${city} ${year}`, subject },
-      { kind: "place", q: `golf scramble ${city} ${monthName}`, subject },
-    );
+    planned.push({
+      rank: r,
+      seq: seq++,
+      queries: [
+        ...years.map((y): SerpQuery => ({ kind: "place", q: `golf outing ${city} ${y}`, subject })),
+        ...years.map((y): SerpQuery => ({ kind: "place", q: `charity golf tournament ${city} ${y}`, subject })),
+        { kind: "place", q: `golf scramble ${city} ${monthName}`, subject },
+      ],
+    });
   });
   const eligible = input.courses
     .filter((c) => c.outing_count > 0 || c.notable)
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   eligible.forEach((c, i) => {
-    if (i % days !== dom) return;
+    const r = rank(c.state);
+    if (i % days !== dom && r === priority.length) return;
     const name = c.name.replace(/"/g, "");
-    queries.push(
-      { kind: "course", q: `"${name}" golf outing ${year}`, subject: c.id },
-      { kind: "course", q: `"${name}" golf classic register`, subject: c.id },
-    );
+    planned.push({
+      rank: r,
+      seq: seq++,
+      queries: [
+        ...years.map((y): SerpQuery => ({ kind: "course", q: `"${name}" golf outing ${y}`, subject: c.id })),
+        { kind: "course", q: `"${name}" golf classic register`, subject: c.id },
+      ],
+    });
   });
+  planned.sort((a, b) => a.rank - b.rank || a.seq - b.seq);
+  const queries: SerpQuery[] = planned.flatMap((p) => p.queries);
 
   const cap = input.allowance.MAX_SERP_QUERIES_PER_RUN ?? ctx.caps.MAX_SERP_QUERIES_PER_RUN;
   if (queries.length > cap) {
@@ -206,6 +230,9 @@ function kindFor(via: FoundVia): SourceKind {
   }
 }
 
+/** Routes whose listing adapter already applied platforms.yaml (sources.ts skips `allowed: false`). */
+const ADAPTER_ROUTES: ReadonlySet<FoundVia> = new Set(["platform", "association", "directory"]);
+
 export const discover: DiscoverStage = (ctx, input) => {
   const result = emptyResult();
   const now = ctx.now;
@@ -227,7 +254,7 @@ export const discover: DiscoverStage = (ctx, input) => {
     input.allowance.MAX_FETCHES_PER_RUN ?? ctx.caps.MAX_FETCHES_PER_RUN,
   );
   const due = input.recheck
-    .filter((c) => recheckDue(c, now))
+    .filter((c) => input.force_recheck === true || recheckDue(c, now))
     .sort((a, b) => Date.parse(a.last_verified) - Date.parse(b.last_verified));
   const recheckUrls = new Set<string>();
   for (const c of due) {
@@ -355,6 +382,17 @@ export const discover: DiscoverStage = (ctx, input) => {
     if (isExcludedUrl(url, ctx.overrides.exclusions)) {
       skipped.push({ url, reason: "excluded" });
       continue;
+    }
+    // platforms.yaml applies to every route (SPEC.md 8.2): search results, series
+    // links, submissions, rechecks, held retries and leftover queue rows never
+    // reach a platform or directory with allowed: false, or any listing page.
+    // The platform, association and directory adapters check `allowed` themselves.
+    if (input.platform_rules && !ADAPTER_ROUTES.has(c.found_via)) {
+      const v = blockedAsSource(url, input.platform_rules);
+      if (v) {
+        skipped.push({ url, reason: v.allowed ? "platform_listing" : "platform_not_allowed" });
+        continue;
+      }
     }
     const existing = byUrl.get(url);
     if (existing) {

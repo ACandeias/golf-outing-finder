@@ -2,6 +2,7 @@ import { resolveBudget } from "@gof/shared/budget";
 import { describe, expect, it } from "vitest";
 import { emptyOverrides } from "../overrides/load.ts";
 import { discover, isGolfOutingText, planSearch, PRIORITY } from "./discover.ts";
+import type { PlatformRule } from "../discovery/platform-policy.ts";
 import {
   discoverInputSchema,
   queueEntrySchema,
@@ -122,14 +123,44 @@ describe("planSearch", () => {
           .output.queries.map((x) => x.q),
       );
     }
+    // November: the coming season's year too (from September 1).
     expect(all.sort()).toEqual(
       [
         '"Encanto 18" golf classic register',
         '"Encanto 18" golf outing 2026',
+        '"Encanto 18" golf outing 2027',
         '"Winged Foot Golf Club" golf classic register',
         '"Winged Foot Golf Club" golf outing 2026',
+        '"Winged Foot Golf Club" golf outing 2027',
       ].sort(),
     );
+  });
+
+  it("searches the coming season: next year from September 1, the current year dropped from December 1", () => {
+    const qs = (iso: string): string[] =>
+      planSearch(ctxAt(iso), {
+        metros: [{ name: "Mamaroneck", state: "NY", population: 1 }],
+        courses: [],
+        allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+        prioritize_states: ["NY"],
+      }).output.queries.map((x) => x.q);
+    expect(qs("2026-08-31T07:15:00Z")).toEqual([
+      "golf outing Mamaroneck NY 2026",
+      "charity golf tournament Mamaroneck NY 2026",
+      "golf scramble Mamaroneck NY August",
+    ]);
+    expect(qs("2026-09-01T07:15:00Z")).toEqual([
+      "golf outing Mamaroneck NY 2026",
+      "golf outing Mamaroneck NY 2027",
+      "charity golf tournament Mamaroneck NY 2026",
+      "charity golf tournament Mamaroneck NY 2027",
+      "golf scramble Mamaroneck NY September",
+    ]);
+    expect(qs("2026-12-01T07:15:00Z")).toEqual([
+      "golf outing Mamaroneck NY 2027",
+      "charity golf tournament Mamaroneck NY 2027",
+      "golf scramble Mamaroneck NY December",
+    ]);
   });
 
   it("stops at MAX_SERP_QUERIES_PER_RUN and records a budget hit", () => {
@@ -142,6 +173,55 @@ describe("planSearch", () => {
     expect(out.result.budgetHits[0]).toMatchObject({ cap: "MAX_SERP_QUERIES_PER_RUN", limit: 5, stage: "discover" });
   });
 
+  it("--prioritize-states: those states' metros and courses run tonight, first, in the order given", () => {
+    const mixed = [
+      { name: "Phoenix", state: "AZ", population: 5 },
+      { name: "Hartford", state: "CT", population: 4 },
+      { name: "Yonkers", state: "NY", population: 3 },
+      { name: "Newark", state: "NJ", population: 2 },
+      { name: "New York City", state: "NY", population: 1 },
+    ];
+    const stateCourses = [
+      { id: "crs_az", name: "Encanto 18", outing_count: 1, notable: false, state: "AZ" },
+      { id: "crs_ny", name: "Winged Foot Golf Club", outing_count: 0, notable: true, state: "NY" },
+      { id: "crs_nj", name: "Baltusrol", outing_count: 2, notable: false, state: "NJ" },
+    ];
+    // 2026-10-03: monthly cadence; none of these would be scheduled on this night otherwise except index 2.
+    const out = planSearch(ctxAt("2026-10-03T19:00:00Z"), {
+      metros: mixed,
+      courses: stateCourses,
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+      prioritize_states: ["NY", "NJ", "CT"],
+    }).output.queries;
+    const subjects = [...new Set(out.map((x) => x.subject))];
+    expect(subjects).toEqual(["Yonkers, NY", "New York City, NY", "crs_ny", "Newark, NJ", "crs_nj", "Hartford, CT"]);
+    expect(out.filter((x) => x.subject === "Yonkers, NY").map((x) => x.q)).toEqual([
+      "golf outing Yonkers NY 2026",
+      "golf outing Yonkers NY 2027",
+      "charity golf tournament Yonkers NY 2026",
+      "charity golf tournament Yonkers NY 2027",
+      "golf scramble Yonkers NY October",
+    ]);
+    // Phoenix (index 0) and the AZ course are not due on day 3 and are not prioritized.
+    expect(subjects).not.toContain("Phoenix, AZ");
+    expect(subjects).not.toContain("crs_az");
+  });
+
+  it("prioritized queries come first when the cap cuts the night short", () => {
+    const many = [
+      ...Array.from({ length: 40 }, (_, i) => ({ name: `Az${i}`, state: "AZ", population: 1 })),
+      { name: "Yonkers", state: "NY", population: 1 },
+    ];
+    const out = planSearch(ctxAt("2026-07-01T07:15:00Z"), {
+      metros: many,
+      courses: [],
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 3 },
+      prioritize_states: ["NY"],
+    });
+    expect(out.output.queries.map((x) => x.subject)).toEqual(["Yonkers, NY", "Yonkers, NY", "Yonkers, NY"]);
+    expect(out.result.budgetHits).toHaveLength(1);
+  });
+
   it("plans nothing when the allowance is zero (monthly budget, spend cap)", () => {
     const out = planSearch(ctx, { metros, courses, allowance: { MAX_SERP_QUERIES_PER_RUN: 0 } });
     expect(out.output.queries).toEqual([]);
@@ -152,7 +232,105 @@ describe("planSearch", () => {
 // discover
 // ---------------------------------------------------------------------------
 
+describe("discover: platforms.yaml applies to search results and rechecks", () => {
+  const rules: PlatformRule[] = [
+    { name: "eventbrite", allowed: false, domains: ["eventbrite.*"], listing_url_pattern: "^/(d|b|o|cc)/" },
+    { name: "golfgenius", allowed: true, domains: ["golfgenius.com"], listing_url_pattern: "^/$" },
+  ];
+  const serp = (url: string) => ({
+    query: { kind: "place" as const, q: "golf outing Darien CT 2026", subject: "Darien, CT" },
+    rank: 1,
+    url,
+    title: "t",
+    snippet: "s",
+  });
+
+  it("drops an Eventbrite search listing and any page on a platform with allowed: false", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        serpResults: [
+          serp("https://www.eventbrite.ca/d/ct--darien/golf-tournament/"),
+          serp("https://www.eventbrite.com/e/9th-annual-1-club-golf-outing-tickets-1999044102724"),
+          serp("https://www.golfgenius.com/pages/123-charity-classic"),
+          serp("https://www.golfgenius.com/"),
+          serp("https://www.fordham.edu/golf"),
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => q.url)).toEqual([
+      "https://www.golfgenius.com/pages/123-charity-classic",
+      "https://www.fordham.edu/golf",
+    ]);
+    expect(out.output.skipped).toEqual(
+      expect.arrayContaining([
+        { url: "https://www.eventbrite.ca/d/ct--darien/golf-tournament/", reason: "platform_not_allowed" },
+        { url: "https://www.golfgenius.com/", reason: "platform_listing" },
+      ]),
+    );
+  });
+
+  it("does not recheck an outing whose page is an Eventbrite listing", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        recheck: [recheck("o1", "2026-10-20", "2026-09-01T00:00:00Z", "https://www.eventbrite.ca/d/ct--darien/golf-tournament/")],
+      }),
+    );
+    expect(out.output.queue).toEqual([]);
+  });
+
+  it("a series link, a submission or a leftover queue row on a disallowed platform is skipped too", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        listings: [
+          {
+            found_via: "series",
+            origin: "acs-golf-classic",
+            url: "https://www.eventbrite.com/e/acs-golf-classic-tickets-2",
+            title: "ACS Golf Classic",
+            text: null,
+            registration_url: null,
+          },
+          {
+            found_via: "series",
+            origin: "acs-golf-classic",
+            url: "https://akroncanton.acsgolf.org/",
+            title: null,
+            text: null,
+            registration_url: null,
+          },
+        ],
+        submissions: [{ id: "s1", url: "https://www.eventbrite.com/e/submitted-golf-outing-tickets-3", created_at: NOW }],
+        pending: [
+          {
+            url: "https://www.eventbrite.com.au/d/nj--northfield/pine-beach-golf-outing/",
+            found_via: "search_place",
+            found_at: NOW,
+            priority: 7,
+            next_attempt_at: null,
+            attempts: 0,
+          },
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => q.url)).toEqual(["https://akroncanton.acsgolf.org/"]);
+    expect(out.output.processedSubmissionIds).toEqual(["s1"]);
+    expect(out.output.skipped.filter((x) => x.reason === "platform_not_allowed")).toHaveLength(3);
+  });
+});
+
 describe("discover: recheck queue", () => {
+  it("force_recheck queues every published outing, due or not (within the 40% share)", () => {
+    const fresh = recheck("o2", "2026-12-01", "2026-09-28T11:00:00Z");
+    expect(discover(ctx, input({ recheck: [fresh] })).output.queue).toEqual([]);
+    expect(discover(ctx, input({ recheck: [fresh], force_recheck: true })).output.queue.map((q) => q.recheck_outing_id)).toEqual(["o2"]);
+  });
+
   it("rechecks every 7 days when more than 30 days out, else every 48 hours", () => {
     const out = discover(
       ctx,

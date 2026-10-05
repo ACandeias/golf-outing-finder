@@ -1,6 +1,7 @@
 import { addDaysIso, monthOf, todayIso } from "@gof/shared/dates";
 import { COURSE_SLUG_STOPWORDS, kebab, organizerSlug, outingSlug } from "@gof/shared/slug";
 import { tokenSetSimilarity } from "../classify/similarity.ts";
+import { platformVerdict } from "../discovery/platform-policy.ts";
 import { canonicalUrlFor } from "../extract/canonical.ts";
 import { registrableDomainOf, sourceDomain } from "../extract/domain.ts";
 import { sourceIdForUrl, stableId } from "../extract/ids.ts";
@@ -52,19 +53,97 @@ function similar(a: string | null, b: string | null): boolean {
   return a !== null && b !== null && tokenSetSimilarity(a, b) >= SAME_OUTING_SIMILARITY;
 }
 
+const ORDINAL_WORDS =
+  /\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|twenty|thirtieth|thirty|fortieth|forty|fiftieth|fifty|sixtieth|sixty)(-\w+)?\b/gi;
+
 /**
- * Same outing on the same course and date: organizer names 0.8 or more alike;
- * with a name missing on one side, titles 0.8 or more alike; with no name on
- * either side, always (the dedupe index allows one organizer-less row per
- * course and date).
+ * A title stripped of what varies between two pages about one event: years,
+ * ordinals ("18th", "Eighteenth"), "annual", and the words of either
+ * organizer's name (except generic ones like "foundation" or "club"). "Eighteenth Annual Golf Outing" and "William Paterson
+ * University Annual Golf Outing" both read "golf outing".
+ */
+export function titleKey(title: string, organizers: readonly (string | null)[]): string {
+  const drop = new Set(organizers.flatMap((o) => (o ? nameWords(o) : [])));
+  return titleWords(title)
+    .filter((w) => !drop.has(w))
+    .join(" ");
+}
+
+/** Words that name no one in particular, kept in titles and ignored when comparing organizer names. */
+const GENERIC_NAME_WORDS: ReadonlySet<string> = new Set([
+  "alumni",
+  "council",
+  "foundation",
+  "association",
+  "club",
+  "inc",
+  "the",
+  "and",
+  "for",
+]);
+
+function nameWords(name: string): string[] {
+  return name
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 2 && !GENERIC_NAME_WORDS.has(w));
+}
+
+function titleWords(title: string): string[] {
+  return title
+    .toLowerCase()
+    .replace(ORDINAL_WORDS, " ")
+    .replace(/\b\d+(st|nd|rd|th)\b/g, " ")
+    .replace(/\b(19|20)\d{2}\b/g, " ")
+    .replace(/\bannual\b/g, " ")
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 0);
+}
+
+/**
+ * True when a title names its own organizer by a word the other organizer's
+ * name lacks: "Rotary Golf Day" (Rotary Club of Phoenix) next to "Lions Golf
+ * Day" (Lions Club of Phoenix) are two outings, so the organizer words stay in.
+ */
+function titleNamesItsOwnOrganizer(
+  a: { organizer: string | null; title: string },
+  b: { organizer: string | null; title: string },
+): boolean {
+  if (a.organizer === null || b.organizer === null) return false;
+  const wa = new Set(nameWords(a.organizer));
+  const wb = new Set(nameWords(b.organizer));
+  const own = (title: string, mine: Set<string>, theirs: Set<string>): boolean =>
+    titleWords(title).some((w) => mine.has(w) && !theirs.has(w));
+  return own(a.title, wa, wb) || own(b.title, wb, wa);
+}
+
+/** Titles 0.8 or more alike once `titleKey` has normalized them (raw titles when a key is empty). */
+function titlesAlike(
+  a: { organizer: string | null; title: string },
+  b: { organizer: string | null; title: string },
+): boolean {
+  const names = titleNamesItsOwnOrganizer(a, b) ? [] : [a.organizer, b.organizer];
+  const ka = titleKey(a.title, names);
+  const kb = titleKey(b.title, names);
+  if (ka.length === 0 || kb.length === 0) return similar(a.title, b.title);
+  return ka === kb || tokenSetSimilarity(ka, kb) >= SAME_OUTING_SIMILARITY;
+}
+
+/**
+ * Same outing on the same course and date (SPEC.md 8.7 as amended
+ * 2026-10-03): organizer names 0.8 or more alike, or titles 0.8 or more alike
+ * even when the organizer names differ or are missing (one event found via two
+ * pages: a brochure and a registration form name the organizer differently),
+ * unless a title names its own organizer by a word the other's name lacks;
+ * with no organizer name on either side, always.
  */
 function sameOuting(
   a: { organizer: string | null; title: string },
   b: { organizer: string | null; title: string },
 ): boolean {
-  if (a.organizer !== null && b.organizer !== null) return similar(a.organizer, b.organizer);
+  if (a.organizer !== null && b.organizer !== null && similar(a.organizer, b.organizer)) return true;
   if (a.organizer === null && b.organizer === null) return true;
-  return similar(a.title, b.title);
+  return titlesAlike(a, b);
 }
 
 function monthGap(a: string, b: string): number {
@@ -140,6 +219,8 @@ export const dedupeUpsert: DedupeUpsertStage = (ctx, input) => {
   const heldUntil = addDaysIso(todayIso(nowMs), HOLD_DAYS);
   const outcomes: UpsertOutcome[] = [];
 
+  const rules = input.platform_rules ?? [];
+  const isListingPage = (url: string): boolean => platformVerdict(url, rules)?.listing === true;
   const sourceByUrl = new Map(input.existing.sources.map((s) => [s.url, s]));
   const sourceIdOf = (url: string): string => sourceByUrl.get(url)?.id ?? sourceIdForUrl(url);
   const organizersById = new Map(input.existing.organizers.map((o) => [o.id, o]));
@@ -287,8 +368,12 @@ export const dedupeUpsert: DedupeUpsertStage = (ctx, input) => {
     const organizerId = resolveOrganizer(top);
     const organizerName = top.organizer_name;
 
-    const organizerPage = evs.find((e) => e.source_kind === "organizer");
-    const canonical = canonicalUrlFor(organizerPage ?? top);
+    // A platform listing or search page is never the canonical source while the
+    // cluster has another page (SPEC.md 8.2); publish holds it if it has none.
+    const notListing = evs.filter((e) => !isListingPage(canonicalUrlFor(e)));
+    const pool = notListing.length > 0 ? notListing : evs;
+    const organizerPage = pool.find((e) => e.source_kind === "organizer");
+    const canonical = canonicalUrlFor(organizerPage ?? pool[0] ?? top);
     const endDate = first(evs, (e) => e.end_date);
     const merged = {
       title: top.title,
@@ -368,7 +453,10 @@ export const dedupeUpsert: DedupeUpsertStage = (ctx, input) => {
         expected_month: null,
         expected_misses: 0,
         registration_url: merged.registration_url ?? existing.registration_url,
-        canonical_source_url: organizerPage || confirming ? canonical : existing.canonical_source_url,
+        canonical_source_url:
+          organizerPage || confirming || (isListingPage(existing.canonical_source_url) && !isListingPage(canonical))
+            ? canonical
+            : existing.canonical_source_url,
         source_gone: 0,
         confidence: merged.confidence,
         hold_reason: existing.hold_reason === "removed" ? "removed" : null,
@@ -479,6 +567,23 @@ export const dedupeUpsert: DedupeUpsertStage = (ctx, input) => {
       return true;
     });
     ops.push({ op: "upsert", table: "source_outings", rows, update: [] });
+  }
+  // Retraction: every source of an existing dated outing was re-extracted this
+  // run and no event matched it any more (the page now reads as past, free, or
+  // another outing's duplicate). Confidence 0 makes publish hold it.
+  const produced = new Set(outcomes.flatMap((o) => (o.outing_id ? [o.outing_id] : [])));
+  const collected = new Set(input.collected ?? []);
+  let retracted = 0;
+  for (const l of input.linked ?? []) {
+    if (!["open", "waitlist", "sold_out", "cancelled"].includes(l.status)) continue;
+    if (produced.has(l.outing_id) || l.source_urls.length === 0) continue;
+    if (!l.source_urls.every((u) => collected.has(u))) continue;
+    ops.push({ op: "update", table: "outings", set: { confidence: 0, updated_at: nowIso }, where: { id: l.outing_id } });
+    retracted++;
+  }
+  if (retracted > 0) {
+    result.counters.outings_retracted = retracted;
+    ctx.log.info("outings no longer supported by their re-extracted sources", { retracted });
   }
   for (const u of input.unchanged) {
     ops.push({ op: "update", table: "outings", set: { last_verified: nowIso }, where: { canonical_source_url: u.url } });

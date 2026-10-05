@@ -1,4 +1,46 @@
-# National series index pages the discovery stage checks daily (SPEC.md section 8.2).
-# Example: NKF Golf Classic, American Cancer Society golf events,
-#          Lexus Champions for Charity, PGA section foundations.
-series: []
+# National series index pages the discovery stage checks daily (SPEC.md section 8.2 item 3).
+# Discovery enqueues every on-site (same registrable domain) or registration-host link that looks
+# like an event; the index page itself is not extracted.
+#
+# Checked 2026-10-03 by fetching each page and its robots.txt as GolfOutingFinderBot/1.0.
+# "Yields" is what the static HTML linked to that day.
+#
+# Considered and left out:
+# - Lexus Champions for Charity (lexuschampionsforcharity.com): robots.txt answers with an error
+#   page, and the home page links no events in its HTML. No usable public index.
+# - Met PGA (met.pga.com): its event links are BlueGolf tournament leaderboards (pro and junior
+#   championships, not outings the public pays to enter), off-site, so nothing would be enqueued.
+# - NJ PGA section (newjersey.pga.com): same, BlueGolf championship pages and news; its foundation
+#   is the New Jersey Golf Foundation below. (njpga.com is a parked domain; njpga.org is the
+#   NJ Propane Gas Association.)
+series:
+  # Allowed by robots.txt. Yields 4 NKF Golf Classic event pages on support.kidney.org
+  # (Philadelphia CC, Stonebridge Ranch, Whitmoor, Winged Foot), each with a registration form.
+  - id: nkf-golf-classic
+    name: NKF Golf Classic
+    index_url: https://www.kidney.org/take-action/nkf-golf-classic
+
+  # Allowed by robots.txt. Yields 30 American Cancer Society Golf Classic event sites, one per
+  # subdomain (akroncanton, nnj = Northern New Jersey, maryland, pittsburgh, tampa, ...).
+  - id: acs-golf-classic
+    name: American Cancer Society Golf Classic
+    index_url: https://acsgolf.org/golf-classic-tournaments/
+
+  # Allowed by robots.txt. The Met PGA Foundation (NY metro). Yields 1 program page (Military Golf
+  # League); its junior tour schedule is on BlueGolf, off-site. Kept so new foundation events appear.
+  - id: met-pga-foundation
+    name: Met PGA Foundation
+    index_url: https://metpgafoundation.org/
+
+  # Allowed by robots.txt. The New Jersey Golf Foundation, which the NJ PGA section site links as its
+  # foundation. Yields the NJ Golf Foundation Golf Classic page.
+  - id: nj-golf-foundation
+    name: New Jersey Golf Foundation
+    index_url: https://www.njgolffoundation.org/events
+
+  # Allowed by robots.txt. Connecticut Section PGA events calendar, including the CT PGA Golf
+  # Foundation's events (Birdies Fore Brighter Futures, the Foundation Charity Classic). Also lists
+  # section championships (Del Kinney Pro-Pro, meetings); extraction rejects those.
+  - id: ct-pga-events
+    name: Connecticut PGA and CT PGA Golf Foundation events
+    index_url: https://ctpga.com/events/

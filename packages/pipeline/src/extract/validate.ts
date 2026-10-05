@@ -26,6 +26,78 @@ export function cleanEvidence(quote: string | null): string | null {
   return q;
 }
 
+const YEAR = /\b(19[5-9]\d|20\d{2})\b/g;
+
+function years(text: string): number[] {
+  return [...text.matchAll(YEAR)].map((m) => Number(m[1]));
+}
+
+/**
+ * Why an event's year can't be trusted, or null (SPEC.md 8.4 as amended
+ * 2026-10-03): the evidence quotes a year before this one; the page states its
+ * year nowhere (so it came from the fetch date); or the evidence date has no
+ * year and the nearest year before it on the page (a posting date) is an
+ * earlier one, as on a 2017 news article about "next Monday, Oct. 9".
+ */
+export function yearProblem(i: {
+  startDate: string;
+  evidenceDate: string | null;
+  pageText: string | null;
+  url: string;
+  title: string;
+  currentYear: number;
+}): string | null {
+  const quoted = i.evidenceDate ? years(i.evidenceDate) : [];
+  const early = quoted.find((y) => y < i.currentYear);
+  if (early !== undefined) return `past: the page states ${early}`;
+  if (i.pageText === null) return null;
+  const eventYear = i.startDate.slice(0, 4);
+  const stated = `${i.pageText} ${decodeURIComponentSafe(i.url)} ${i.title} ${i.evidenceDate ?? ""}`;
+  if (!stated.includes(eventYear)) return `year ${eventYear} is not stated on the page`;
+  if (quoted.length === 0 && i.evidenceDate) {
+    const at = i.pageText.toLowerCase().indexOf(i.evidenceDate.toLowerCase().slice(0, 40));
+    if (at >= 0) {
+      const before = years(i.pageText.slice(Math.max(0, at - 400), at));
+      const nearest = before.at(-1);
+      if (nearest !== undefined && nearest < i.currentYear) return `past: the page is dated ${nearest}`;
+    }
+  }
+  return null;
+}
+
+function decodeURIComponentSafe(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+/** A free event (price 0, or "free" with no price): nobody pays to enter (amended 2026-10-03). */
+export function isFreeEvent(e: {
+  single_price_usd: number | null;
+  foursome_price_usd: number | null;
+  sponsor_only: boolean;
+  evidence: { price: string | null };
+}): boolean {
+  if (e.sponsor_only) return false;
+  const noFoursome = e.foursome_price_usd === null || e.foursome_price_usd === 0;
+  if (e.single_price_usd === 0 && noFoursome) return true;
+  return e.single_price_usd === null && e.foursome_price_usd === null && /\bfree\b/i.test(e.evidence.price ?? "");
+}
+
+/**
+ * False when the foursome price is just four times the single price and the
+ * page never shows that amount (the model multiplied; amended 2026-10-03).
+ */
+export function statedFoursome(single: number | null, foursome: number, pageText: string | null): boolean {
+  if (single === null || pageText === null || Math.abs(foursome - single * 4) > 0.005) return true;
+  const whole = Math.round(foursome);
+  const withComma = whole.toLocaleString("en-US");
+  const re = new RegExp(`(^|[^\\d,])(${whole}|${withComma})(\\.00)?(?![\\d,])`);
+  return re.test(pageText);
+}
+
 export interface ConfidenceInput {
   hasDateEvidence: boolean;
   hasCourseName: boolean;

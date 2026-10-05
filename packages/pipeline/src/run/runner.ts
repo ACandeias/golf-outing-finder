@@ -40,6 +40,8 @@ export interface RunOptions {
   failStage: StageName | null;
   /** Unimplemented stages fail the run (workstream E turns this on). */
   strict: boolean;
+  /** The report's cost line for subscription-backed providers, given the run's API-rate estimate. */
+  costNote?: (estCostCents: number) => string | null;
 }
 
 export interface RunDeps {
@@ -220,6 +222,7 @@ export async function runPipeline(opts: RunOptions, deps: RunDeps): Promise<RunO
       counters: summaryCounters(row, state.counters),
       holds,
       strict: opts.strict,
+      cost_note: opts.costNote?.(row.est_cost_cents) ?? null,
     });
     statuses.push({
       stage: "report",

@@ -46,6 +46,29 @@ const capOverrides = Object.fromEntries(
   BUDGET_CAPS.map((cap) => [cap, z.coerce.number().int().min(0).optional()]),
 ) as Record<(typeof BUDGET_CAPS)[number], z.ZodOptional<z.ZodNumber>>;
 
+/**
+ * Where the pipeline's LLM calls go: `api` is the Anthropic Message Batches API
+ * (ANTHROPIC_API_KEY); `claude-cli` spawns the logged-in `claude -p` (Claude
+ * Code headless, billed to the owner's subscription, no key).
+ */
+export const llmProviderSchema = z.enum(["api", "claude-cli"]);
+export type LlmProvider = z.infer<typeof llmProviderSchema>;
+
+/**
+ * Where search-by-place and search-by-course queries go: `dataforseo`
+ * (SERP_API_KEY), `claude-search` (`claude -p` with only WebSearch, on the
+ * subscription), or `fixture` (tests/fixtures/serp, no network).
+ */
+export const serpProviderSchema = z.enum(["dataforseo", "claude-search", "fixture"]);
+export type SerpProvider = z.infer<typeof serpProviderSchema>;
+
+const optionalEnum = <T extends z.ZodTypeAny>(schema: T) =>
+  z
+    .string()
+    .optional()
+    .transform((v) => (v === undefined || v.trim() === "" ? undefined : v.trim()))
+    .pipe(schema.optional());
+
 /** GitHub Actions and local env for packages/pipeline. */
 export const pipelineEnvSchema = z.object({
   NODE_ENV: nodeEnvSchema,
@@ -60,9 +83,36 @@ export const pipelineEnvSchema = z.object({
   INDEXNOW_KEY: optionalString,
   GH_TOKEN: optionalString,
   PIPELINE_NOW: optionalClock,
+  LLM_PROVIDER: optionalEnum(llmProviderSchema),
+  SERP_PROVIDER: optionalEnum(serpProviderSchema),
+  /** Parallel `claude -p` processes for claude-cli and claude-search (default 3). */
+  CLAUDE_CLI_CONCURRENCY: z.coerce.number().int().min(1).max(8).optional(),
   ...capOverrides,
 });
 export type PipelineEnv = z.infer<typeof pipelineEnvSchema>;
+
+export interface LiveSecretsInput {
+  job: "nightly" | "monthly";
+  llm: LlmProvider;
+  serp: SerpProvider;
+  d1: "local" | "remote" | "memory";
+}
+
+/**
+ * The variables a live run must have, given its providers and D1 target. The
+ * remote D1 needs the Cloudflare credentials and the public site URL (the
+ * crawler's user agent names it); a local D1 run falls back to the dev URL.
+ * `claude-cli` and `claude-search` need no key: they run on the logged-in
+ * Claude Code subscription.
+ */
+export function requiredLiveSecrets(o: LiveSecretsInput): (keyof PipelineEnv)[] {
+  const out: (keyof PipelineEnv)[] = [];
+  if (o.d1 === "remote") out.push("PUBLIC_SITE_URL");
+  if (o.llm === "api") out.push("ANTHROPIC_API_KEY");
+  if (o.job === "nightly" && o.serp === "dataforseo") out.push("SERP_API_KEY");
+  if (o.d1 === "remote") out.push("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "D1_DATABASE_ID");
+  return out;
+}
 
 /** Every variable named in SPEC.md section 6, for docs and tests. */
 export const SPEC_ENV_VARS = [

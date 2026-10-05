@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * `pnpm run pipeline [--dry-run | --live] [--budget=nightly|monthly|smoke] [--stages=a,b,c]
- *  [--fail-stage=<stage>] [--now=<ISO>] [--strict] [--d1=local|remote|memory]`
+ *  [--fail-stage=<stage>] [--now=<ISO>] [--strict] [--d1=local|remote|memory] [--persist-to=<dir>]
+ *  [--llm=api|claude-cli] [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT]`
  *
  * Builds the Context once (clock, caps, overrides, logger), opens the D1 port,
  * builds the run's edges (src/run/wire.ts), runs the stages, closes the edges
@@ -77,6 +78,8 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
   if (opts.mode === "live") {
     const pre = livePreflight(opts.job, env, {
       d1: opts.d1,
+      llm: opts.llm,
+      serp: opts.serp,
       ...(deps.wranglerToml !== undefined ? { wranglerToml: deps.wranglerToml } : {}),
     });
     if (!pre.ok) {
@@ -114,6 +117,8 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       now: ctx.now.toISOString(),
       d1: d1.target,
       strict: opts.strict,
+      ...(opts.mode === "live" ? { llm: opts.llm, serp: opts.serp } : {}),
+      ...(opts.prioritizeStates.length ? { prioritize_states: opts.prioritizeStates.join(",") } : {}),
       ...(opts.failStage ? { fail_stage: opts.failStage } : {}),
     });
 
@@ -121,6 +126,10 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       ctx,
       mode: opts.mode,
       env: { ...env, PUBLIC_SITE_URL: parsedEnv.PUBLIC_SITE_URL },
+      llm: opts.llm,
+      serp: opts.serp,
+      prioritizeStates: opts.prioritizeStates,
+      forceRecheck: opts.recheckAll,
       ...deps.edges,
     });
     closeEdges = () => edges.close();
@@ -131,6 +140,7 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
         stages: opts.stages,
         failStage: opts.failStage,
         strict: opts.strict,
+        costNote: (cents) => edges.costNote(cents),
       },
       {
         ctx,
@@ -169,8 +179,19 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  // A promise that never settles leaves Node with nothing to wait on, and it
+  // would exit 0 mid-run. Treat that as the failure it is.
+  let settled = false;
+  process.on("beforeExit", () => {
+    if (settled) return;
+    console.error("pipeline: the event loop emptied before the run finished (a promise never settled); exit 1");
+    process.exit(1);
+  });
   main(process.argv.slice(2))
-    .then((r) => process.exit(r.exitCode))
+    .then((r) => {
+      settled = true;
+      process.exit(r.exitCode);
+    })
     .catch((err: unknown) => {
       console.error(err instanceof Error ? (err.stack ?? err.message) : err);
       process.exit(1);

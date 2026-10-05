@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { MemoryD1 } from "../d1/memory.ts";
 import { sourceIdForUrl } from "../extract/ids.ts";
+import { EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { matched, NOW, outingRow, sourceRow, testCtx } from "../extract/test-helpers.ts";
 import { dedupeUpsert, slugTitle } from "./dedupe-upsert.ts";
 import { publish } from "./publish.ts";
@@ -112,19 +113,155 @@ describe("dedupe-upsert", () => {
     expect(org).toEqual([{ slug: "friends-of-the-park-inc", org_type: "charity" }]);
   });
 
-  it("keeps different organizers on the same course and date apart, and suffixes the slug", async () => {
+  it("keeps different organizers with different titles on the same course and date apart", async () => {
     const d1 = await db();
     const { output } = dedupeUpsert(testCtx(), {
-      outings: [matched(), matched({ organizer_name: "Rotary Club of Phoenix", source_url: "https://rotary.example/golf" })],
+      outings: [
+        matched(),
+        matched({ organizer_name: "Rotary Club of Phoenix", title: "Rotary Club Golf Day", source_url: "https://rotary.example/golf" }),
+      ],
       existing: emptyExisting,
       unchanged: [],
       fetches: [],
     });
     await d1.apply(output.plan);
     expect((await outings(d1)).map((o) => o.slug)).toEqual([
+      "2026/rotary-club-golf-day-encanto-18",
       "2026/spring-charity-scramble-encanto-18",
-      "2026/spring-charity-scramble-encanto-18-2",
     ]);
+  });
+
+  it("one event found via two sources: same course and date, titles alike once ordinals and organizer names go (seen: William Paterson University)", async () => {
+    const d1 = await db();
+    const brochure = matched({
+      title: "Eighteenth Annual Golf Outing",
+      organizer_name: "William Paterson University Alumni Council",
+      source_url: "https://wpconnect.wpunj.edu/alumni/forms/golf/assets/brochure.pdf",
+      single_price_cents: 60_000,
+    });
+    const form = matched({
+      title: "William Paterson University Annual Golf Outing",
+      organizer_name: "William Paterson University Foundation",
+      source_url: "https://wpconnect.wpunj.edu/alumni/forms/golf/",
+    });
+    const noOrganizer = matched({
+      title: "William Paterson 18th Annual Golf Outing 2026",
+      organizer_name: null,
+      source_url: "https://news.example/wpu-golf",
+    });
+    const { output } = dedupeUpsert(testCtx(), { outings: [brochure, form, noOrganizer], existing: emptyExisting, unchanged: [], fetches: [] });
+    await d1.apply(output.plan);
+    expect(await outings(d1)).toHaveLength(1);
+    expect(output.outcomes.map((o) => o.action).sort()).toEqual(["insert", "merge", "merge"]);
+  });
+
+  it("two clubs' outings on one course and date stay apart when each title names its own organizer", () => {
+    const { output } = dedupeUpsert(testCtx(), {
+      outings: [
+        matched({ title: "Rotary Golf Day", organizer_name: "Rotary Club of Phoenix", source_url: "https://rotary.example/golf" }),
+        matched({ title: "Lions Golf Day", organizer_name: "Lions Club of Phoenix", source_url: "https://lions.example/golf" }),
+      ],
+      existing: emptyExisting,
+      unchanged: [],
+      fetches: [],
+    });
+    expect(output.outcomes.map((o) => o.action)).toEqual(["insert", "insert"]);
+  });
+
+  it("the same title from two unrelated organizer names is one outing (a brochure and a form name the organizer differently)", () => {
+    const { output } = dedupeUpsert(testCtx(), {
+      outings: [matched(), matched({ organizer_name: "Rotary Club of Phoenix", source_url: "https://rotary.example/golf" })],
+      existing: emptyExisting,
+      unchanged: [],
+      fetches: [],
+    });
+    expect(output.outcomes.map((o) => o.action).sort()).toEqual(["insert", "merge"]);
+  });
+
+  it("a platform listing page never becomes the canonical source when the cluster has another page", () => {
+    const rules = [{ name: "eventbrite", allowed: true, domains: ["eventbrite.*"], listing_url_pattern: "^/(d|b|o|cc)/" }];
+    const listing = "https://www.eventbrite.com/d/az--phoenix/golf-tournament/";
+    const event = "https://www.eventbrite.com/e/spring-charity-scramble-tickets-5";
+    const fresh = dedupeUpsert(testCtx(), {
+      outings: [
+        matched({ source_url: listing, source_kind: "organizer" }),
+        matched({ source_url: event, source_kind: "platform" }),
+      ],
+      existing: emptyExisting,
+      unchanged: [],
+      fetches: [],
+      platform_rules: rules,
+    });
+    const inserted = fresh.output.plan.ops.find((o) => o.op === "upsert" && o.table === "outings");
+    expect(inserted && "rows" in inserted ? inserted.rows[0] : null).toMatchObject({ canonical_source_url: event });
+
+    // An existing outing whose canonical is a listing page moves to the event page.
+    const stale = outingRow({ id: "out_stale", canonical_source_url: listing });
+    const upd = dedupeUpsert(testCtx(), {
+      outings: [matched({ source_url: event, source_kind: "platform" })],
+      existing: { ...emptyExisting, outings: [stale] },
+      unchanged: [],
+      fetches: [],
+      platform_rules: rules,
+    });
+    const row = upd.output.plan.ops.find((o) => o.op === "upsert" && o.table === "outings");
+    expect(row && "rows" in row ? row.rows[0] : null).toMatchObject({ id: "out_stale", canonical_source_url: event });
+  });
+
+  it("a page re-extracted this run that no longer yields an outing retracts it (confidence 0, so publish holds it)", () => {
+    const article = "https://patch.com/new-jersey/brick/bmac-golf-outing";
+    const stale = outingRow({ id: "out_bmac", canonical_source_url: article, published: 1 });
+    const { output, result } = dedupeUpsert(testCtx(), {
+      outings: [],
+      existing: { ...emptyExisting, outings: [] },
+      unchanged: [],
+      fetches: [],
+      linked: [{ outing_id: "out_bmac", status: "open", source_urls: [article] }],
+      collected: [article],
+    });
+    expect(output.plan.ops).toContainEqual({
+      op: "update",
+      table: "outings",
+      set: { confidence: 0, updated_at: NOW.toISOString() },
+      where: { id: stale.id },
+    });
+    expect(result.counters.outings_retracted).toBe(1);
+  });
+
+  it("two existing rows for one event merge: the matched row updates, the other is retracted", () => {
+    const a = "https://wpconnect.wpunj.edu/alumni/forms/golf/assets/brochure.pdf";
+    const b = "https://wpconnect.wpunj.edu/alumni/forms/golf/";
+    const rowA = outingRow({ id: "out_a", title: "Eighteenth Annual Golf Outing", canonical_source_url: a, published: 1 });
+    const rowB = outingRow({ id: "out_b", slug: "2026/wpu-golf-encanto-18", title: "William Paterson University Annual Golf Outing", canonical_source_url: b, published: 1 });
+    const { output } = dedupeUpsert(testCtx(), {
+      outings: [
+        matched({ title: "Eighteenth Annual Golf Outing", organizer_name: null, source_url: a }),
+        matched({ title: "William Paterson University Annual Golf Outing", organizer_name: "William Paterson University Foundation", source_url: b }),
+      ],
+      existing: { ...emptyExisting, outings: [rowA, rowB] },
+      unchanged: [],
+      fetches: [],
+      linked: [
+        { outing_id: "out_a", status: "open", source_urls: [a] },
+        { outing_id: "out_b", status: "open", source_urls: [b] },
+      ],
+      collected: [a, b],
+    });
+    const updated = output.outcomes.filter((o) => o.action === "update").map((o) => o.outing_id);
+    expect(updated).toEqual(["out_a"]);
+    expect(output.plan.ops).toContainEqual(expect.objectContaining({ op: "update", table: "outings", where: { id: "out_b" } }));
+  });
+
+  it("an outing with another source not fetched this run is not retracted", () => {
+    const { result } = dedupeUpsert(testCtx(), {
+      outings: [],
+      existing: emptyExisting,
+      unchanged: [],
+      fetches: [],
+      linked: [{ outing_id: "o", status: "open", source_urls: ["https://a.example/x", "https://b.example/y"] }],
+      collected: ["https://a.example/x"],
+    });
+    expect(result.counters.outings_retracted ?? 0).toBe(0);
   });
 
   it("holds events on their source with held_until 30 days out, never as outings", async () => {
@@ -222,7 +359,7 @@ describe("dedupe-upsert", () => {
     const srcs = (await d1.snapshot()).all("SELECT * FROM sources ORDER BY url", sourceRowSchema);
     expect(srcs.map((s) => [s.id, s.consecutive_gone, s.content_hash?.slice(0, 1) ?? null, s.extractor_version])).toEqual([
       ["src_old", 2, null, null],
-      [sourceIdForUrl("https://example.org/new"), 0, "b", "extract-v1"],
+      [sourceIdForUrl("https://example.org/new"), 0, "b", EXTRACTOR_VERSION],
     ]);
     expect(output.plan.ops.filter((o) => o.op === "update" && o.table === "outings")).toHaveLength(2);
   });
@@ -273,6 +410,63 @@ describe("publish", () => {
       "/outings/2026/spring-charity-scramble-encanto-18",
     ]);
     expect(result.counters.indexnow_urls).toBe(4);
+  });
+
+  const eventbriteRules = (allowed: boolean) => [
+    { name: "eventbrite", allowed, domains: ["eventbrite.*"], listing_url_pattern: "^/(d|b|o|cc)/" },
+  ];
+
+  it("never publishes an outing whose canonical source is a platform listing page", () => {
+    const { output } = publish(testCtx(), {
+      outings: [
+        entry(outingRow({ id: "listing", canonical_source_url: "https://www.eventbrite.ca/d/ct--darien/golf-tournament/" })),
+        entry(outingRow({ id: "event", canonical_source_url: "https://www.eventbrite.com/e/1-club-golf-outing-tickets-1" })),
+        entry(
+          outingRow({
+            id: "past-listing",
+            status: "past",
+            published: 1,
+            start_date: "2026-09-01",
+            canonical_source_url: "https://www.eventbrite.com/d/nj--northfield/golf/",
+          }),
+        ),
+      ],
+      heldSources: [],
+      changed: [],
+      platform_rules: eventbriteRules(true),
+    });
+    expect(output.decisions.map((d) => [d.outing_id, d.publish, d.why])).toEqual([
+      ["listing", false, "platform_listing"],
+      ["event", true, "dated"],
+      ["past-listing", false, "platform_listing"],
+    ]);
+  });
+
+  it("an outing that only pages on a disallowed platform support doesn't publish; another source keeps it", () => {
+    const ev = "https://www.eventbrite.com/e/9th-annual-1-club-golf-outing-tickets-1999044102724";
+    const only = outingRow({ id: "only", canonical_source_url: ev });
+    const also = outingRow({ id: "also", canonical_source_url: ev });
+    const { output } = publish(testCtx(), {
+      outings: [entry(only), { ...entry(also), source_urls: [ev, "https://club.example/outing"] }],
+      heldSources: [],
+      changed: [],
+      platform_rules: eventbriteRules(false),
+    });
+    expect(output.decisions.map((d) => [d.outing_id, d.publish, d.hold_reason, d.why])).toEqual([
+      ["only", false, null, "platform_not_allowed"],
+      ["also", true, null, "dated"],
+    ]);
+  });
+
+  it("removals.yaml still wins over the platform rule", () => {
+    const url = "https://www.eventbrite.ca/d/ct--darien/golf-tournament/";
+    const { output } = publish(testCtx({ removals: { outing_ids: [], urls: [url] } }), {
+      outings: [entry(outingRow({ id: "gone", canonical_source_url: url, published: 1 }))],
+      heldSources: [],
+      changed: [],
+      platform_rules: eventbriteRules(false),
+    });
+    expect(output.decisions.map((d) => [d.publish, d.hold_reason, d.why])).toEqual([[false, "removed", "removed"]]);
   });
 
   it("honors removals.yaml by id or URL and pings only on publish or material change", async () => {
