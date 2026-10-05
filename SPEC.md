@@ -7,6 +7,12 @@ Product doc: https://claude.ai/code/artifact/a182964d-da53-4a9e-b128-adc756bed08
 
 **2026-10-04.** Guides are plain Markdown, not MDX (owner decision: no new dependency); drafts build only outside production and never reach a sitemap (§9.8). Optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` Worker vars for Search Console and Bing (§6).
 
+**2026-10-04.** Phase 5, unattended operation:
+
+- Weekly report issue: posted by the live nightly run against the remote D1 when the run's UTC date is a Monday (or with `--weekly-report`), with `GH_TOKEN` and `GITHUB_REPOSITORY`; found by the `pipeline-report` label, then by exact title. A GitHub API failure is logged, shown in the job summary and stored as a `report` error on the `runs` row, but it doesn't fail the job: the email is for a broken pipeline, not a GitHub hiccup (§8.10).
+- `removals.yaml` URLs are compared after URL normalization, and a removed URL is never queued or fetched again; an outing removed by id is never rechecked (§8.0).
+- `nightly.yml` takes `fail_stage` (none or a nightly stage) and `weekly_report` as `workflow_dispatch` inputs, passed to the script through env vars (§12).
+
 **2026-10-03.** Fixes from the first local live runs:
 
 - Contradiction fix: the spec wants upcoming outings, but in autumn the current-year search queries return past ones. From September 1 the year-bearing search templates also run with next year, and from December 1 only with next year (§8.2).
@@ -376,7 +382,7 @@ Generated data, not edited by hand:
 - **Run row.** The `runs` row is written when the run starts and updated after every stage, so a killed job still leaves a record.
 - **Database writes.** The run starts from a `wrangler d1 export --remote` snapshot loaded into a local SQLite file. Writes are generated as SQL with literal values (no bound parameters) and applied with `wrangler d1 execute --remote --file`: at most 50 rows per statement, at most 1,000 statements per file, and every statement under D1's 100 KB limit.
 - **Forced failure.** `--fail-stage=<name>` makes that stage throw, to test failure alerts (Phase 5).
-- **Removals.** `data/overrides/removals.yaml` is applied on every run: matching outings get `published = 0`, `hold_reason = 'removed'`.
+- **Removals.** `data/overrides/removals.yaml` is applied on every run: matching outings get `published = 0`, `hold_reason = 'removed'`. URLs match after normalization. Discovery never queues a removed URL and never rechecks an outing removed by id.
 
 ### 8.1 Courses (monthly job)
 
@@ -534,7 +540,7 @@ The platform and directory flags apply to every source above, not only to items 
 - Finish the `runs` row (written at start, updated after every stage) with counts, budget hits, errors and an estimated cost from token and query counts.
 - Write a summary to `$GITHUB_STEP_SUMMARY`, including holds by reason across `sources` and `outings`.
 - Fail the job when any stage throws or more than 20% of fetches error (network errors and 5xx only), so GitHub emails the owner.
-- Every Monday, create or update one GitHub issue titled "Weekly pipeline report" with the week's counts, holds by reason, and estimated cost.
+- Every Monday, create or update one GitHub issue titled "Weekly pipeline report" with the week's counts, holds by reason, and estimated cost. Monday means the run's UTC date. Only the live nightly against the remote D1 posts it; a dry run renders it into the summary. A GitHub API failure is reported in the summary and the `runs` row but doesn't fail the job.
 
 ## 9. Site
 
@@ -688,6 +694,8 @@ jobs:
 ```
 
 Pending batch ids live only in `runs.pending_batch_id`, never in the Actions cache, because `actions/cache` saves only when a job succeeds.
+
+`workflow_dispatch` also takes `budget` (`nightly` or `smoke`), `fail_stage` (`none` or a nightly stage, for the failure-email test) and `weekly_report` (post the weekly issue on any day). The inputs reach the script only as env vars.
 
 `monthly.yml` runs at 10:30 UTC on the 1st (`30 10 1 * *`) with the same setup, the same `concurrency: pipeline` group, the same IRS cache key, and `pnpm run pipeline --live --budget=monthly --stages=courses,irs,course-types`. It needs no `issues: write`.
 

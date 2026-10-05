@@ -83,7 +83,7 @@ paid or capped call goes through the `BudgetCheck` the handler passes in.
 
 | Stage | Inputs | Outputs |
 | --- | --- | --- |
-| `discover` | snapshot: due rechecks (published open/waitlist outings), unprocessed `submissions`, sources fetched in the last 7 days, held sources, `discovery_queue`, courses with outings or `notable`; `metros.yaml`; listing sources (series, platforms with `allowed: true`, association calendars, directories) through B's guarded fetcher; SERP results (DataForSEO live, fixture adapter in a dry run) | `state.queue`; submissions marked processed |
+| `discover` | snapshot: due rechecks (published open/waitlist outings), unprocessed `submissions`, sources fetched in the last 7 days, held sources, `discovery_queue`, courses with outings or `notable`; `metros.yaml`; listing sources (series, platforms with `allowed: true`, association calendars, directories) through B's guarded fetcher; SERP results (DataForSEO live, fixture adapter in a dry run); `removals.yaml` (a removed URL is never queued, a removed outing never rechecked) | `state.queue`; submissions marked processed |
 | `fetch` | `state.queue` → `planFetch` (caps, 40% recheck share, per-host cap, render flag) | `state.fetched`; `discovery_queue` bookkeeping (deferred, retries) |
 | `normalize` | `state.fetched` + last collected `sources.content_hash` by URL; one headless render when the text is under 400 characters | `state.normalized` (`unchanged` when the hash matches) |
 | `extract-request-build` | changed pages only; `sources.id` by URL (custom_id = source id) | `state.extractionRequests`, `state.extractionMeta` |
@@ -281,6 +281,7 @@ pnpm run pipeline --live --budget=smoke           # first live run: every cap at
 pnpm run pipeline --live --budget=monthly --stages=courses,irs,course-types   # monthly.yml
 pnpm run pipeline --dry-run --stages=classify,match
 pnpm run pipeline --dry-run --fail-stage=fetch    # throw inside a stage (Phase 5 alert test)
+pnpm run pipeline --dry-run --weekly-report       # render the weekly report issue body into the summary
 pnpm run pipeline --dry-run --now=2026-09-28      # pin the clock (refused when NODE_ENV=production)
 pnpm run pipeline --dry-run --d1=local            # the local wrangler D1 instead of the in-memory one
 ```
@@ -299,6 +300,7 @@ pnpm run pipeline --dry-run --d1=local            # the local wrangler D1 instea
 | `--serp=dataforseo\|claude-search\|fixture` | SERP provider (`SERP_PROVIDER`; default `dataforseo` live). `claude-search` needs no `SERP_API_KEY`. Live only. |
 | `--prioritize-states=NY,NJ,CT` | Search those states' metros and courses tonight, first. |
 | `--recheck-all` | Recheck every published open or waitlist outing tonight, due or not, within the 40% recheck share (oldest `last_verified` first). Useful after an extractor version bump. |
+| `--weekly-report` | Create or update the weekly report issue tonight even if it isn't Monday (live nightly on the remote D1 only); a dry run renders it into the summary. |
 
 Exit codes: 0 OK; 1 when a stage throws, `--fail-stage` fired, more than 20% of fetches errored
 (network and 5xx only), a dry run tried the network, or `--strict` met a stub; 2 on a usage error or
@@ -307,8 +309,18 @@ The `runs` row is written at start and after every stage (`stages_done`, counter
 `errors`, `est_cost_cents` from the SPEC.md 14 rates, `pending_batch_id`), so a killed job still
 leaves a record. The report lists stage statuses, counts, holds by reason across `sources` and
 `outings`, budget hits and errors (with the page URL when there is one) and the estimated cost, and
-is appended to `$GITHUB_STEP_SUMMARY` when set. The logger redacts secret env values. The weekly
-report issue is Phase 5.
+is appended to `$GITHUB_STEP_SUMMARY` when set. The logger redacts secret env values.
+
+**Weekly report issue** (`src/report/`, `src/run/weekly.ts`, SPEC.md 8.10). After the report, a
+live nightly run against the remote D1 on a Monday (UTC date), or with `--weekly-report`, reads the
+last 7 days of `runs`, holds by reason, published counts and this month's spend, and creates or
+updates the one open issue titled "Weekly pipeline report" (found by the `pipeline-report` label,
+then by exact title). It needs `GH_TOKEN` and `GITHUB_REPOSITORY` (Actions sets both in
+nightly.yml) and talks to api.github.com with `X-GitHub-Api-Version: 2026-03-10`; every response
+is zod-validated. GET and PATCH are retried on 5xx, 429 and network errors; POST never is, so a
+timeout can't open a second issue. A dry run renders the body into the summary and sends nothing.
+A GitHub failure is logged, shown in the summary and stored as a `report` error on the `runs` row,
+and never changes the exit code.
 
 ## D1 edge (`src/d1/`)
 
