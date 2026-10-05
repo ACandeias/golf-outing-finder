@@ -122,14 +122,44 @@ describe("planSearch", () => {
           .output.queries.map((x) => x.q),
       );
     }
+    // November: the coming season's year too (from September 1).
     expect(all.sort()).toEqual(
       [
         '"Encanto 18" golf classic register',
         '"Encanto 18" golf outing 2026',
+        '"Encanto 18" golf outing 2027',
         '"Winged Foot Golf Club" golf classic register',
         '"Winged Foot Golf Club" golf outing 2026',
+        '"Winged Foot Golf Club" golf outing 2027',
       ].sort(),
     );
+  });
+
+  it("searches the coming season: next year from September 1, the current year dropped from December 1", () => {
+    const qs = (iso: string): string[] =>
+      planSearch(ctxAt(iso), {
+        metros: [{ name: "Mamaroneck", state: "NY", population: 1 }],
+        courses: [],
+        allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+        prioritize_states: ["NY"],
+      }).output.queries.map((x) => x.q);
+    expect(qs("2026-08-31T07:15:00Z")).toEqual([
+      "golf outing Mamaroneck NY 2026",
+      "charity golf tournament Mamaroneck NY 2026",
+      "golf scramble Mamaroneck NY August",
+    ]);
+    expect(qs("2026-09-01T07:15:00Z")).toEqual([
+      "golf outing Mamaroneck NY 2026",
+      "golf outing Mamaroneck NY 2027",
+      "charity golf tournament Mamaroneck NY 2026",
+      "charity golf tournament Mamaroneck NY 2027",
+      "golf scramble Mamaroneck NY September",
+    ]);
+    expect(qs("2026-12-01T07:15:00Z")).toEqual([
+      "golf outing Mamaroneck NY 2027",
+      "charity golf tournament Mamaroneck NY 2027",
+      "golf scramble Mamaroneck NY December",
+    ]);
   });
 
   it("stops at MAX_SERP_QUERIES_PER_RUN and records a budget hit", () => {
@@ -166,7 +196,9 @@ describe("planSearch", () => {
     expect(subjects).toEqual(["Yonkers, NY", "New York City, NY", "crs_ny", "Newark, NJ", "crs_nj", "Hartford, CT"]);
     expect(out.filter((x) => x.subject === "Yonkers, NY").map((x) => x.q)).toEqual([
       "golf outing Yonkers NY 2026",
+      "golf outing Yonkers NY 2027",
       "charity golf tournament Yonkers NY 2026",
+      "charity golf tournament Yonkers NY 2027",
       "golf scramble Yonkers NY October",
     ]);
     // Phoenix (index 0) and the AZ course are not due on day 3 and are not prioritized.

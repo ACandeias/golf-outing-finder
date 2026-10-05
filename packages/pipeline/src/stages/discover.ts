@@ -89,6 +89,9 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   const now = ctx.now;
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth(); // 0-based
+  // SPEC.md 8.2 as amended 2026-10-03: the coming season. From September 1 the
+  // year-bearing templates also run with next year; from December 1 only with it.
+  const years = month >= 11 ? [year + 1] : month >= 8 ? [year, year + 1] : [year];
   const monthName = MONTHS[month] ?? "";
   const dayNumber = Math.floor(now.getTime() / DAY_MS);
   const dom = now.getUTCDate() - 1;
@@ -114,8 +117,8 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
       rank: r,
       seq: seq++,
       queries: [
-        { kind: "place", q: `golf outing ${city} ${year}`, subject },
-        { kind: "place", q: `charity golf tournament ${city} ${year}`, subject },
+        ...years.map((y): SerpQuery => ({ kind: "place", q: `golf outing ${city} ${y}`, subject })),
+        ...years.map((y): SerpQuery => ({ kind: "place", q: `charity golf tournament ${city} ${y}`, subject })),
         { kind: "place", q: `golf scramble ${city} ${monthName}`, subject },
       ],
     });
@@ -131,7 +134,7 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
       rank: r,
       seq: seq++,
       queries: [
-        { kind: "course", q: `"${name}" golf outing ${year}`, subject: c.id },
+        ...years.map((y): SerpQuery => ({ kind: "course", q: `"${name}" golf outing ${y}`, subject: c.id })),
         { kind: "course", q: `"${name}" golf classic register`, subject: c.id },
       ],
     });
