@@ -16,6 +16,10 @@ ADS_PROVIDER = "adsense"
 PUBLIC_ADSENSE_CLIENT = ""
 PUBLIC_GA4_ID = ""
 INDEXNOW_KEY = ""
+# Search Console and Bing Webmaster Tools tokens (the content value only). The home
+# page renders each meta tag only when it is set; DNS verification needs neither.
+GOOGLE_SITE_VERIFICATION = ""
+BING_SITE_VERIFICATION = ""
 SITE_NOW = ""
 
 [[d1_databases]]

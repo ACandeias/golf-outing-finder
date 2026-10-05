@@ -25,6 +25,18 @@ const optionalClock = z
   .transform((v) => (v === undefined || v.trim() === "" ? undefined : v))
   .pipe(isoDateOrTimestamp.optional());
 
+/**
+ * A search engine's site-verification token (Google Search Console's
+ * `google-site-verification`, Bing Webmaster Tools' `msvalidate.01`): the token only,
+ * not the whole meta tag.
+ */
+const verificationToken = optionalString.pipe(
+  z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,200}$/, { message: "must be the verification token only (letters, digits, - and _)" })
+    .optional(),
+);
+
 export const nodeEnvSchema = z.enum(["development", "test", "production"]).default("development");
 
 export const adsProviderSchema = z.enum(["adsense", "journey", "raptive"]);
@@ -38,6 +50,8 @@ export const siteEnvSchema = z.object({
   ADS_PROVIDER: adsProviderSchema.default("adsense"),
   INDEXNOW_KEY: optionalString,
   TURNSTILE_SECRET: optionalString,
+  GOOGLE_SITE_VERIFICATION: verificationToken,
+  BING_SITE_VERIFICATION: verificationToken,
   SITE_NOW: optionalClock,
 });
 export type SiteEnv = z.infer<typeof siteEnvSchema>;
@@ -127,6 +141,8 @@ export const SPEC_ENV_VARS = [
   "PUBLIC_ADSENSE_CLIENT",
   "PUBLIC_GA4_ID",
   "ADS_PROVIDER",
+  "GOOGLE_SITE_VERIFICATION",
+  "BING_SITE_VERIFICATION",
   "PIPELINE_NOW",
   "SITE_NOW",
   ...BUDGET_CAPS,

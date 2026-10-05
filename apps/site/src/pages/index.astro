@@ -10,6 +10,11 @@ import { listToday, siteYear } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../lib/urls.ts";
+import { siteEnv } from "../lib/env.ts";
+
+// Search Console and Bing verification (SPEC.md 13 Phase 3): the home page only,
+// and only when the Worker var is set.
+const { GOOGLE_SITE_VERIFICATION: googleVerification, BING_SITE_VERIFICATION: bingVerification } = siteEnv();
 
 const db = getDb();
 const today = listToday();
@@ -57,6 +62,8 @@ setCache(Astro, TTL.home);
   noindex={Astro.url.searchParams.has("q")}
   jsonLd={[buildItemListJsonLd(soonest.map((o) => absoluteUrl(outingPath(o.slug))))]}
 >
+  {googleVerification && <meta slot="head" name="google-site-verification" content={googleVerification} />}
+  {bingVerification && <meta slot="head" name="msvalidate.01" content={bingVerification} />}
   <h1>Find a golf outing you can sign up for</h1>
   <p class="lead">
     Charity scrambles, school fundraisers, trade group days and open tournaments at municipal, public, semi-private, private and

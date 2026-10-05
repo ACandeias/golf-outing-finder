@@ -14,6 +14,7 @@ import { notFound, setCache } from "../../../lib/page.ts";
 import { clip, FORMAT_LABELS, stateName, verifiedDate } from "../../../lib/format.ts";
 import { outingTitle, outingView } from "../../../lib/outing-view.ts";
 import { absoluteUrl, cityPath, coursePath, organizerPath, outingPath, statePath } from "../../../lib/urls.ts";
+import { guideLinks } from "../../../lib/guides.ts";
 
 export const prerender = false;
 
@@ -35,7 +36,7 @@ const path = outingPath(o.slug);
 const dated = o.status !== "expected" && o.startDate !== null;
 const passed = o.status === "past" || (dated && o.startDate !== null && isPast(o.startDate, o.endDate, now, o.course.timeZone));
 const canRegister = !passed && !v.isExpected && o.status !== "cancelled" && o.status !== "sold_out";
-const [nearby, next] = await Promise.all([
+const [nearby, next, newcomerGuides] = await Promise.all([
   nearbyUpcomingOutings(db, {
     center: { lat: o.course.lat, lng: o.course.lng },
     radiusKm: milesToKm(100),
@@ -44,6 +45,7 @@ const [nearby, next] = await Promise.all([
     limit: 5,
   }),
   o.nextOutingId ? outingById(db, o.nextOutingId) : Promise.resolve(null),
+  guideLinks(["playing-an-outing-as-a-single", "what-an-entry-fee-includes"]),
 ]);
 
 const event = buildEventJsonLd({
@@ -160,6 +162,19 @@ setCache(Astro, TTL.list);
       We summarize outings in our own words from the organizer's page. Prices and details can change, so confirm them with the
       organizer before you pay. Something wrong? <a href="/corrections">Tell us</a>.
     </p>
+    {
+      newcomerGuides.length > 0 && (
+        <p class="small newcomer">
+          New to outings?{" "}
+          {newcomerGuides.map((g, i) => (
+            <>
+              {i > 0 && " · "}
+              <a href={g.path}>{g.title}</a>
+            </>
+          ))}
+        </p>
+      )
+    }
   </article>
 
   {

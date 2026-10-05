@@ -1,0 +1,171 @@
+---
+import type { GetStaticPaths } from "astro";
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { shortDate } from "../../lib/format.ts";
+import { GUIDES_PATH, guidePath, siteGuides, type Guide } from "../../lib/guides.ts";
+
+// Guides are our own reviewed Markdown (seed/guides), never scraped or database
+// text, so Astro's Markdown renderer output is fine to render. Drafts are built
+// only in non-production builds and always carry noindex (lib/guides.ts).
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const guides = await siteGuides();
+  return guides.map((guide) => ({ params: { topic: guide.id }, props: { guide, others: guides.filter((g) => g.id !== guide.id) } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  guide: Guide;
+  others: Guide[];
+}
+
+const { guide, others } = Astro.props;
+const { Content, headings } = await render(guide);
+const path = guidePath(guide.id);
+const sections = headings.filter((h) => h.depth === 2);
+const more = others.slice(0, 6);
+---
+
+<Base
+  title={`${guide.data.title} | Golf Outing Finder`}
+  description={guide.data.description}
+  path={path}
+  noindex={guide.data.draft}
+  crumbs={[
+    { name: "Guides", path: GUIDES_PATH },
+    { name: guide.data.title, path },
+  ]}
+>
+  <article class="guide">
+    <h1>{guide.data.title}</h1>
+    <p class="small muted updated">
+      Updated <time datetime={guide.data.updated}>{shortDate(guide.data.updated)}</time>
+    </p>
+    {guide.data.draft && <p class="note">Draft for review. This guide isn't published yet and isn't indexed.</p>}
+
+    {
+      sections.length >= 3 && (
+        <nav class="toc" aria-labelledby="toc-title">
+          <h2 id="toc-title" class="toc-title">In this guide</h2>
+          <ul>
+            {sections.map((h) => (
+              <li>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+
+  <aside class="guide-next" aria-labelledby="next-title">
+    <h2 id="next-title">Find an outing</h2>
+    <p>
+      <a href="/golf-outings">Browse outings by state</a> or use the <a href="/map">map</a> to see what's coming up near you.
+    </p>
+    {
+      more.length > 0 && (
+        <>
+          <h2>More guides</h2>
+          <ul class="grid-links">
+            {more.map((g) => (
+              <li>
+                <a href={guidePath(g.id)}>{g.data.title}</a>
+              </li>
+            ))}
+          </ul>
+          <p class="small">
+            <a href={GUIDES_PATH}>All guides</a>
+          </p>
+        </>
+      )
+    }
+  </aside>
+</Base>
+
+<style>
+  .guide {
+    max-width: 68ch;
+  }
+  .updated {
+    margin: 0 0 1rem;
+  }
+  .toc {
+    margin: 1.5rem 0 2rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border-top: 1.5px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .toc-title {
+    margin: 0 0 0.25rem;
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .toc ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-family: var(--sans);
+  }
+  .toc li {
+    padding: 0.125rem 0;
+  }
+  .prose {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+  .prose :global(h2) {
+    margin-top: 2.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  .prose :global(h3) {
+    margin: 1.75rem 0 0.5rem;
+  }
+  .prose :global(p),
+  .prose :global(li) {
+    max-width: 68ch;
+  }
+  .prose :global(li + li) {
+    margin-top: 0.375rem;
+  }
+  .prose :global(blockquote) {
+    margin: 1.25rem 0;
+    padding: 0.125rem 0 0.125rem 1rem;
+    border-left: 3px solid var(--rule);
+  }
+  .prose :global(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 1.25rem 0;
+    border-top: 1.5px solid var(--rule);
+    border-bottom: 1.5px solid var(--rule);
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .prose :global(tbody tr:nth-child(even)) {
+    background: var(--surface);
+  }
+  .prose :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .guide-next {
+    max-width: 68ch;
+    margin-top: 3rem;
+  }
+</style>

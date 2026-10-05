@@ -131,7 +131,8 @@ The dry run uses an in-memory D1 loaded with the fixture places and courses, the
 
 ```
 apps/site/                Astro 7 + @astrojs/cloudflare 14, output: 'server'
-  src/pages/              /, /health, /robots.txt, /ads.txt (routes grow in Phase 1)
+  src/pages/              /, /health, /robots.txt, /ads.txt, /{INDEXNOW_KEY}.txt, /guides, the listing routes
+  src/content.config.ts   the guides collection (seed/guides/*.md); drafts only in non-production builds
   src/lib/env.ts          Worker vars from cloudflare:workers, validated with zod
   wrangler.toml           Worker config, D1 binding DB -> database "gof"
   tests/e2e/              Playwright against wrangler dev
@@ -158,7 +159,7 @@ packages/pipeline/        nightly and monthly pipeline CLI (Phase 2), loaders (P
 data/overrides/           YAML the owner edits (SPEC 7.2)
 data/places/              GeoNames subsets for the seed states and metros.yaml
 seed/outings.json         32 seed entries and the golden cases (SPEC 11)
-seed/guides/              guide drafts (Phase 3)
+seed/guides/              guides as plain Markdown (Phase 3, SPEC 9.8); apps/site/src/content.config.ts loads them
 tests/fixtures/           raw/ HTML and pages/ normalized records of the seed pages (plus hand-written
                           *.synthetic.json for gc1 and gc5); MISSING.md; llm/ recorded extractions;
                           courses.json (recorded Overpass subset, © OpenStreetMap contributors);
@@ -180,12 +181,14 @@ No values are committed anywhere. GitHub Actions secrets live in the `production
 | `CLOUDFLARE_API_TOKEN` | Actions secret | Scoped to D1 edit on this database and deploy on this Worker. While it is empty, `deploy.yml` prints a notice and skips the deploy |
 | `CLOUDFLARE_ACCOUNT_ID` | Actions secret | Cloudflare account id |
 | `D1_DATABASE_ID` | Actions secret | From `wrangler d1 create gof`; also goes in `apps/site/wrangler.toml` |
-| `INDEXNOW_KEY` | Actions secret and Worker var | IndexNow pings; the site serves `/{key}.txt` |
+| `INDEXNOW_KEY` | Actions secret and Worker var (the same value in both) | IndexNow pings; the site serves `/{key}.txt` as text and 404s any other `.txt` path. 8 to 128 letters, digits or dashes |
 | `TURNSTILE_SECRET` | Worker secret (`wrangler secret put`) | `/suggest` form protection |
 | `PUBLIC_SITE_URL` | Worker var, and Actions variable (`vars.PUBLIC_SITE_URL`) for the nightly env | Public origin; also in the crawler user agent |
 | `PUBLIC_ADSENSE_CLIENT` | Worker var | AdSense publisher id (Phase 4) |
 | `PUBLIC_GA4_ID` | Worker var | GA4 measurement id |
 | `ADS_PROVIDER` | Worker var | `adsense`, `journey` or `raptive` |
+| `GOOGLE_SITE_VERIFICATION` | Worker var, optional | Search Console HTML-tag token (the `content` value only). The home page renders `<meta name="google-site-verification">` only when it is set |
+| `BING_SITE_VERIFICATION` | Worker var, optional | Bing Webmaster Tools token (the `content` value only), rendered as `<meta name="msvalidate.01">` on the home page only when set |
 | `PIPELINE_NOW`, `SITE_NOW` | Local and test env only | Pin the clock; ignored when `NODE_ENV=production` |
 | Budget caps and `MONTHLY_SPEND_CAP_CENTS` | Env, defaults in `packages/shared/src/budget.ts` | SPEC section 14; raising one needs the owner's approval |
 
@@ -201,7 +204,8 @@ These are blocking steps only the owner can do (plan Part 3):
 | Before the Phase 1 remote seed | Nothing extra. Once logged in, the agent runs `pnpm db:migrate:remote` and the remote seed. |
 | Before Phase 2 fixture recording | Create an Anthropic API key with a monthly spend limit and export `ANTHROPIC_API_KEY`. Approve the one-time `pnpm test:live-extract` (about $0.50). |
 | Before the first live nightly | See [Before the first live run](#before-the-first-live-run-owner): the D1 id in `wrangler.toml`, the secrets and `PUBLIC_SITE_URL`, DataForSEO, the `allowed` flags in `platforms.yaml`, then one `smoke` run. |
-| Phase 3 | Choose the domain and attach it to the Worker so edge caching works. Verify Search Console and Bing. |
+| Phase 3 | Choose the domain and attach it to the Worker so edge caching works. Verify the site in Search Console and Bing Webmaster Tools: either add a DNS TXT record for the domain (no deploy needed, and it covers every subdomain), or copy each HTML-tag token into the `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` Worker vars (`wrangler.toml` `[vars]` or the dashboard) and redeploy. Then submit `/sitemap-index.xml` to both. Set the same `INDEXNOW_KEY` as a Worker var and an Actions secret. |
+| Phase 3 guides | Review the drafts in `seed/guides/` and publish each by setting `draft: false` (and `updated` to the review date). Drafts are built only when the build's `NODE_ENV` isn't `production` (`pnpm dev`, the e2e build), always carry `noindex`, and never appear in sitemaps; `pnpm build` and the deploy leave them out of `dist/` entirely. |
 | Ongoing | Merge Dependabot PRs. A public repo's scheduled workflows are disabled after 60 days without a commit; re-enable them from the Actions tab if that happens. |
 
 Also see `tests/fixtures/MISSING.md` for seed pages that couldn't be recorded (s14 returns 404; Scramble Hunter hides details behind a login).

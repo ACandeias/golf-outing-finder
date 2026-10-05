@@ -3,6 +3,7 @@ import { buildBreadcrumbJsonLd } from "@gof/shared/jsonld";
 import Breadcrumbs, { type CrumbLink } from "../components/Breadcrumbs.astro";
 import JsonLd from "../components/JsonLd.astro";
 import { absoluteUrl, canonicalPath } from "../lib/urls.ts";
+import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
 
 interface Props {
   title: string;
@@ -25,6 +26,8 @@ const breadcrumbLd = buildBreadcrumbJsonLd(
   allCrumbs.map((c, i) => ({ name: c.name, url: absoluteUrl(i === allCrumbs.length - 1 ? path : (c.path ?? path), Astro) })),
 );
 const year = new Date().getUTCFullYear();
+// Link to /guides only when this build renders a guide (never to drafts in production).
+const showGuides = await hasGuides();
 ---
 
 <!doctype html>
@@ -64,6 +67,7 @@ const year = new Date().getUTCFullYear();
           <ul class="nav">
             <li><a href="/golf-outings">Browse outings</a></li>
             <li><a href="/map">Map</a></li>
+            {showGuides && <li><a href={GUIDES_PATH}>Guides</a></li>}
             <li><a href="/about">About</a></li>
           </ul>
         </nav>
@@ -78,6 +82,7 @@ const year = new Date().getUTCFullYear();
         <nav aria-label="Site">
           <ul class="footer-links">
             <li><a href="/about">About</a></li>
+            {showGuides && <li><a href={GUIDES_PATH}>Guides</a></li>}
             <li><a href="/corrections">Corrections</a></li>
             <li><a href="/privacy">Privacy</a></li>
             <li><a href="/terms">Terms</a></li>

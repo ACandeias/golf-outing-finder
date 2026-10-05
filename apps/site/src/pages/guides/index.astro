@@ -1,0 +1,66 @@
+---
+import Base from "../../layouts/Base.astro";
+import { GUIDE_DRAFTS, GUIDES_PATH, guidePath, publishedSiteGuides, siteGuides } from "../../lib/guides.ts";
+
+// The index lists the guides this build renders: published ones, plus drafts in a
+// non-production build (marked "Draft"). It is indexed once a guide is published.
+export const prerender = true;
+
+const guides = await siteGuides();
+const anyPublished = (await publishedSiteGuides()).length > 0;
+---
+
+<Base
+  title="Golf Outing Guides | Golf Outing Finder"
+  description="Plain answers about golf outings: how scrambles and shotgun starts work, what an entry fee includes, playing as a single, and how to get an outing listed."
+  path={GUIDES_PATH}
+  noindex={!anyPublished}
+  crumbs={[{ name: "Guides", path: GUIDES_PATH }]}
+>
+  <h1>Golf outing guides</h1>
+  <p class="lead">
+    Short, plain answers for anyone signing up for an outing, from a first charity scramble to a day at a private club, and for
+    the people who run them.
+  </p>
+  {
+    guides.length === 0 ? (
+      <p>Our guides are on the way. In the meantime, <a href="/golf-outings">browse outings by state</a>.</p>
+    ) : (
+      <ul class="guide-list">
+        {guides.map((g) => (
+          <li>
+            <h2>
+              <a href={guidePath(g.id)}>{g.data.title}</a>
+            </h2>
+            <p>{g.data.description}</p>
+            {GUIDE_DRAFTS && g.data.draft && <span class="label">Draft</span>}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Base>
+
+<style>
+  .guide-list {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    max-width: 68ch;
+    border-top: 1.5px solid var(--rule);
+  }
+  .guide-list li {
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .guide-list h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1875rem;
+  }
+  .guide-list p {
+    margin: 0;
+  }
+  .guide-list .label {
+    margin-top: 0.375rem;
+  }
+</style>

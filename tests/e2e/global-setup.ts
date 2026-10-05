@@ -5,10 +5,12 @@
  *   2. `pnpm run db:migrate:local --persist-to <tmp>` and
  *      `pnpm run seed --persist-to=<tmp>` with PIPELINE_NOW pinned, into a
  *      throwaway D1 state directory, so a developer's own local D1 is untouched
- *   3. `pnpm build` with PUBLIC_SITE_URL set to the server's origin (skip with
+ *   3. `pnpm build` with PUBLIC_SITE_URL set to the server's origin and
+ *      NODE_ENV=development, which builds draft guides too (skip with
  *      E2E_SKIP_BUILD=1 when dist/ is fresh)
  *   4. `wrangler dev --local` from apps/site with NODE_ENV=development,
- *      SITE_NOW=2026-09-28 and PUBLIC_SITE_URL=<origin>
+ *      SITE_NOW=2026-09-28, PUBLIC_SITE_URL=<origin>, and test values for
+ *      INDEXNOW_KEY and the two site-verification vars
  *   5. wait for /health, export E2E_BASE_URL for the workers
  *
  * Returns the teardown: kill wrangler's process group, delete the D1 directory
@@ -24,6 +26,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { SITE_NOW } from "./support/seed-facts.ts";
+import {
+  E2E_BING_VERIFICATION,
+  E2E_GOOGLE_VERIFICATION,
+  E2E_INDEXNOW_KEY,
+} from "./support/guide-facts.ts";
 
 const REPO = resolve(fileURLToPath(new URL(".", import.meta.url)), "../..");
 const SITE = join(REPO, "apps/site");
@@ -136,7 +143,9 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   if (process.env.E2E_SKIP_BUILD === "1") {
     log("E2E_SKIP_BUILD=1: using the existing apps/site/dist");
   } else {
-    pnpm(["build"], { PUBLIC_SITE_URL: origin });
+    // NODE_ENV=development builds the draft guides too (apps/site/astro.config.mjs),
+    // so the suite can check that drafts render with noindex and stay out of sitemaps.
+    pnpm(["build"], { PUBLIC_SITE_URL: origin, NODE_ENV: "development" });
   }
 
   const logFile = join(persist, "wrangler-dev.log");
@@ -160,6 +169,12 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
       `SITE_NOW:${SITE_NOW}`,
       "--var",
       `PUBLIC_SITE_URL:${origin}`,
+      "--var",
+      `INDEXNOW_KEY:${E2E_INDEXNOW_KEY}`,
+      "--var",
+      `GOOGLE_SITE_VERIFICATION:${E2E_GOOGLE_VERIFICATION}`,
+      "--var",
+      `BING_SITE_VERIFICATION:${E2E_BING_VERIFICATION}`,
     ],
     {
       cwd: SITE,

@@ -9,12 +9,14 @@ import type { CityPageData } from "../lib/city-page.ts";
 import { stateName } from "../lib/format.ts";
 import { isVisible, listDescription } from "../lib/listing.ts";
 import { absoluteUrl, charityCityPath, cityPath, outingPath, statePath } from "../lib/urls.ts";
+import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
 
 interface Props {
   data: CityPageData;
 }
 const { charity, st, city, center, dated, expected, indexable, filters, anyFilterParam, nearby, nearCities } = Astro.props.data;
 const all = [...dated, ...expected];
+const showGuides = await hasGuides();
 
 const place = `${city.name}, ${st}`;
 const path = charity ? charityCityPath(st, city.name) : cityPath(st, city.name);
@@ -116,9 +118,20 @@ const crumbs = [
       </section>
     )
   }
+
+  {
+    showGuides && (
+      <p class="small guides-link">
+        First outing, or planning one? Our <a href={GUIDES_PATH}>guides</a> cover scrambles, shotgun starts, entry fees and more.
+      </p>
+    )
+  }
 </Base>
 
 <style>
+  .guides-link {
+    margin-top: 2.5rem;
+  }
   .map-toggle {
     margin: 0.75rem 0 1rem;
   }

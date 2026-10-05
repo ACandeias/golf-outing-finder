@@ -5,6 +5,16 @@ import { SECURITY_HEADERS } from "./lib/security.ts";
 /** Paths that keep their exact spelling (files with their own names). */
 const KEEP_PATH = /^\/(_astro|_image)\//;
 
+/** `/{INDEXNOW_KEY}.txt` keeps its exact spelling: an IndexNow key may hold capitals. */
+function isIndexNowKeyPath(pathname: string): boolean {
+  try {
+    const key = siteEnv().INDEXNOW_KEY;
+    return key !== undefined && pathname === `/${key}.txt`;
+  } catch {
+    return false;
+  }
+}
+
 function withHeaders(res: Response): Response {
   let out = res;
   try {
@@ -36,7 +46,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { request, url } = context;
 
   // One URL policy: lowercase, no trailing slash (except "/"). 301 to it.
-  if (!KEEP_PATH.test(url.pathname)) {
+  if (!KEEP_PATH.test(url.pathname) && !isIndexNowKeyPath(url.pathname)) {
     let path = url.pathname;
     if (path.length > 1 && path.endsWith("/")) path = path.replace(/\/+$/, "") || "/";
     if (/[A-Z]/.test(path)) path = path.toLowerCase();

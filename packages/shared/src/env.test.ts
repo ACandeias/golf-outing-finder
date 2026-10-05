@@ -46,6 +46,26 @@ describe("env schemas cover SPEC section 6", () => {
     ).toThrow(/login:password/);
   });
 
+  it("takes optional Search Console and Bing verification tokens", () => {
+    const base = { PUBLIC_SITE_URL: "https://golfoutingfinder.com" };
+    const none = parseSiteEnv({ ...base, GOOGLE_SITE_VERIFICATION: "", BING_SITE_VERIFICATION: "  " });
+    expect(none.GOOGLE_SITE_VERIFICATION).toBeUndefined();
+    expect(none.BING_SITE_VERIFICATION).toBeUndefined();
+    expect(parseSiteEnv(base).GOOGLE_SITE_VERIFICATION).toBeUndefined();
+    const set = parseSiteEnv({
+      ...base,
+      GOOGLE_SITE_VERIFICATION: "aBcD-1234_efGH5678ijkl",
+      BING_SITE_VERIFICATION: "0123456789ABCDEF0123456789ABCDEF",
+    });
+    expect(set.GOOGLE_SITE_VERIFICATION).toBe("aBcD-1234_efGH5678ijkl");
+    expect(set.BING_SITE_VERIFICATION).toBe("0123456789ABCDEF0123456789ABCDEF");
+    // The token only: a pasted meta tag or anything with quotes is rejected.
+    expect(() =>
+      parseSiteEnv({ ...base, GOOGLE_SITE_VERIFICATION: '<meta name="google-site-verification" content="abc">' }),
+    ).toThrow(/verification token only/);
+    expect(() => parseSiteEnv({ ...base, BING_SITE_VERIFICATION: 'abc"def12345' })).toThrow();
+  });
+
   it("validates clock overrides and cap overrides", () => {
     expect(parsePipelineEnv({ PUBLIC_SITE_URL: "https://x.example", PIPELINE_NOW: "2026-09-28" }).PIPELINE_NOW).toBe(
       "2026-09-28",

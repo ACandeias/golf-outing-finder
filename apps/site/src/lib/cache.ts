@@ -5,6 +5,8 @@ export const TTL = {
   api: 10 * 60,
   sitemap: 6 * 60 * 60,
   robots: 6 * 60 * 60,
+  /** The IndexNow key file: short, so a rotated key takes effect within the hour. */
+  keyFile: 60 * 60,
 } as const;
 
 /** `public, s-maxage=<ttl>` (shared caches only; browsers revalidate). */

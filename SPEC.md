@@ -5,6 +5,8 @@ Product doc: https://claude.ai/code/artifact/a182964d-da53-4a9e-b128-adc756bed08
 
 ## Changelog
 
+**2026-10-04.** Guides are plain Markdown, not MDX (owner decision: no new dependency); drafts build only outside production and never reach a sitemap (§9.8). Optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` Worker vars for Search Console and Bing (§6).
+
 **2026-10-03.** Fixes from the first local live runs:
 
 - Contradiction fix: the spec wants upcoming outings, but in autumn the current-year search queries return past ones. From September 1 the year-bearing search templates also run with next year, and from December 1 only with next year (§8.2).
@@ -93,7 +95,7 @@ packages/shared/        zod schemas, types, slug, date and money utils
 data/overrides/         YAML the owner edits: see section 7.2
 data/places/            GeoNames city and zip subsets, generated metros.yaml
 seed/outings.json       seed dataset and golden cases
-seed/guides/            MDX drafts for the 20 guides (Phase 3)
+seed/guides/            Markdown drafts for the 20 guides (Phase 3)
 tests/fixtures/         saved page text and recorded LLM responses
 .github/workflows/      ci.yml, deploy.yml, nightly.yml, monthly.yml
 CLAUDE.md, SPEC.md, README.md
@@ -138,6 +140,7 @@ Check each item's current docs before implementing. Pin exact versions in the lo
 | `TURNSTILE_SECRET` | Worker secret | |
 | `PUBLIC_SITE_URL` | Worker var, and set in the nightly env from the `PUBLIC_SITE_URL` Actions variable | Domain pending: golfoutingfinder.com, fallback findgolfoutings.com. Also used in the crawler's user agent |
 | `PUBLIC_ADSENSE_CLIENT`, `PUBLIC_GA4_ID`, `ADS_PROVIDER` | Worker vars | |
+| `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | Worker vars, optional | Search Console and Bing Webmaster Tools tokens. The home page renders `google-site-verification` and `msvalidate.01` meta tags only when set; DNS verification needs neither |
 | `PIPELINE_NOW`, `SITE_NOW` | Test and local env only | ISO date or timestamp that replaces the clock. Ignored when `NODE_ENV === 'production'` |
 | Budget caps, `MONTHLY_SPEND_CAP_CENTS`, `MAX_FETCH_MINUTES`, `MAX_FETCHES_PER_HOST_PER_RUN` | env with defaults in code | See section 14 |
 
@@ -596,7 +599,9 @@ WCAG 2.1 AA: labeled form fields, 4.5:1 text contrast, full keyboard navigation 
 
 ### 9.8 Guides
 
-Claude Code drafts 20 guides as MDX in `seed/guides/` during Phase 3, and the owner reviews them once before they publish. Topics: what a golf scramble is; how charity golf outings work; what an entry fee usually includes; playing an outing as a single; how shotgun starts work; scramble, best ball and shamble compared; whether charity golf entry fees are tax deductible (general information citing IRS Publication 1771, not tax advice); finding outings at private clubs; finding outings at municipal courses; what to wear to an outing at a private club; mulligans, raffles and contests; whether you need a handicap; sponsoring a hole; what happens when an outing is rained out; organizing a charity golf outing; getting an outing listed here; outing etiquette for first-timers; the outing season by region; corporate and charity outings compared; how outing pricing works.
+Claude Code drafts 20 guides as Markdown in `seed/guides/` during Phase 3, and the owner reviews them once before they publish. Topics: what a golf scramble is; how charity golf outings work; what an entry fee usually includes; playing an outing as a single; how shotgun starts work; scramble, best ball and shamble compared; whether charity golf entry fees are tax deductible (general information citing IRS Publication 1771, not tax advice); finding outings at private clubs; finding outings at municipal courses; what to wear to an outing at a private club; mulligans, raffles and contests; whether you need a handicap; sponsoring a hole; what happens when an outing is rained out; organizing a charity golf outing; getting an outing listed here; outing etiquette for first-timers; the outing season by region; corporate and charity outings compared; how outing pricing works.
+
+Each guide is `seed/guides/{topic}.md` with frontmatter `title`, `description`, `topic`, `updated` and `draft`. A guide with `draft: true` is built only when the build's `NODE_ENV` isn't `production`, carries `noindex`, and never appears in a sitemap or in a production link.
 
 ## 10. Security
 
