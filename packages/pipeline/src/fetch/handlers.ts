@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { HandlerOutcome, StageEnv } from "../run/handlers.ts";
 import type { PipelineState } from "../run/state.ts";
 import { runSerpQueries } from "../serp/fixture.ts";
+import { EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { sqlValue } from "../sql/literal.ts";
 import { discover, planSearch } from "../stages/discover.ts";
 import { planFetch, queueBookkeeping } from "../stages/fetch-plan.ts";
@@ -275,7 +276,8 @@ export async function normalizeHandler(env: StageEnv): Promise<HandlerOutcome> {
   const ports = await portsFor(env);
   const previousHashes: Record<string, string> = {};
   for (const r of snapshot.all(
-    "SELECT url, content_hash FROM sources WHERE content_hash IS NOT NULL",
+    // A hash from an older extractor version doesn't count: the page is extracted again under the new rules.
+    `SELECT url, content_hash FROM sources WHERE content_hash IS NOT NULL AND extractor_version = ${sqlValue(EXTRACTOR_VERSION)}`,
     z.object({ url: z.string(), content_hash: z.string() }),
   )) {
     if (/^[0-9a-f]{64}$/.test(r.content_hash)) previousHashes[r.url] = r.content_hash;

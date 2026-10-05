@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { MemoryD1 } from "../d1/memory.ts";
 import { sourceIdForUrl } from "../extract/ids.ts";
+import { EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { matched, NOW, outingRow, sourceRow, testCtx } from "../extract/test-helpers.ts";
 import { dedupeUpsert, slugTitle } from "./dedupe-upsert.ts";
 import { publish } from "./publish.ts";
@@ -222,7 +223,7 @@ describe("dedupe-upsert", () => {
     const srcs = (await d1.snapshot()).all("SELECT * FROM sources ORDER BY url", sourceRowSchema);
     expect(srcs.map((s) => [s.id, s.consecutive_gone, s.content_hash?.slice(0, 1) ?? null, s.extractor_version])).toEqual([
       ["src_old", 2, null, null],
-      [sourceIdForUrl("https://example.org/new"), 0, "b", "extract-v1"],
+      [sourceIdForUrl("https://example.org/new"), 0, "b", EXTRACTOR_VERSION],
     ]);
     expect(output.plan.ops.filter((o) => o.op === "update" && o.table === "outings")).toHaveLength(2);
   });

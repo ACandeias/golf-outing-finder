@@ -489,6 +489,8 @@ export const extractionRequestMetaSchema = z.object({
   hash: sha256,
   jsonld_events: z.array(jsonLdEventSchema),
   directory_host: z.string().nullable(),
+  /** The page text sent to the model, for the year, free and foursome post-checks (absent for an earlier run's batch). */
+  page_text: z.string().optional(),
 });
 export type ExtractionRequestMeta = z.infer<typeof extractionRequestMetaSchema>;
 

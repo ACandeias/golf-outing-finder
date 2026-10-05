@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sourceIdForUrl } from "../extract/ids.ts";
-import { EXTRACT_MAX_TOKENS, EXTRACT_MODEL, EXTRACT_SYSTEM_PROMPT } from "../extract/prompt.ts";
+import { EXTRACT_MAX_TOKENS, EXTRACT_MODEL, EXTRACT_SYSTEM_PROMPT, EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { HASH, meta, rawEvent, succeeded, testCtx } from "../extract/test-helpers.ts";
 import { extractCollect } from "./extract-collect.ts";
 import { extractRequestBuild } from "./extract-request-build.ts";
@@ -206,6 +206,6 @@ describe("extract-collect", () => {
   it("keeps the raw answer for sources.extracted_json", () => {
     const { output } = collect([rawEvent()]);
     expect(JSON.parse(output.pages[0]!.extracted_json)).toEqual({ events: [rawEvent()] });
-    expect(output.pages[0]!.extractor_version).toBe("extract-v1");
+    expect(output.pages[0]!.extractor_version).toBe(EXTRACTOR_VERSION);
   });
 });

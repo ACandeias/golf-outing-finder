@@ -58,7 +58,7 @@ describe("live-extract (never calls the API in tests)", () => {
     );
     expect(hand.recorded).toBe(false);
     const rec = toRecording("s04-fordham-winged-foot", hand.batch_result, new Date("2026-10-04T00:00:00Z"));
-    expect(rec).toMatchObject({ recorded: true, model: "claude-haiku-4-5", extractor_version: "extract-v1" });
+    expect(rec).toMatchObject({ recorded: true, model: "claude-haiku-4-5", extractor_version: "extract-v2" });
     expect(rec.note).toBeUndefined();
   });
 });
