@@ -600,6 +600,59 @@ describe("discover: sources, dedupe and exclusions", () => {
     expect(out.result.counters.urls_enqueued).toBe(2);
   });
 
+  it("removals.yaml: a listed URL is never queued, whatever route found it, so it costs no fetch or extraction", () => {
+    const removed = "https://org.example/removed-outing";
+    const rctx = ctxAt(NOW, {
+      overrides: emptyOverrides({
+        // The owner may paste the URL with tracking parameters; it still matches.
+        removals: { outing_ids: [], urls: [`${removed}?utm_source=mail`] },
+      }),
+    });
+    const q = { kind: "place" as const, q: "golf outing X", subject: "X" };
+    const out = discover(
+      rctx,
+      input({
+        recheck: [recheck("o1", "2026-10-01", "2026-09-20T00:00:00Z", removed)],
+        submissions: [{ id: "s1", url: `${removed}#top`, created_at: NOW }],
+        serpResults: [
+          { query: q, rank: 1, url: removed, title: "Golf outing", snippet: "" },
+          { query: q, rank: 2, url: "https://org.example/kept", title: "Golf outing", snippet: "" },
+        ],
+        listings: [
+          { found_via: "series", origin: "s", url: removed, title: null, text: null, registration_url: null },
+        ],
+        heldSources: [{ url: removed, held_until: "2026-12-31" }],
+        pending: [
+          { url: removed, found_via: "search_place", found_at: NOW, priority: 8, next_attempt_at: null, attempts: 0 },
+        ],
+      }),
+    );
+    expect(out.output.queue.map((x) => x.url)).toEqual(["https://org.example/kept"]);
+    const reasons = out.output.skipped.filter((s) => s.url === removed).map((s) => s.reason);
+    expect(reasons.length).toBe(6);
+    expect(new Set(reasons)).toEqual(new Set(["removed"]));
+    // The submission is still consumed.
+    expect(out.output.processedSubmissionIds).toEqual(["s1"]);
+  });
+
+  it("removals.yaml: an outing removed by id is not rechecked, but its page stays reachable for other outings", () => {
+    const page = "https://azgolf.example/calendar";
+    const rctx = ctxAt(NOW, {
+      overrides: emptyOverrides({ removals: { outing_ids: ["gone"], urls: [] } }),
+    });
+    const out = discover(
+      rctx,
+      input({
+        recheck: [
+          recheck("gone", "2026-10-01", "2026-09-20T00:00:00Z", "https://org.example/gone"),
+          recheck("kept", "2026-10-02", "2026-09-20T00:00:00Z", page),
+        ],
+      }),
+    );
+    expect(out.output.queue.map((x) => [x.url, x.recheck_outing_id])).toEqual([[page, "kept"]]);
+    expect(out.output.skipped).toEqual([{ url: "https://org.example/gone", reason: "removed" }]);
+  });
+
   it("accepts every input the zod schema accepts", () => {
     expect(() => discover(ctx, discoverInputSchema.parse(input()))).not.toThrow();
   });

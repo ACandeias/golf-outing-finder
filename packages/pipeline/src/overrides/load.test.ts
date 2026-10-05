@@ -144,6 +144,10 @@ describe("override helpers", () => {
     expect(isRemoved("out_1", [], r)).toBe(true);
     expect(isRemoved("out_2", ["https://x.example/a"], r)).toBe(true);
     expect(isRemoved("out_2", ["https://x.example/b"], r)).toBe(false);
+    // Normalized on both sides: tracking parameters, fragment and host case don't matter.
+    const pasted = { outing_ids: [], urls: ["https://X.example/a?utm_source=mail#reg"] };
+    expect(isRemoved("out_2", ["https://x.example/a"], pasted)).toBe(true);
+    expect(isRemoved("out_2", ["https://x.example/a?fbclid=1"], r)).toBe(true);
   });
 
   it("builds empty overrides with a patch", () => {

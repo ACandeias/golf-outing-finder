@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { HandlerOutcome, StageEnv } from "../run/handlers.ts";
 import type { PipelineState } from "../run/state.ts";
+import { normalizeUrl } from "../discovery/url.ts";
 import { runSerpQueries } from "../serp/fixture.ts";
 import { EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { sqlValue } from "../sql/literal.ts";
@@ -209,6 +210,12 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     set: { processed: 1 },
     where: { id },
   }));
+  // removals.yaml: a removed URL waiting in discovery_queue leaves it.
+  const removed = new Set(out.output.skipped.filter((s) => s.reason === "removed").map((s) => s.url));
+  for (const p of pending) {
+    if (removed.has(normalizeUrl(p.url) ?? p.url))
+      ops.push({ op: "delete", table: "discovery_queue", where: { url: p.url } });
+  }
   const counters: Counters = { ...out.result.counters };
   ctx.log.info("discover", {
     serp_queries: search.output.queries.length,
@@ -217,6 +224,7 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     recheck_candidates: recheck.length,
     queued: out.output.queue.length,
     skipped: out.output.skipped.length,
+    ...(removed.size > 0 ? { removed: removed.size } : {}),
   });
   return {
     result: {

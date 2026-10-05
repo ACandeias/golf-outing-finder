@@ -469,6 +469,19 @@ describe("publish", () => {
     expect(output.decisions.map((d) => [d.publish, d.hold_reason, d.why])).toEqual([[false, "removed", "removed"]]);
   });
 
+  it("matches a removals.yaml URL after normalization (tracking parameters, fragment, host case)", () => {
+    const url = "https://club.example/outing";
+    const { output } = publish(
+      testCtx({ removals: { outing_ids: [], urls: ["https://Club.Example/outing?utm_source=mail#reg"] } }),
+      {
+        outings: [entry(outingRow({ id: "gone", canonical_source_url: url, published: 1 }))],
+        heldSources: [],
+        changed: [],
+      },
+    );
+    expect(output.decisions.map((d) => [d.publish, d.hold_reason])).toEqual([[false, "removed"]]);
+  });
+
   it("honors removals.yaml by id or URL and pings only on publish or material change", async () => {
     const d1 = await dbWithOrg();
     const rows = [
