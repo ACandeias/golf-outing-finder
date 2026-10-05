@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { normalizeUrl } from "../discovery/url.ts";
 import { metroSchema, type Metro } from "../places/files.ts";
 import { parseCourseTypesYaml, type CourseTypeOverride } from "./course-types.ts";
 
@@ -284,10 +285,24 @@ export function isExcludedUrl(url: string, exclusions: Exclusions): boolean {
   return exclusions.url_patterns.some((p) => globToRegExp(p).test(url));
 }
 
-/** removals.yaml: an outing is removed by id, or when any of its URLs is listed. */
-export function isRemoved(outingId: string, urls: readonly string[], removals: Removals): boolean {
+/** removals.yaml URLs, normalized the way discovery and dedupe normalize page URLs. */
+export function removedUrlSet(removals: Removals): Set<string> {
+  return new Set(removals.urls.map((u) => normalizeUrl(u) ?? u));
+}
+
+/**
+ * removals.yaml: an outing is removed by id, or when any of its URLs is listed
+ * (compared after normalization, so a pasted URL with tracking parameters or a
+ * fragment still matches). Pass `removedUrls` from `removedUrlSet` in a loop.
+ */
+export function isRemoved(
+  outingId: string,
+  urls: readonly string[],
+  removals: Removals,
+  removedUrls: ReadonlySet<string> = removedUrlSet(removals),
+): boolean {
   if (removals.outing_ids.includes(outingId)) return true;
-  return urls.some((u) => removals.urls.includes(u));
+  return urls.some((u) => removedUrls.has(normalizeUrl(u) ?? u));
 }
 
 function deepFreeze<T>(value: T): T {

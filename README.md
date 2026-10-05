@@ -206,9 +206,38 @@ These are blocking steps only the owner can do (plan Part 3):
 | Before the first live nightly | See [Before the first live run](#before-the-first-live-run-owner): the D1 id in `wrangler.toml`, the secrets and `PUBLIC_SITE_URL`, DataForSEO, the `allowed` flags in `platforms.yaml`, then one `smoke` run. |
 | Phase 3 | Choose the domain and attach it to the Worker so edge caching works. Verify the site in Search Console and Bing Webmaster Tools: either add a DNS TXT record for the domain (no deploy needed, and it covers every subdomain), or copy each HTML-tag token into the `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` Worker vars (`wrangler.toml` `[vars]` or the dashboard) and redeploy. Then submit `/sitemap-index.xml` to both. Set the same `INDEXNOW_KEY` as a Worker var and an Actions secret. |
 | Phase 3 guides | Review the drafts in `seed/guides/` and publish each by setting `draft: false` (and `updated` to the review date). Drafts are built only when the build's `NODE_ENV` isn't `production` (`pnpm dev`, the e2e build), always carry `noindex`, and never appear in sitemaps; `pnpm build` and the deploy leave them out of `dist/` entirely. |
+| Phase 5 | Keep GitHub's Actions failure emails on, then run the nightly workflow by hand with `fail_stage: discover` and check that the email arrives. Run it once with `weekly_report: true`, and check that the "Weekly pipeline report" issue appears and that the next Monday's run updates it. See [Unattended operation](#unattended-operation-phase-5). |
 | Ongoing | Merge Dependabot PRs. A public repo's scheduled workflows are disabled after 60 days without a commit; re-enable them from the Actions tab if that happens. |
 
 Also see `tests/fixtures/MISSING.md` for seed pages that couldn't be recorded (s14 returns 404; Scramble Hunter hides details behind a login).
+
+## Unattended operation (Phase 5)
+
+**Failure email.** The nightly job fails when a stage throws or more than 20% of fetches fail, and GitHub's own failed-run notification is the email. Keep it on: in GitHub, Settings, Notifications, under Actions, email on, for failed workflows only. GitHub sends a scheduled run's failure to the account that last changed the workflow's `cron` line, and a manual run's failure to whoever started it. To test it, run the nightly workflow by hand with `fail_stage: discover`. Discover throws before any paid call, the job goes red, and the email arrives. Any other stage works too, but it runs the paid stages before it first.
+
+**Weekly report issue.** On Mondays (by the UTC date) the nightly run creates or updates one open issue titled "Weekly pipeline report", labeled `pipeline-report`. It has the last 7 days of runs: counts, failed stages, budget hits, errors by kind, holds by reason, outings on the site, and the estimated cost this week and this month against `MONTHLY_SPEND_CAP_CENTS`. The body is replaced each week, so read it, or subscribe to the issue, to keep up. It uses `GH_TOKEN: ${{ github.token }}` with `issues: write` and posts only from a live nightly against the remote D1. To post it on another day, run the workflow with `weekly_report: true`; a dry run renders it into the job summary instead. If GitHub's API fails, the run logs it, notes it in the job summary and stores it as a `report` error on the `runs` row, but the job still passes on its own result. Next Monday's run tries again. Closing the issue makes the next run open a new one.
+
+**Removals.** An entry in `data/overrides/removals.yaml` (an `outing_ids` entry, or a URL in `urls`, pasted as is) takes effect on the next run after it reaches `main`. The outing gets `published = 0` and `hold_reason = 'removed'`, and its page, list entries and sitemap entry go away. A removed URL is never queued or fetched again. An outing removed by id isn't rechecked, but its page is still read for any other outings on it. Pages are edge-cached for up to 6 hours (`TTL.list` in `apps/site/src/lib/cache.ts`), so a cached copy can stay visible that long after the run.
+
+### Monthly runbook
+
+About 20 minutes on the first weekend of the month. `d1` below is short for `pnpm --filter @gof/site exec wrangler d1 execute gof --remote --command`.
+
+1. **Read the weekly issue.** Look for failed runs, unfinished runs, and budget hits that repeat every night. A cap hit every night means the cap or the search plan needs a look. Raising a cap is your call.
+2. **Check search coverage.** In Search Console, look at Pages (indexed vs not indexed, and why) and Sitemaps (the index was read recently, with no errors). Check the same in Bing Webmaster Tools. If "Crawled, currently not indexed" grows, look at thin city pages.
+3. **Review holds by reason.** The weekly issue has the counts. To see the rows:
+   ```bash
+   d1 "SELECT hold_reason, url, held_until FROM sources WHERE hold_reason IS NOT NULL ORDER BY hold_reason, fetched_at DESC LIMIT 100"
+   d1 "SELECT hold_reason, slug, canonical_source_url FROM outings WHERE hold_reason IS NOT NULL ORDER BY hold_reason LIMIT 100"
+   ```
+   Many `course_unmatched` holds in one state usually mean courses are missing; run the monthly workflow by hand. Many `low_confidence` holds on one site point at a page the extractor misreads; exclude it, or add a course-type or registration-host entry.
+4. **Adjust overrides** in `data/overrides/`, in a PR. Use `removals.yaml` for organizer requests (from the corrections address) and `exclusions.yaml` for sites to never crawl. In `platforms.yaml`, recheck each `allowed: true` platform's terms and update `terms_checked`, and set `allowed: false` if they changed. Also maintain `registration-hosts.yaml` (registration and donation hosts), `series.yaml` (national series index pages), `course-types.yaml` and `notable-courses.yaml`. Regenerate `data/places/metros.yaml` only when the city list changes (`pnpm run places:build`).
+5. **Check the spend.** Compare the month against `MONTHLY_SPEND_CAP_CENTS` ($150), and against the Claude Console and DataForSEO balances:
+   ```bash
+   d1 "SELECT substr(started_at, 1, 7) AS month, count(*) AS runs, sum(est_cost_cents) AS cents FROM runs GROUP BY month ORDER BY month DESC LIMIT 3"
+   ```
+6. **Merge Dependabot PRs** once CI passes. This also keeps the repo active. GitHub disables a public repo's scheduled workflows after 60 days without a commit. If that happens, re-enable `nightly` and `monthly` in the Actions tab.
+7. **Test the failure email** about once a quarter: run nightly by hand with `fail_stage: discover` and check that the email arrives.
 
 ## Security
 

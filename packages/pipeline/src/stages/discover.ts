@@ -1,7 +1,7 @@
 import { localToday } from "@gof/shared/dates";
 import { blockedAsSource } from "../discovery/platform-policy.ts";
 import { normalizeUrl, hostOf } from "../discovery/url.ts";
-import { isExcludedUrl } from "../overrides/load.ts";
+import { isExcludedUrl, removedUrlSet } from "../overrides/load.ts";
 import {
   emptyResult,
   foundViaSchema,
@@ -26,7 +26,7 @@ import type { SourceKind } from "./rows.ts";
  * `discover` merges recheck candidates (at most 40% of MAX_FETCHES_PER_RUN,
  * oldest last_verified first), submissions, listing links, SERP results, held
  * sources and due `discovery_queue` rows into the fetch queue: normalized URLs,
- * exclusions.yaml applied, the 7-day dedupe except for series pages and
+ * exclusions.yaml and removals.yaml applied, the 7-day dedupe except for series pages and
  * rechecks, one entry per URL (the highest priority wins), lowest priority
  * number first.
  */
@@ -257,8 +257,15 @@ export const discover: DiscoverStage = (ctx, input) => {
     .filter((c) => input.force_recheck === true || recheckDue(c, now))
     .sort((a, b) => Date.parse(a.last_verified) - Date.parse(b.last_verified));
   const recheckUrls = new Set<string>();
+  const removedIds = new Set(ctx.overrides.removals.outing_ids);
   for (const c of due) {
     const url = normalizeUrl(c.url) ?? c.url;
+    // removals.yaml by id: that outing is never rechecked. Its page may still be
+    // fetched for other outings it lists (a calendar), so the URL isn't blocked.
+    if (removedIds.has(c.outing_id)) {
+      skipped.push({ url, reason: "removed" });
+      continue;
+    }
     if (recheckUrls.has(url)) continue; // one fetch refreshes every outing on the page
     if (recheckUrls.size >= recheckCap) {
       result.budgetHits.push(
@@ -371,6 +378,7 @@ export const discover: DiscoverStage = (ctx, input) => {
       recent.add(normalizeUrl(r.url) ?? r.url);
     }
   }
+  const removedUrls = removedUrlSet(ctx.overrides.removals);
   const byUrl = new Map<string, QueueEntry>();
   const order: string[] = [];
   for (const c of candidates) {
@@ -381,6 +389,12 @@ export const discover: DiscoverStage = (ctx, input) => {
     }
     if (isExcludedUrl(url, ctx.overrides.exclusions)) {
       skipped.push({ url, reason: "excluded" });
+      continue;
+    }
+    // removals.yaml by URL: a removed source costs no fetch and no extraction,
+    // whichever route found it (publish unpublishes its outings on every run).
+    if (removedUrls.has(url)) {
+      skipped.push({ url, reason: "removed" });
       continue;
     }
     // platforms.yaml applies to every route (SPEC.md 8.2): search results, series

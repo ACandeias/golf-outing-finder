@@ -2,6 +2,7 @@ import { isPast } from "@gof/shared/dates";
 import type { HoldReason } from "@gof/shared/schemas";
 import { blockedAsSource, platformVerdict, type PlatformRule } from "../discovery/platform-policy.ts";
 import { PUBLISH_CONFIDENCE } from "../extract/validate.ts";
+import { isRemoved, removedUrlSet } from "../overrides/load.ts";
 import {
   emptyResult,
   parseUpsertPlan,
@@ -22,11 +23,6 @@ const EVENT_STATUSES: ReadonlySet<OutingRow["status"]> = new Set([
 /** The outing page's path; IndexNow resolves it against PUBLIC_SITE_URL (src/indexnow). */
 export function outingPath(slug: string): string {
   return `/outings/${slug}`;
-}
-
-/** removals.yaml (SPEC.md 8.0): by outing id, or any of the outing's URLs. */
-function isRemoved(id: string, urls: readonly string[], removals: { outing_ids: readonly string[]; urls: readonly string[] }): boolean {
-  return removals.outing_ids.includes(id) || urls.some((u) => removals.urls.includes(u));
 }
 
 interface Verdict {
@@ -96,8 +92,11 @@ export const publish: PublishStage = (ctx, input) => {
   const ops: TableOp[] = [];
   const indexnowUrls: string[] = [];
 
+  const removals = ctx.overrides.removals;
+  const removedUrls = removedUrlSet(removals);
   for (const { outing: o, time_zone, source_urls } of input.outings) {
-    const removed = isRemoved(o.id, [o.canonical_source_url, ...source_urls], ctx.overrides.removals);
+    // removals.yaml (SPEC.md 8.0): by outing id, or any of the outing's URLs.
+    const removed = isRemoved(o.id, [o.canonical_source_url, ...source_urls], removals, removedUrls);
     const base = decide(o, time_zone, nowMs, removed);
     const blocked = base.publish && input.platform_rules ? platformBlock(o.canonical_source_url, source_urls, input.platform_rules) : null;
     const v: Verdict = blocked ? { publish: false, hold: base.hold, why: blocked } : base;

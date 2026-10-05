@@ -330,7 +330,7 @@ export const discoverOutputSchema = z.object({
   skipped: z.array(
     z.object({
       url: z.string(),
-      reason: z.enum(["excluded", "recent", "duplicate", "invalid", "not_golf", "platform_not_allowed", "platform_listing"]),
+      reason: z.enum(["excluded", "removed", "recent", "duplicate", "invalid", "not_golf", "platform_not_allowed", "platform_listing"]),
     }),
   ),
   /** Submissions consumed by this run, to mark processed. */

@@ -10,6 +10,27 @@ on:
         type: choice
         options: [nightly, smoke]
         default: nightly
+      fail_stage:
+        description: "Alert test: make this stage throw so the job fails and GitHub emails the owner (discover fails before any paid call)"
+        type: choice
+        # Must match NIGHTLY_STAGES in packages/pipeline/src/stages/registry.ts (a test checks).
+        options:
+          - none
+          - discover
+          - fetch
+          - normalize
+          - extract-request-build
+          - extract-collect
+          - classify
+          - match
+          - dedupe-upsert
+          - publish
+          - recheck-roll-forward
+        default: none
+      weekly_report:
+        description: "Create or update the Weekly pipeline report issue even if today isn't Monday"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -51,9 +72,16 @@ jobs:
           key: http-validators-${{ github.run_id }}
           restore-keys: http-validators-
       # Pending batch ids live only in runs.pending_batch_id, never in a cache.
-      - run: pnpm run pipeline --live --budget="$BUDGET" --strict
+      # Inputs reach the shell only as env vars, never inlined into the script.
+      - run: |
+          args=(--live --budget="$BUDGET" --strict)
+          if [ -n "$FAIL_STAGE" ] && [ "$FAIL_STAGE" != "none" ]; then args+=("--fail-stage=$FAIL_STAGE"); fi
+          if [ "$WEEKLY_REPORT" = "true" ]; then args+=(--weekly-report); fi
+          pnpm run pipeline "${args[@]}"
         env:
           BUDGET: ${{ inputs.budget || 'nightly' }}
+          FAIL_STAGE: ${{ inputs.fail_stage || 'none' }}
+          WEEKLY_REPORT: ${{ inputs.weekly_report == true }}
           NODE_ENV: production
           PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -62,4 +90,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }} # weekly report issue (issues: write above)
+          # GITHUB_REPOSITORY is set by Actions; the weekly issue goes to this repo.

@@ -86,7 +86,8 @@ export const HOLD_COUNTS_SQL =
   "SELECT 'sources' AS scope, hold_reason AS reason, count(*) AS n FROM sources WHERE hold_reason IS NOT NULL GROUP BY hold_reason " +
   "UNION ALL SELECT 'outings' AS scope, hold_reason AS reason, count(*) AS n FROM outings WHERE hold_reason IS NOT NULL GROUP BY hold_reason";
 
-async function holdCounts(d1: D1Port): Promise<{ sources: HoldCounts; outings: HoldCounts }> {
+/** Holds by reason, read live after the run's writes. */
+export async function queryHoldCounts(d1: D1Port): Promise<{ sources: HoldCounts; outings: HoldCounts }> {
   const out = { sources: {} as HoldCounts, outings: {} as HoldCounts };
   for (const r of await d1.query(HOLD_COUNTS_SQL, holdRowSchema)) out[r.scope][r.reason] = r.n;
   return out;
@@ -213,7 +214,7 @@ export async function runPipeline(opts: RunOptions, deps: RunDeps): Promise<RunO
     }
 
     const t0 = ctx.clock.nowMs();
-    const holds = await holdCounts(d1);
+    const holds = await queryHoldCounts(d1);
     row = finishRunRow(row, at());
     const rep = report(ctx, {
       run: row,
