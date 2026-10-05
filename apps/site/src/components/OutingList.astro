@@ -4,6 +4,7 @@ import type { ListingFilters } from "@gof/shared/filters";
 import type { LatLng } from "@gof/shared/places";
 import TeeSheet from "./TeeSheet.astro";
 import { groupByMonth, isVisible } from "../lib/listing.ts";
+import { adsForGroup, listAdSlots } from "../lib/ads.ts";
 
 interface Props {
   dated: OutingListItem[];
@@ -21,6 +22,10 @@ const groups = byMonth
   : [{ key: "all", heading: "", outings: [...dated, ...expected] }];
 const total = dated.length + expected.length;
 const shown = [...dated, ...expected].filter((o) => isVisible(o, filters, center)).length;
+// List units count results across the month sections (SPEC.md 9.5: after the
+// third result, then every eight), over the rows the URL's filters leave shown.
+const ads = listAdSlots(groups.flatMap((g) => g.outings.map((o) => isVisible(o, filters, center))));
+const offsets = groups.map((_, i) => groups.slice(0, i).reduce((n, g) => n + g.outings.length, 0));
 ---
 
 {total === 0 && <p>{emptyText}</p>}
@@ -28,12 +33,12 @@ const shown = [...dated, ...expected].filter((o) => isVisible(o, filters, center
   No outings match these filters. Try a wider date range or another course type.
 </p>
 {
-  groups.map((g) => {
+  groups.map((g, gi) => {
     const anyVisible = g.outings.some((o) => isVisible(o, filters, center));
     return (
       <section data-filter-group hidden={!anyVisible} aria-labelledby={g.heading ? `m-${g.key}` : undefined}>
         {g.heading && <h2 id={`m-${g.key}`}>{g.heading}</h2>}
-        <TeeSheet outings={g.outings} center={center} filters={filters} />
+        <TeeSheet outings={g.outings} center={center} filters={filters} adSlots={adsForGroup(ads, offsets[gi] ?? 0, g.outings.length)} />
       </section>
     );
   })

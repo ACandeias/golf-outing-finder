@@ -5,6 +5,7 @@ import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { isPast } from "@gof/shared/dates";
 import Base from "../../layouts/Base.astro";
 import TeeSheet from "../../components/TeeSheet.astro";
+import { listAdsFor } from "../../lib/ads.ts";
 import { getDb } from "../../lib/db.ts";
 import { requestNow } from "../../lib/clock.ts";
 import { TTL } from "../../lib/cache.ts";
@@ -50,7 +51,7 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="upcoming">
     <h2 id="upcoming">Upcoming outings</h2>
-    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <TeeSheet outings={upcoming} />}
+    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <TeeSheet outings={upcoming} adSlots={listAdsFor(upcoming.length)} />}
   </section>
   {
     expected.length > 0 && (

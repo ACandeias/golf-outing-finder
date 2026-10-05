@@ -4,6 +4,7 @@ import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../../layouts/Base.astro";
 import TeeSheet from "../../components/TeeSheet.astro";
+import { listAdsFor } from "../../lib/ads.ts";
 import { getDb } from "../../lib/db.ts";
 import { listToday } from "../../lib/clock.ts";
 import { TTL } from "../../lib/cache.ts";
@@ -64,7 +65,7 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="soonest">
     <h2 id="soonest">Soonest outings</h2>
-    <TeeSheet outings={soonest} />
+    <TeeSheet outings={soonest} adSlots={listAdsFor(soonest.length)} />
   </section>
 
   <section aria-labelledby="all-states">
