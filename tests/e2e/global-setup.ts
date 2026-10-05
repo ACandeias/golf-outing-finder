@@ -10,7 +10,8 @@
  *      E2E_SKIP_BUILD=1 when dist/ is fresh)
  *   4. `wrangler dev --local` from apps/site with NODE_ENV=development,
  *      SITE_NOW=2026-09-28, PUBLIC_SITE_URL=<origin>, and test values for
- *      INDEXNOW_KEY and the two site-verification vars
+ *      INDEXNOW_KEY, the two site-verification vars and the ads and GA4 vars
+ *      (support/ads-facts.ts)
  *   5. wait for /health, export E2E_BASE_URL for the workers
  *
  * Returns the teardown: kill wrangler's process group, delete the D1 directory
@@ -31,6 +32,13 @@ import {
   E2E_GOOGLE_VERIFICATION,
   E2E_INDEXNOW_KEY,
 } from "./support/guide-facts.ts";
+import {
+  E2E_ADSENSE_CLIENT,
+  E2E_ADSENSE_SLOT_LIST,
+  E2E_ADSENSE_SLOT_OUTING,
+  E2E_ADSENSE_SLOT_SIDEBAR,
+  E2E_GA4_ID,
+} from "./support/ads-facts.ts";
 
 const REPO = resolve(fileURLToPath(new URL(".", import.meta.url)), "../..");
 const SITE = join(REPO, "apps/site");
@@ -175,6 +183,17 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
       `GOOGLE_SITE_VERIFICATION:${E2E_GOOGLE_VERIFICATION}`,
       "--var",
       `BING_SITE_VERIFICATION:${E2E_BING_VERIFICATION}`,
+      // Ads on (SPEC.md 9.5), so slots, the consent bootstrap and /ads.txt render.
+      "--var",
+      `PUBLIC_ADSENSE_CLIENT:${E2E_ADSENSE_CLIENT}`,
+      "--var",
+      `PUBLIC_ADSENSE_SLOT_LIST:${E2E_ADSENSE_SLOT_LIST}`,
+      "--var",
+      `PUBLIC_ADSENSE_SLOT_OUTING:${E2E_ADSENSE_SLOT_OUTING}`,
+      "--var",
+      `PUBLIC_ADSENSE_SLOT_SIDEBAR:${E2E_ADSENSE_SLOT_SIDEBAR}`,
+      "--var",
+      `PUBLIC_GA4_ID:${E2E_GA4_ID}`,
     ],
     {
       cwd: SITE,
