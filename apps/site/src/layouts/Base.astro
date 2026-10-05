@@ -2,6 +2,8 @@
 import { buildBreadcrumbJsonLd } from "@gof/shared/jsonld";
 import Breadcrumbs, { type CrumbLink } from "../components/Breadcrumbs.astro";
 import JsonLd from "../components/JsonLd.astro";
+import AdsRuntime from "../components/AdsRuntime.astro";
+import { siteAdsConfig } from "../lib/ads-env.ts";
 import { absoluteUrl, canonicalPath } from "../lib/urls.ts";
 import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
 
@@ -28,6 +30,9 @@ const breadcrumbLd = buildBreadcrumbJsonLd(
 const year = new Date().getUTCFullYear();
 // Link to /guides only when this build renders a guide (never to drafts in production).
 const showGuides = await hasGuides();
+// Consent, analytics and ads run on server-rendered pages only: prerendered pages
+// are built before any Worker var exists (SPEC.md 9.5; see AdsRuntime.astro).
+const ads = Astro.isPrerendered ? null : siteAdsConfig();
 ---
 
 <!doctype html>
@@ -50,6 +55,7 @@ const showGuides = await hasGuides();
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <JsonLd data={breadcrumbLd} />
     {jsonLd.map((d) => <JsonLd data={d} />)}
+    {ads?.runtime && <AdsRuntime config={ads} />}
     <slot name="head" />
   </head>
   <body>
@@ -88,6 +94,13 @@ const showGuides = await hasGuides();
             <li><a href="/terms">Terms</a></li>
             <li><a href="/bot">Our crawler</a></li>
             <li><a href="/listed">Listed here?</a></li>
+            {
+              ads?.enabled && ads.provider === "adsense" && (
+                <li data-privacy-choices hidden>
+                  <button type="button" class="link-button">Privacy choices</button>
+                </li>
+              )
+            }
           </ul>
         </nav>
         <p class="small footer-note">
@@ -396,6 +409,20 @@ const showGuides = await hasGuides();
   }
   .site-footer {
     padding: 1.5rem 0 2rem;
+  }
+  /* "Privacy choices" reopens the consent message: a button that looks like the footer links. */
+  .link-button {
+    display: inline-block;
+    padding: 0.625rem 0;
+    border: 0;
+    background: none;
+    color: var(--link);
+    font-size: 1rem;
+    line-height: inherit;
+    cursor: pointer;
+  }
+  .link-button:hover {
+    text-decoration: underline;
   }
   .footer-note {
     margin: 0.75rem 0 0;
