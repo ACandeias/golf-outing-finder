@@ -40,7 +40,10 @@ const year = new Date().getUTCFullYear();
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
-    <meta name="theme-color" content="#0d5c36" />
+    <meta name="theme-color" content="#1F4D3A" />
+    <link rel="preload" href="/fonts/libre-caslon-text-v5-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/libre-caslon-text-v5-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/archivo-narrow-v35-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <JsonLd data={breadcrumbLd} />
     {jsonLd.map((d) => <JsonLd data={d} />)}
@@ -50,7 +53,13 @@ const year = new Date().getUTCFullYear();
     <a class="skip" href="#main">Skip to main content</a>
     <header class="site-header">
       <div class="wrap header-row">
-        <a class="brand" href="/">Golf Outing Finder</a>
+        <a class="brand" href="/">
+          <svg class="mark" width="14" height="22" viewBox="0 0 14 22" aria-hidden="true" focusable="false">
+            <path d="M2 1.5v19" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+            <path d="M2.9 1.8 13 5.9 2.9 10Z" fill="currentColor" />
+          </svg>
+          Golf Outing Finder
+        </a>
         <nav aria-label="Main">
           <ul class="nav">
             <li><a href="/golf-outings">Browse outings</a></li>
@@ -76,7 +85,7 @@ const year = new Date().getUTCFullYear();
             <li><a href="/listed">Listed here?</a></li>
           </ul>
         </nav>
-        <p class="muted small">
+        <p class="small footer-note">
           Golf Outing Finder lists outings anyone can pay to enter. Every listing links to its source; check details with the
           organizer before you pay. © {year} Golf Outing Finder.
         </p>
@@ -86,44 +95,119 @@ const year = new Date().getUTCFullYear();
 </html>
 
 <style is:global>
+  /* Self-hosted, latin subset, OFL (public/fonts/LICENSE.txt). */
+  @font-face {
+    font-family: "Libre Caslon Text";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/libre-caslon-text-v5-400-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: "Libre Caslon Text";
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/libre-caslon-text-v5-400italic-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: "Libre Caslon Text";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/fonts/libre-caslon-text-v5-700-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  /* Archivo Narrow is a variable font: one file covers 400 and 600. */
+  @font-face {
+    font-family: "Archivo Narrow";
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url("/fonts/archivo-narrow-v35-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  /*
+   * Metric-matched fallbacks so the swap doesn't move anything (CLS 0). Values come
+   * from each font's hhea/OS2 tables: size-adjust matches average glyph width, and
+   * the overrides are the web font's ascent and descent divided by size-adjust.
+   */
+  @font-face {
+    font-family: "Caslon fallback";
+    src: local("Georgia");
+    size-adjust: 108.3%;
+    ascent-override: 89.6%;
+    descent-override: 24%;
+    line-gap-override: 0%;
+  }
+  @font-face {
+    font-family: "Caslon fallback 2";
+    src: local("Times New Roman");
+    size-adjust: 115.3%;
+    ascent-override: 84.1%;
+    descent-override: 22.6%;
+    line-gap-override: 0%;
+  }
+  @font-face {
+    font-family: "Archivo Narrow fallback";
+    src: local("Arial Narrow");
+    size-adjust: 100.1%;
+    ascent-override: 103.4%;
+    descent-override: 31.2%;
+    line-gap-override: 0%;
+  }
+  @font-face {
+    font-family: "Archivo Narrow fallback 2";
+    src: local("Arial");
+    size-adjust: 82.1%;
+    ascent-override: 126.1%;
+    descent-override: 38%;
+    line-gap-override: 0%;
+  }
+
   :root {
     color-scheme: light;
-    --fg: #16211b;
-    --bg: #ffffff;
-    --surface: #f4f7f5;
-    --border: #c9d3cd;
-    --muted: #4b5852;
-    --accent: #0d5c36;
-    --accent-fg: #ffffff;
-    --link: #0b5530;
-    --focus: #b35c00;
-    --badge-bg: #e8f1ec;
-    --badge-fg: #123d27;
-    --badge2-bg: #f3ece0;
-    --badge2-fg: #4a3410;
-    --warn-bg: #fff4d6;
-    --warn-fg: #4d3800;
-    --radius: 8px;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Clubhouse tokens (design/README.md). */
+    --page: #faf8f3;
+    --surface: #eef2ec;
+    --fairway: #1f4d3a;
+    --ink: #1b2a22;
+    --ink-muted: #4e5b54;
+    --brass: #9a7b2e;
+    --flag: #b4332e;
+    --band: #1f4d3a;
+    --band-fg: #ede9df;
+    --plaque: #1f4d3a;
+    --plaque-fg: #faf8f3;
+    --link: var(--fairway);
+    --rule: var(--fairway);
+    --focus: var(--fairway);
+    --radius: 2px;
+    --serif: "Libre Caslon Text", "Caslon fallback", "Caslon fallback 2", Georgia, serif;
+    --sans: "Archivo Narrow", "Archivo Narrow fallback", "Archivo Narrow fallback 2", "Arial Narrow", sans-serif;
+    /* Older names, still used by a few pages. */
+    --fg: var(--ink);
+    --bg: var(--page);
+    --muted: var(--ink-muted);
+    --border: var(--ink-muted);
+    --accent: var(--plaque);
+    --accent-fg: var(--plaque-fg);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --fg: #e6ece8;
-      --bg: #101613;
-      --surface: #18211c;
-      --border: #34423a;
-      --muted: #a9b6ae;
-      --accent: #5fc48f;
-      --accent-fg: #08140d;
-      --link: #7fd6a8;
-      --focus: #ffb35c;
-      --badge-bg: #1f3a2b;
-      --badge-fg: #d3f0df;
-      --badge2-bg: #3a3020;
-      --badge2-fg: #f3e2c2;
-      --warn-bg: #3a2f10;
-      --warn-fg: #f8e7b5;
+      --page: #10201a;
+      --surface: #17291f;
+      --fairway: #8ccba6;
+      --ink: #ede9df;
+      --ink-muted: #b8c0b6;
+      --flag: #e0706a;
+      --band: #1f4d3a;
+      --band-fg: #ede9df;
+      --plaque: #2e6b50;
+      --plaque-fg: #ede9df;
     }
   }
   *,
@@ -131,19 +215,34 @@ const year = new Date().getUTCFullYear();
   *::after {
     box-sizing: border-box;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     margin: 0;
+    font-family: var(--serif);
     font-size: 1rem;
-    line-height: 1.55;
-    color: var(--fg);
-    background: var(--bg);
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--page);
   }
   a {
     color: var(--link);
-    text-underline-offset: 2px;
+    text-decoration: none;
   }
   a:hover {
-    text-decoration-thickness: 2px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  /* Links inside running text keep an underline so they don't rely on color alone. */
+  p a:not(.button),
+  dd a,
+  main ul:not([class]) a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
   }
   :focus-visible {
     outline: 3px solid var(--focus);
@@ -165,78 +264,140 @@ const year = new Date().getUTCFullYear();
   main.wide {
     padding: 0;
   }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--serif);
+    font-weight: 700;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
   h1 {
-    font-size: 1.75rem;
-    line-height: 1.2;
-    margin: 0.5rem 0 0.75rem;
+    font-size: 2rem;
+    margin: 1rem 0 0.75rem;
+    max-width: 30ch;
+  }
+  @media (min-width: 720px) {
+    h1 {
+      font-size: 2.5rem;
+    }
   }
   h2 {
-    font-size: 1.3rem;
-    margin: 2rem 0 0.75rem;
+    font-size: 1.375rem;
+    margin: 2.5rem 0 0.75rem;
   }
   h3 {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
     margin: 0 0 0.25rem;
   }
+  p,
+  li,
+  dd {
+    max-width: 70ch;
+  }
+  .lead {
+    font-size: 1.125rem;
+  }
   .muted {
-    color: var(--muted);
+    color: var(--ink-muted);
   }
   .small {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+  }
+  /* Archivo Narrow: every piece of data and chrome. */
+  .data,
+  .small,
+  .crumbs,
+  .nav,
+  .footer-links,
+  .button,
+  .label,
+  label,
+  legend,
+  summary,
+  button,
+  input,
+  select,
+  table {
+    font-family: var(--sans);
+    font-variant-numeric: lining-nums tabular-nums;
   }
   .skip {
     position: absolute;
     left: 8px;
     top: -48px;
     padding: 8px 12px;
-    background: var(--accent);
-    color: var(--accent-fg);
+    background: var(--plaque);
+    color: var(--plaque-fg);
+    font-family: var(--sans);
     z-index: 10;
     border-radius: var(--radius);
   }
   .skip:focus {
     top: 8px;
   }
+
+  /* Header and footer: fairway band, pale stone type, brass hairline. */
+  .site-header,
+  .site-footer {
+    --link: var(--band-fg);
+    --focus: var(--band-fg);
+    background: var(--band);
+    color: var(--band-fg);
+  }
   .site-header {
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    border-bottom: 2px solid var(--brass);
   }
   .header-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
+    gap: 0 1.5rem;
     align-items: center;
     justify-content: space-between;
-    min-height: 56px;
+    min-height: 60px;
   }
   .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--serif);
     font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--fg);
-    text-decoration: none;
+    font-size: 1.125rem;
+    color: var(--band-fg);
+    padding: 0.5rem 0;
+  }
+  .brand .mark {
+    color: var(--brass);
+    flex: none;
   }
   .nav,
   .footer-links {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.25rem;
+    gap: 0 1.25rem;
     margin: 0;
     padding: 0;
   }
-  .nav a {
-    display: inline-block;
-    padding: 0.5rem 0;
-  }
-  .site-footer {
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    padding: 1.5rem 0 2rem;
-  }
+  .nav a,
   .footer-links a {
     display: inline-block;
-    padding: 0.35rem 0;
+    padding: 0.625rem 0;
+    text-decoration: none;
   }
+  .nav a:hover,
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+  .site-footer {
+    padding: 1.5rem 0 2rem;
+  }
+  .footer-note {
+    margin: 0.75rem 0 0;
+    font-family: var(--sans);
+  }
+
+  /* Breadcrumbs. */
   .crumbs ol {
     list-style: none;
     display: flex;
@@ -244,62 +405,161 @@ const year = new Date().getUTCFullYear();
     gap: 0.25rem;
     margin: 0.5rem 0 0;
     padding: 0;
-    font-size: 0.9rem;
-    color: var(--muted);
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+  .crumbs li {
+    max-width: none;
   }
   .crumbs li + li::before {
     content: "/";
     margin-right: 0.25rem;
-    color: var(--muted);
   }
+
+  /* The Register plaque and the outlined secondary button. */
   .button {
-    display: inline-block;
-    padding: 0.6rem 1rem;
-    border-radius: var(--radius);
-    background: var(--accent);
-    color: var(--accent-fg);
-    font-weight: 600;
-    text-decoration: none;
-    border: 2px solid var(--accent);
-    font-size: 1rem;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 44px;
+    padding: 0 1.125rem;
+    border: 1.5px solid var(--plaque);
+    border-radius: var(--radius);
+    background: var(--plaque);
+    color: var(--plaque-fg);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .button:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .button.secondary {
     background: transparent;
-    color: var(--link);
+    border-color: var(--fairway);
+    color: var(--fairway);
   }
-  .badge {
+
+  /* Labels: course type, outing type, status. Outlined, never pills. */
+  .labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: 0.375rem 0 0;
+  }
+  .label {
     display: inline-block;
-    padding: 0.1rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    background: var(--badge-bg);
-    color: var(--badge-fg);
-    border: 1px solid var(--border);
-  }
-  .badge.type {
-    background: var(--badge2-bg);
-    color: var(--badge2-fg);
-  }
-  .note {
-    background: var(--warn-bg);
-    color: var(--warn-fg);
-    padding: 0.75rem 1rem;
+    padding: 0 0.375rem;
+    border: 1px solid var(--ink);
     border-radius: var(--radius);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .label.alert {
+    border-color: var(--flag);
+    color: var(--flag);
+  }
+
+  /* Notes: a left-ruled aside. */
+  .note {
+    margin: 1rem 0;
+    padding: 0.125rem 0 0.125rem 1rem;
+    border-left: 3px solid var(--rule);
+  }
+  .note > p {
+    margin: 0.25rem 0;
+  }
+  .note.alert {
+    border-left-color: var(--flag);
+    color: var(--flag);
+  }
+
+  /* Scorecard: a ruled definition list (outing details, course facts). */
+  .scorecard {
+    margin: 0 0 1rem;
+    border-top: 1.5px solid var(--rule);
+  }
+  .scorecard > div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr);
+    gap: 0 1rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .scorecard > div:nth-child(even) {
+    background: var(--surface);
+  }
+  .scorecard dt {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .scorecard dd {
+    margin: 0;
+    font-variant-numeric: lining-nums;
+  }
+  .scorecard dd.num {
+    font-family: var(--sans);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  @media (max-width: 479.98px) {
+    .scorecard > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Ruled tables. */
+  table {
+    border-collapse: collapse;
+  }
+  .ruled {
+    width: 100%;
+    max-width: 32rem;
+    border-top: 1.5px solid var(--rule);
+    border-bottom: 1.5px solid var(--rule);
+  }
+  .ruled th,
+  .ruled td {
+    text-align: left;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ruled thead th {
+    font-weight: 600;
+  }
+  .ruled tbody th {
+    font-weight: 400;
+  }
+  .ruled td {
+    text-align: right;
+  }
+  .ruled thead th:not(:first-child) {
+    text-align: right;
+  }
+  .ruled tbody tr:nth-child(even) {
+    background: var(--surface);
   }
   .grid-links {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.25rem 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+    gap: 0 1.5rem;
+    font-family: var(--sans);
+    font-variant-numeric: lining-nums tabular-nums;
   }
   .grid-links a {
     display: inline-block;
     padding: 0.3rem 0;
+    text-decoration: none;
+  }
+  .grid-links a:hover {
+    text-decoration: underline;
   }
   .visually-hidden {
     position: absolute;

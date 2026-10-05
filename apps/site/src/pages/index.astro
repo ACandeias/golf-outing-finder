@@ -4,9 +4,9 @@ import { countUpcomingByState, listUpcomingOutings, searchCities, zipLookup } fr
 import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
-import OutingCard from "../components/OutingCard.astro";
+import TeeSheet from "../components/TeeSheet.astro";
 import { getDb } from "../lib/db.ts";
-import { listToday } from "../lib/clock.ts";
+import { listToday, siteYear } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../lib/urls.ts";
@@ -67,7 +67,7 @@ setCache(Astro, TTL.home);
     <label for="q">City or ZIP code</label>
     <div class="search-row">
       <input id="q" name="q" type="search" autocomplete="off" placeholder="e.g. Mamaroneck, NY or 10543" maxlength="100" required />
-      <button class="button" type="submit">Search</button>
+      <button class="button" type="submit">Find outings</button>
     </div>
   </form>
   {
@@ -89,31 +89,27 @@ setCache(Astro, TTL.home);
     )
   }
 
+  <section aria-labelledby="soonest">
+    <h2 id="soonest">Coming up</h2>
+    {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : <TeeSheet outings={soonest} />}
+    <p class="data"><a href="/golf-outings">See outings in every state</a></p>
+  </section>
+
   <section aria-labelledby="near">
     <h2 id="near">Outings near you</h2>
     <p class="muted" data-near-status aria-live="polite">Share your location to see outings within 100 miles. We don't store it.</p>
     <button class="button secondary" type="button" data-near-button>Use my location</button>
-    <div class="near-list" data-near-list></div>
-  </section>
-
-  <section aria-labelledby="soonest">
-    <h2 id="soonest">Coming up soon across the US</h2>
-    {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : (
-      <div class="cards">
-        {soonest.map((o) => <OutingCard outing={o} />)}
-      </div>
-    )}
-    <p><a href="/golf-outings">See every state</a></p>
+    <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
   </section>
 
   <section aria-labelledby="states">
     <h2 id="states">Browse by state</h2>
-    <ul class="grid-links">
+    <ul class="state-list">
       {
         states.map(([code, name]) => (
           <li>
             <a href={statePath(code)}>{name}</a>
-            {countBy.get(code) ? <span class="muted small"> ({countBy.get(code)})</span> : null}
+            {countBy.get(code) ? <span class="muted"> ({countBy.get(code)})</span> : null}
           </li>
         ))
       }
@@ -122,53 +118,74 @@ setCache(Astro, TTL.home);
 </Base>
 
 <style>
-  .lead {
-    font-size: 1.1rem;
-    max-width: 60ch;
-  }
   .search {
-    margin: 1.25rem 0;
-    max-width: 560px;
+    margin: 1.75rem 0 0.5rem;
+    max-width: 600px;
   }
   .search label {
     display: block;
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.125rem;
   }
   .search-row {
     display: flex;
-    gap: 0.5rem;
+    align-items: flex-end;
+    gap: 1rem;
   }
+  /* The search is a single ruled line, like a name line on a sign-up sheet. */
   .search input {
     flex: 1;
     min-width: 0;
-    font: inherit;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--muted);
-    border-radius: var(--radius);
-    background: var(--bg);
-    color: var(--fg);
     min-height: 44px;
+    padding: 0.25rem 0;
+    border: 0;
+    border-bottom: 2px solid var(--fairway);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 1.125rem;
   }
-  .cards,
-  .near-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
+  .search input::placeholder {
+    color: var(--ink-muted);
+    opacity: 1;
   }
-  .near-list:not(:empty) {
-    margin-top: 1rem;
+  .search .button {
+    flex: none;
   }
-  .near-list :global(.near-card) {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
+  .tee-sheet:empty {
+    display: none;
   }
-  .near-list :global(p) {
-    margin: 0.25rem 0;
+  [data-near-button] {
+    margin-top: 0.25rem;
   }
-  .near-list :global(.near-price) {
-    font-weight: 600;
+  .state-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 1.5rem;
+    font-family: var(--sans);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  @media (min-width: 560px) {
+    .state-list {
+      columns: 3;
+    }
+  }
+  @media (min-width: 860px) {
+    .state-list {
+      columns: 4;
+    }
+  }
+  .state-list li {
+    break-inside: avoid;
+    padding: 0.25rem 0;
+  }
+  .state-list a {
+    text-decoration: none;
+  }
+  .state-list a:hover {
+    text-decoration: underline;
   }
 </style>
 

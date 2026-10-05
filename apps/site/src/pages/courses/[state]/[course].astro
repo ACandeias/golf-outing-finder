@@ -6,7 +6,7 @@ import { isPast } from "@gof/shared/dates";
 import { OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
 import type { CourseType } from "@gof/shared/schemas";
 import Base from "../../../layouts/Base.astro";
-import OutingCard from "../../../components/OutingCard.astro";
+import TeeSheet from "../../../components/TeeSheet.astro";
 import { getDb } from "../../../lib/db.ts";
 import { requestNow } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
@@ -79,22 +79,21 @@ setCache(Astro, TTL.list);
     {course.name} is {typeSentence[course.courseType] ?? "a golf course"} in {place}.
     {course.courseType === "private" && " Members-only most days, but these outings are open to anyone who registers."}
   </p>
-  <dl class="facts">
-    <dt>Course type</dt>
-    <dd><span class="badge type">{typeLabel}</span></dd>
-    {course.street && (<><dt>Address</dt><dd>{course.street}, {place}{course.zip && <> {course.zip}</>}</dd></>)}
-    {website && (<><dt>Website</dt><dd><a href={website} rel="nofollow noopener">{new URL(website).hostname.replace(/^www\./, "")}</a></dd></>)}
+  <dl class="facts scorecard">
+    <div><dt>Course type</dt><dd>{typeLabel}</dd></div>
+    {course.street && <div><dt>Address</dt><dd>{course.street}, {place}{course.zip && <> {course.zip}</>}</dd></div>}
+    {website && <div><dt>Website</dt><dd><a href={website} rel="nofollow noopener">{new URL(website).hostname.replace(/^www\./, "")}</a></dd></div>}
   </dl>
 
   <section aria-labelledby="upcoming">
     <h2 id="upcoming">Upcoming outings</h2>
-    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <div class="cards">{upcoming.map((o) => <OutingCard outing={o} />)}</div>}
+    {upcoming.length === 0 ? <p>No dated outings coming up right now.</p> : <TeeSheet outings={upcoming} />}
   </section>
   {
     expected.length > 0 && (
       <section aria-labelledby="expected">
         <h2 id="expected">Expected to return</h2>
-        <div class="cards">{expected.map((o) => <OutingCard outing={o} />)}</div>
+        <TeeSheet outings={expected} />
       </section>
     )
   }
@@ -102,29 +101,10 @@ setCache(Astro, TTL.list);
     past.length > 0 && (
       <section aria-labelledby="past">
         <h2 id="past">Past outings</h2>
-        <div class="cards">{past.map((o) => <OutingCard outing={o} />)}</div>
+        <TeeSheet outings={past} alwaysYear />
       </section>
     )
   }
   {course.city && <p><a href={cityPath(course.state, course.city)}>More golf outings in {course.city}</a></p>}
   <p class="small muted">Course name and location {OSM_ATTRIBUTION_TEXT} (<a href="https://www.openstreetmap.org/copyright">ODbL</a>).</p>
 </Base>
-
-<style>
-  .facts {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: 0.4rem 1rem;
-  }
-  .facts dt {
-    font-weight: 600;
-  }
-  .facts dd {
-    margin: 0;
-  }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
-  }
-</style>

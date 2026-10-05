@@ -2,7 +2,7 @@
 import type { OutingListItem } from "@gof/db/queries";
 import type { ListingFilters } from "@gof/shared/filters";
 import type { LatLng } from "@gof/shared/places";
-import OutingCard from "./OutingCard.astro";
+import TeeSheet from "./TeeSheet.astro";
 import { groupByMonth, isVisible } from "../lib/listing.ts";
 
 interface Props {
@@ -33,20 +33,9 @@ const shown = [...dated, ...expected].filter((o) => isVisible(o, filters, center
     return (
       <section data-filter-group hidden={!anyVisible} aria-labelledby={g.heading ? `m-${g.key}` : undefined}>
         {g.heading && <h2 id={`m-${g.key}`}>{g.heading}</h2>}
-        <div class="cards">
-          {g.outings.map((o) => (
-            <OutingCard outing={o} center={center} hidden={!isVisible(o, filters, center)} />
-          ))}
-        </div>
+        <TeeSheet outings={g.outings} center={center} filters={filters} />
       </section>
     );
   })
 }
 
-<style>
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
-    gap: 1rem;
-  }
-</style>
