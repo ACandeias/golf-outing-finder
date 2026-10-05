@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { platformRuleSchema } from "../discovery/platform-policy.ts";
 import { BUDGET_CAPS, type Budget, type BudgetCap } from "@gof/shared/budget";
 import { extractionEventSchema, holdReasonSchema, type HoldReason } from "@gof/shared/schemas";
 import type { Overrides } from "../overrides/load.ts";
@@ -316,6 +317,10 @@ export const discoverInputSchema = z.object({
    */
   pending: z.array(discoveryQueueRowSchema).optional(),
   allowance: allowanceSchema,
+  /** platforms.yaml as rules (discovery/platform-policy.ts): every discovered URL honors `allowed` and listing pages. */
+  platform_rules: z.array(platformRuleSchema).optional(),
+  /** `--recheck-all`: every published open or waitlist outing is due tonight (still within the 40% share). */
+  force_recheck: z.boolean().optional(),
 });
 export type DiscoverInput = z.infer<typeof discoverInputSchema>;
 
@@ -324,7 +329,7 @@ export const discoverOutputSchema = z.object({
   skipped: z.array(
     z.object({
       url: z.string(),
-      reason: z.enum(["excluded", "recent", "duplicate", "invalid", "not_golf"]),
+      reason: z.enum(["excluded", "recent", "duplicate", "invalid", "not_golf", "platform_not_allowed", "platform_listing"]),
     }),
   ),
   /** Submissions consumed by this run, to mark processed. */
@@ -859,6 +864,11 @@ export const publishInputSchema = z.object({
   heldSources: z.array(sourceRowSchema),
   /** Outing ids whose content changed in this run (IndexNow). */
   changed: z.array(z.string()),
+  /**
+   * platforms.yaml as rules: an outing whose canonical source is a platform listing page, or that only
+   * pages on a disallowed platform or directory support, never publishes.
+   */
+  platform_rules: z.array(platformRuleSchema).optional(),
 });
 export type PublishInput = z.infer<typeof publishInputSchema>;
 

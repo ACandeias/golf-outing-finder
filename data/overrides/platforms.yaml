@@ -19,6 +19,16 @@
 # with outing, tournament, scramble, classic or invitational.
 # Directory index pages are never sources; only their event pages are queued.
 # URLs marked "unverified" are best guesses; check them when turning one on.
+#
+# The flags apply wherever a URL comes from, not only to these adapters
+# (SPEC.md section 8.2): a page on a platform or directory with
+# `allowed: false` that search, a series page, a submission or a recheck
+# turns up is skipped, and an outing that only such pages support doesn't
+# publish. A listing or search page is never an outing's canonical source.
+# domains:             registrable domains the site uses; `eventbrite.*` matches
+#                      every country code (eventbrite.ca, eventbrite.com.au).
+#                      Default: the domains of `urls`.
+# listing_url_pattern: path regex for the site's listing and search pages.
 
 platforms:
   - name: golfstatus
@@ -76,6 +86,7 @@ platforms:
     adapter: sitemap
     cadence: daily
     urls: [https://www.networkforgood.com/sitemap.xml] # unverified
+    listing_url_pattern: "^/events/?$"
     event_url_pattern: "^https://[a-z0-9-]+\\.networkforgood\\.com/events/"
   - name: eventbrite
     allowed: false
@@ -83,6 +94,8 @@ platforms:
     adapter: links
     cadence: daily
     urls: [https://www.eventbrite.com/d/united-states/golf-tournament/] # unverified
+    domains: ["eventbrite.*"]
+    listing_url_pattern: "^/(d|b|o|cc)/"
     event_url_pattern: "^https://(www\\.)?eventbrite\\.com/e/"
 
 associations:

@@ -2,6 +2,7 @@ import { resolveBudget } from "@gof/shared/budget";
 import { describe, expect, it } from "vitest";
 import { emptyOverrides } from "../overrides/load.ts";
 import { discover, isGolfOutingText, planSearch, PRIORITY } from "./discover.ts";
+import type { PlatformRule } from "../discovery/platform-policy.ts";
 import {
   discoverInputSchema,
   queueEntrySchema,
@@ -230,6 +231,98 @@ describe("planSearch", () => {
 // ---------------------------------------------------------------------------
 // discover
 // ---------------------------------------------------------------------------
+
+describe("discover: platforms.yaml applies to search results and rechecks", () => {
+  const rules: PlatformRule[] = [
+    { name: "eventbrite", allowed: false, domains: ["eventbrite.*"], listing_url_pattern: "^/(d|b|o|cc)/" },
+    { name: "golfgenius", allowed: true, domains: ["golfgenius.com"], listing_url_pattern: "^/$" },
+  ];
+  const serp = (url: string) => ({
+    query: { kind: "place" as const, q: "golf outing Darien CT 2026", subject: "Darien, CT" },
+    rank: 1,
+    url,
+    title: "t",
+    snippet: "s",
+  });
+
+  it("drops an Eventbrite search listing and any page on a platform with allowed: false", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        serpResults: [
+          serp("https://www.eventbrite.ca/d/ct--darien/golf-tournament/"),
+          serp("https://www.eventbrite.com/e/9th-annual-1-club-golf-outing-tickets-1999044102724"),
+          serp("https://www.golfgenius.com/pages/123-charity-classic"),
+          serp("https://www.golfgenius.com/"),
+          serp("https://www.fordham.edu/golf"),
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => q.url)).toEqual([
+      "https://www.golfgenius.com/pages/123-charity-classic",
+      "https://www.fordham.edu/golf",
+    ]);
+    expect(out.output.skipped).toEqual(
+      expect.arrayContaining([
+        { url: "https://www.eventbrite.ca/d/ct--darien/golf-tournament/", reason: "platform_not_allowed" },
+        { url: "https://www.golfgenius.com/", reason: "platform_listing" },
+      ]),
+    );
+  });
+
+  it("does not recheck an outing whose page is an Eventbrite listing", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        recheck: [recheck("o1", "2026-10-20", "2026-09-01T00:00:00Z", "https://www.eventbrite.ca/d/ct--darien/golf-tournament/")],
+      }),
+    );
+    expect(out.output.queue).toEqual([]);
+  });
+
+  it("a series link, a submission or a leftover queue row on a disallowed platform is skipped too", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        listings: [
+          {
+            found_via: "series",
+            origin: "acs-golf-classic",
+            url: "https://www.eventbrite.com/e/acs-golf-classic-tickets-2",
+            title: "ACS Golf Classic",
+            text: null,
+            registration_url: null,
+          },
+          {
+            found_via: "series",
+            origin: "acs-golf-classic",
+            url: "https://akroncanton.acsgolf.org/",
+            title: null,
+            text: null,
+            registration_url: null,
+          },
+        ],
+        submissions: [{ id: "s1", url: "https://www.eventbrite.com/e/submitted-golf-outing-tickets-3", created_at: NOW }],
+        pending: [
+          {
+            url: "https://www.eventbrite.com.au/d/nj--northfield/pine-beach-golf-outing/",
+            found_via: "search_place",
+            found_at: NOW,
+            priority: 7,
+            next_attempt_at: null,
+            attempts: 0,
+          },
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => q.url)).toEqual(["https://akroncanton.acsgolf.org/"]);
+    expect(out.output.processedSubmissionIds).toEqual(["s1"]);
+    expect(out.output.skipped.filter((x) => x.reason === "platform_not_allowed")).toHaveLength(3);
+  });
+});
 
 describe("discover: recheck queue", () => {
   it("rechecks every 7 days when more than 30 days out, else every 48 hours", () => {

@@ -1,4 +1,5 @@
 import { localToday } from "@gof/shared/dates";
+import { blockedAsSource } from "../discovery/platform-policy.ts";
 import { normalizeUrl, hostOf } from "../discovery/url.ts";
 import { isExcludedUrl } from "../overrides/load.ts";
 import {
@@ -229,6 +230,9 @@ function kindFor(via: FoundVia): SourceKind {
   }
 }
 
+/** Routes whose listing adapter already applied platforms.yaml (sources.ts skips `allowed: false`). */
+const ADAPTER_ROUTES: ReadonlySet<FoundVia> = new Set(["platform", "association", "directory"]);
+
 export const discover: DiscoverStage = (ctx, input) => {
   const result = emptyResult();
   const now = ctx.now;
@@ -378,6 +382,17 @@ export const discover: DiscoverStage = (ctx, input) => {
     if (isExcludedUrl(url, ctx.overrides.exclusions)) {
       skipped.push({ url, reason: "excluded" });
       continue;
+    }
+    // platforms.yaml applies to every route (SPEC.md 8.2): search results, series
+    // links, submissions, rechecks, held retries and leftover queue rows never
+    // reach a platform or directory with allowed: false, or any listing page.
+    // The platform, association and directory adapters check `allowed` themselves.
+    if (input.platform_rules && !ADAPTER_ROUTES.has(c.found_via)) {
+      const v = blockedAsSource(url, input.platform_rules);
+      if (v) {
+        skipped.push({ url, reason: v.allowed ? "platform_listing" : "platform_not_allowed" });
+        continue;
+      }
     }
     const existing = byUrl.get(url);
     if (existing) {

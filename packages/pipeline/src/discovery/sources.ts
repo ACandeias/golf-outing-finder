@@ -29,6 +29,21 @@ const listingEntrySchema = z
     cadence: z.enum(["daily", "weekly"]).default("weekly"),
     months_ahead: z.number().int().min(1).max(12).default(1),
     urls: z.array(z.string().min(1)).default([]),
+    /** Registrable domains the site uses (`eventbrite.*` for every country code); default: those of `urls`. */
+    domains: z.array(z.string().min(1)).optional(),
+    /** Path regex for listing and search pages, which never stand for one outing (platform-policy.ts). */
+    listing_url_pattern: z
+      .string()
+      .optional()
+      .refine((p) => {
+        if (p === undefined) return true;
+        try {
+          new RegExp(p);
+          return true;
+        } catch {
+          return false;
+        }
+      }, "not a valid regular expression"),
     event_url_pattern: z
       .string()
       .optional()

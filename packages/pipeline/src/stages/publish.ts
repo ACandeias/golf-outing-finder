@@ -1,5 +1,6 @@
 import { isPast } from "@gof/shared/dates";
 import type { HoldReason } from "@gof/shared/schemas";
+import { blockedAsSource, platformVerdict, type PlatformRule } from "../discovery/platform-policy.ts";
 import { PUBLISH_CONFIDENCE } from "../extract/validate.ts";
 import {
   emptyResult,
@@ -62,6 +63,21 @@ function decide(
 }
 
 /**
+ * platforms.yaml at publish (SPEC.md 8.2): an outing whose canonical source is
+ * a platform listing or search page never publishes, and neither does one that
+ * only pages on a platform or directory with `allowed: false` support.
+ */
+function platformBlock(
+  canonical: string,
+  sourceUrls: readonly string[],
+  rules: readonly PlatformRule[],
+): "platform_listing" | "platform_not_allowed" | null {
+  if (platformVerdict(canonical, rules)?.listing) return "platform_listing";
+  const pages = [canonical, ...sourceUrls];
+  return pages.every((u) => blockedAsSource(u, rules) !== null) ? "platform_not_allowed" : null;
+}
+
+/**
  * SPEC.md 8.8 as amended, workstream C. Course is always matched here (outings
  * rows need a course; unmatched events stayed on their source). A dated outing
  * (open, waitlist, sold_out, cancelled) publishes when its last day, course-local,
@@ -82,7 +98,9 @@ export const publish: PublishStage = (ctx, input) => {
 
   for (const { outing: o, time_zone, source_urls } of input.outings) {
     const removed = isRemoved(o.id, [o.canonical_source_url, ...source_urls], ctx.overrides.removals);
-    const v = decide(o, time_zone, nowMs, removed);
+    const base = decide(o, time_zone, nowMs, removed);
+    const blocked = base.publish && input.platform_rules ? platformBlock(o.canonical_source_url, source_urls, input.platform_rules) : null;
+    const v: Verdict = blocked ? { publish: false, hold: base.hold, why: blocked } : base;
     const published = v.publish ? 1 : 0;
     const ping = v.publish && (o.published === 0 || changed.has(o.id)) && o.status !== "past";
     decisions.push({

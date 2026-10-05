@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import type { SerpProvider } from "@gof/shared/env";
 import { Agent, fetch as undiciFetch } from "undici";
 import { z } from "zod";
+import { platformRulesFrom, type PlatformRule } from "../discovery/platform-policy.ts";
 import { createListingSource, loadPlatforms } from "../discovery/sources.ts";
 import { PATHS } from "../lib/paths.ts";
 import { guardedLookup, systemResolver, type GuardOptions } from "../net/ssrf.ts";
@@ -32,6 +33,10 @@ export interface FetchSidePorts {
   close(): Promise<void>;
   /** `--prioritize-states`: searched tonight and first (see planSearch). */
   prioritizeStates?: readonly string[];
+  /** platforms.yaml as rules, applied to every discovered URL (discovery/platform-policy.ts). */
+  platformRules?: readonly PlatformRule[];
+  /** `--recheck-all`: every published open or waitlist outing is rechecked tonight. */
+  forceRecheck?: boolean;
 }
 
 export interface FetchSideOptions {
@@ -148,6 +153,7 @@ export async function createFetchSidePorts(
         log: ctx.log,
       }),
       serp: createFixtureSerpAdapter(),
+      platformRules: platformRulesFrom(config),
       close: async () => {},
     };
   }
@@ -199,6 +205,7 @@ export async function createFetchSidePorts(
       log: ctx.log,
     }),
     serp,
+    platformRules: platformRulesFrom(config),
     close: async () => {
       validators.save();
       await renderer.close();

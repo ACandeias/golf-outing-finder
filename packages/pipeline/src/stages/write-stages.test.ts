@@ -276,6 +276,63 @@ describe("publish", () => {
     expect(result.counters.indexnow_urls).toBe(4);
   });
 
+  const eventbriteRules = (allowed: boolean) => [
+    { name: "eventbrite", allowed, domains: ["eventbrite.*"], listing_url_pattern: "^/(d|b|o|cc)/" },
+  ];
+
+  it("never publishes an outing whose canonical source is a platform listing page", () => {
+    const { output } = publish(testCtx(), {
+      outings: [
+        entry(outingRow({ id: "listing", canonical_source_url: "https://www.eventbrite.ca/d/ct--darien/golf-tournament/" })),
+        entry(outingRow({ id: "event", canonical_source_url: "https://www.eventbrite.com/e/1-club-golf-outing-tickets-1" })),
+        entry(
+          outingRow({
+            id: "past-listing",
+            status: "past",
+            published: 1,
+            start_date: "2026-09-01",
+            canonical_source_url: "https://www.eventbrite.com/d/nj--northfield/golf/",
+          }),
+        ),
+      ],
+      heldSources: [],
+      changed: [],
+      platform_rules: eventbriteRules(true),
+    });
+    expect(output.decisions.map((d) => [d.outing_id, d.publish, d.why])).toEqual([
+      ["listing", false, "platform_listing"],
+      ["event", true, "dated"],
+      ["past-listing", false, "platform_listing"],
+    ]);
+  });
+
+  it("an outing that only pages on a disallowed platform support doesn't publish; another source keeps it", () => {
+    const ev = "https://www.eventbrite.com/e/9th-annual-1-club-golf-outing-tickets-1999044102724";
+    const only = outingRow({ id: "only", canonical_source_url: ev });
+    const also = outingRow({ id: "also", canonical_source_url: ev });
+    const { output } = publish(testCtx(), {
+      outings: [entry(only), { ...entry(also), source_urls: [ev, "https://club.example/outing"] }],
+      heldSources: [],
+      changed: [],
+      platform_rules: eventbriteRules(false),
+    });
+    expect(output.decisions.map((d) => [d.outing_id, d.publish, d.hold_reason, d.why])).toEqual([
+      ["only", false, null, "platform_not_allowed"],
+      ["also", true, null, "dated"],
+    ]);
+  });
+
+  it("removals.yaml still wins over the platform rule", () => {
+    const url = "https://www.eventbrite.ca/d/ct--darien/golf-tournament/";
+    const { output } = publish(testCtx({ removals: { outing_ids: [], urls: [url] } }), {
+      outings: [entry(outingRow({ id: "gone", canonical_source_url: url, published: 1 }))],
+      heldSources: [],
+      changed: [],
+      platform_rules: eventbriteRules(false),
+    });
+    expect(output.decisions.map((d) => [d.publish, d.hold_reason, d.why])).toEqual([[false, "removed", "removed"]]);
+  });
+
   it("honors removals.yaml by id or URL and pings only on publish or material change", async () => {
     const d1 = await dbWithOrg();
     const rows = [

@@ -197,6 +197,8 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     heldSources,
     pending,
     allowance: guard.allowance(),
+    ...(ports.platformRules ? { platform_rules: [...ports.platformRules] } : {}),
+    ...(ports.forceRecheck ? { force_recheck: true } : {}),
   });
   state.queue = out.output.queue;
   state.processedSubmissionIds = out.output.processedSubmissionIds;

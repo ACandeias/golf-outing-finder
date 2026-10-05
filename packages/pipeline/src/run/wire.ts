@@ -18,6 +18,9 @@ import { AnthropicBatchClient, MAX_WAIT_MS, POLL_INTERVAL_MS, runExtractionBatch
 import { ClaudeCliBatchClient, DEFAULT_CONCURRENCY, type ClaudeSpawner } from "../llm/claude-cli.ts";
 import { estimateCostCents } from "../budget.ts";
 import { createClaudeSearchAdapter, type ClaudeSearchAdapter } from "../serp/claude-search.ts";
+import { platformRulesFrom } from "../discovery/platform-policy.ts";
+import { loadPlatforms } from "../discovery/sources.ts";
+import { PATHS } from "../lib/paths.ts";
 import { sqlValue } from "../sql/literal.ts";
 import { classify } from "../stages/classify.ts";
 import { dedupeUpsert } from "../stages/dedupe-upsert.ts";
@@ -627,6 +630,7 @@ export function wiredHandlers(edges: RunEdges): StageHandlers {
         outings: outingsWithContext(snapshot),
         heldSources: snapshot.all("SELECT * FROM sources WHERE hold_reason IS NOT NULL", sourceRowSchema),
         changed: [...new Set(changed)],
+        platform_rules: platformRulesFrom(await loadPlatforms(PATHS.overrides)),
       });
       state.publishDecisions = out.output.decisions;
       state.indexnowUrls = out.output.indexnowUrls;
