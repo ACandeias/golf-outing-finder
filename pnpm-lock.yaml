@@ -191,8 +191,8 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@22.20.4)(vite@8.3.2(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1))
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.6.5
+        version: 4.6.5
 
   apps/site:
     dependencies:
@@ -215,8 +215,8 @@ importers:
         specifier: 6.11.2
         version: 6.11.2
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       '@astrojs/check':
         specifier: ^0.9.10
@@ -248,7 +248,7 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: 0.131.0
-        version: 0.131.0(zod@3.25.76)
+        version: 0.131.0(zod@4.6.5)
       '@gof/db':
         specifier: workspace:*
         version: link:../db
@@ -274,8 +274,8 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       '@types/tz-lookup':
         specifier: 6.1.2
@@ -287,8 +287,8 @@ importers:
   packages/shared:
     dependencies:
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.6.5
+        version: 4.6.5
 
 packages:
 
@@ -3399,9 +3399,6 @@ packages:
   youch@4.1.0-beta.10:
     resolution: {integrity: sha512-rLfVLB4FgQneDr0dv1oddCVZmKjcJ6yX6mS4pU82Mq/Dt9a3cLZQ62pDBL4AUO+uVrCvtWz3ZFUL2HFAFJ/BXQ==}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-
   zod@4.6.5:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
@@ -3410,12 +3407,12 @@ packages:
 
 snapshots:
 
-  '@anthropic-ai/sdk@0.131.0(zod@3.25.76)':
+  '@anthropic-ai/sdk@0.131.0(zod@4.6.5)':
     dependencies:
       json-schema-to-ts: 3.1.1
       standardwebhooks: 1.1.1
     optionalDependencies:
-      zod: 3.25.76
+      zod: 4.6.5
 
   '@astrojs/astro2tsx@0.1.2(@emnapi/runtime@1.11.3)':
     dependencies:
@@ -6185,8 +6182,6 @@ snapshots:
       '@speed-highlight/core': 1.2.24
       cookie: 1.1.1
       youch-core: 0.3.3
-
-  zod@3.25.76: {}
 
   zod@4.6.5: {}
 
