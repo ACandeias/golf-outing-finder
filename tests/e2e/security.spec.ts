@@ -4,13 +4,18 @@
 import { expect, test } from "./support/fixtures.ts";
 import { jsonLdBlocks, withoutScripts } from "./support/html.ts";
 import { HOPE_HEROES_EXPECTED_SLUG, NKF_WINGED_FOOT, THRIVERS } from "./support/seed-facts.ts";
+import { SAMPLE_GUIDE_PATH } from "./support/guide-facts.ts";
 
 const HTML_PAGES = [
-  "/",
-  "/golf-outings/ny/mamaroneck",
-  `/outings/${NKF_WINGED_FOOT.slug}`,
-  "/map",
-  "/about",
+  ...new Set([
+    "/",
+    "/golf-outings/ny/mamaroneck",
+    `/outings/${NKF_WINGED_FOOT.slug}`,
+    "/map",
+    "/about",
+    "/guides",
+    SAMPLE_GUIDE_PATH,
+  ]),
 ];
 
 for (const path of HTML_PAGES) {

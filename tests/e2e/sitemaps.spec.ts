@@ -14,6 +14,7 @@ import {
   PUBLISHED_OUTING_SLUGS,
   STATES_WITH_OUTINGS,
 } from "./support/seed-facts.ts";
+import { DRAFT_GUIDES, PUBLISHED_GUIDES } from "./support/guide-facts.ts";
 
 const MAX_URLS_PER_FILE = 45_000;
 const STATIC_PATHS = new Set(["/", "/golf-outings", "/about"]);
@@ -110,6 +111,15 @@ test("children list exactly the indexable outings, courses, organizers and state
   // G3: "every indexable page has a canonical URL and a sitemap entry": the home page,
   // the national hub and /about are indexed (9.1).
   for (const p of ["/", "/golf-outings", "/about"]) expect(paths, p).toContain(p);
+
+  // 9.8: published guides only, in every build (the e2e build renders drafts, with
+  // noindex); /guides once a guide is published.
+  const guides = paths.filter((p) => p.startsWith("/guides/"));
+  expect(guides.sort()).toEqual(PUBLISHED_GUIDES.map((g) => g.path).sort());
+  for (const g of DRAFT_GUIDES) expect(paths, g.path).not.toContain(g.path);
+  expect(paths.includes("/guides"), "/guides listed iff a guide is published").toBe(
+    PUBLISHED_GUIDES.length > 0,
+  );
 
   // Never filtered URLs, never unindexed routes.
   for (const u of urls) {

@@ -27,6 +27,7 @@ import {
   TORREY_TWO_MAN,
   VALLEY_HOSPITAL_ANNOUNCED,
 } from "./support/seed-facts.ts";
+import { SAMPLE_GUIDE_PATH } from "./support/guide-facts.ts";
 
 async function ldNodes(request: APIRequestContext, path: string): Promise<JsonLdNode[]> {
   const res = await request.get(path);
@@ -121,17 +122,21 @@ test.describe("Event JSON-LD on outing pages", () => {
 });
 
 const EVERY_PAGE = [
-  "/",
-  "/golf-outings",
-  "/golf-outings/ny",
-  "/golf-outings/ny/mamaroneck",
-  "/charity-golf-tournaments/ny/mamaroneck",
-  "/courses/ny/winged-foot-golf-club",
-  "/organizers/national-kidney-foundation",
-  `/outings/${NKF_WINGED_FOOT.slug}`,
-  `/outings/${AUTISM_SPEAKS_EXPECTED.slug}`,
-  "/map",
-  "/about",
+  ...new Set([
+    "/",
+    "/golf-outings",
+    "/golf-outings/ny",
+    "/golf-outings/ny/mamaroneck",
+    "/charity-golf-tournaments/ny/mamaroneck",
+    "/courses/ny/winged-foot-golf-club",
+    "/organizers/national-kidney-foundation",
+    `/outings/${NKF_WINGED_FOOT.slug}`,
+    `/outings/${AUTISM_SPEAKS_EXPECTED.slug}`,
+    "/map",
+    "/about",
+    "/guides",
+    SAMPLE_GUIDE_PATH,
+  ]),
 ];
 
 test("BreadcrumbList on every page", async ({ request }) => {

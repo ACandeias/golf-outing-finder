@@ -5,8 +5,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "./support/fixtures.ts";
 import { NKF_WINGED_FOOT } from "./support/seed-facts.ts";
+import { SAMPLE_GUIDE_PATH } from "./support/guide-facts.ts";
 
-const PAGES = ["/", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`];
+const PAGES = [
+  ...new Set(["/", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`, "/guides", SAMPLE_GUIDE_PATH]),
+];
 
 for (const path of PAGES) {
   for (const scheme of ["light", "dark"] as const) {
