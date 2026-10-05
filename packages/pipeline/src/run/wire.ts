@@ -604,7 +604,30 @@ export function wiredHandlers(edges: RunEdges): StageHandlers {
       const unchanged = state.normalized
         .filter((p) => p.unchanged)
         .map((p) => ({ url: p.url, recheck_outing_id: p.recheck_outing_id }));
-      const out = dedupeUpsert(ctx, { outings: state.matched, existing, unchanged, fetches });
+      // Existing outings tied to a page collected this run, with every source each one has (retraction).
+      const collectedUrls = [...wire.collected.keys()].filter((u) => !wire.pendingOnly.has(u));
+      const linkedRows = snapshot.all(
+        `SELECT o.id AS outing_id, o.status, s.url FROM outings o JOIN source_outings so ON so.outing_id = o.id ` +
+          `JOIN sources s ON s.id = so.source_id WHERE o.id IN (SELECT so2.outing_id FROM source_outings so2 ` +
+          `JOIN sources s2 ON s2.id = so2.source_id WHERE s2.url IN ${inList(collectedUrls)}) ` +
+          `UNION SELECT o.id, o.status, o.canonical_source_url FROM outings o WHERE o.canonical_source_url IN ${inList(collectedUrls)}`,
+        z.object({ outing_id: z.string(), status: z.string(), url: z.string() }),
+      );
+      const linkedById = new Map<string, { outing_id: string; status: string; source_urls: string[] }>();
+      for (const r of linkedRows) {
+        const l = linkedById.get(r.outing_id) ?? { outing_id: r.outing_id, status: r.status, source_urls: [] };
+        if (!l.source_urls.includes(r.url)) l.source_urls.push(r.url);
+        linkedById.set(r.outing_id, l);
+      }
+      const out = dedupeUpsert(ctx, {
+        outings: state.matched,
+        existing,
+        unchanged,
+        fetches,
+        linked: [...linkedById.values()],
+        collected: collectedUrls,
+        platform_rules: platformRulesFrom(await loadPlatforms(PATHS.overrides)),
+      });
       state.upsertOutcomes = out.output.outcomes;
 
       // Results from an earlier run's batch: keep the model's answer on the source row.

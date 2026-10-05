@@ -100,6 +100,7 @@ export const EXTRA_COUNTERS = [
   "indexnow_urls",
   "courses_imported",
   "irs_records",
+  "outings_retracted",
 ] as const;
 export type ExtraCounter = (typeof EXTRA_COUNTERS)[number];
 
@@ -809,6 +810,18 @@ export const dedupeUpsertInputSchema = z.object({
   }),
   /** Pages whose hash was unchanged: only `last_verified` moves (SPEC.md 8.3). */
   unchanged: z.array(z.object({ url: httpUrl, recheck_outing_id: z.string().nullable() })),
+  /**
+   * Existing dated outings linked (source_outings) to a page collected this run,
+   * with every source URL each one has. An outing all of whose sources were
+   * re-extracted this run and that no event matched any more is retracted.
+   */
+  linked: z
+    .array(z.object({ outing_id: z.string(), status: z.string(), source_urls: z.array(z.string()) }))
+    .optional(),
+  /** Pages whose extraction was collected this run. */
+  collected: z.array(z.string()).optional(),
+  /** platforms.yaml as rules: a listing page is never the canonical source while a cluster has another page. */
+  platform_rules: z.array(platformRuleSchema).optional(),
   /** Fetch outcomes per source URL, for `sources` bookkeeping (status, consecutive_gone, error). */
   fetches: z.array(
     z.object({
