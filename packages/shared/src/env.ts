@@ -37,6 +37,26 @@ const verificationToken = optionalString.pipe(
     .optional(),
 );
 
+/** An empty string means "not set"; anything else must match `re`. */
+const emptyOr = (re: RegExp, message: string) =>
+  z
+    .string()
+    .default("")
+    .transform((v) => v.trim())
+    .refine((v) => v === "" || re.test(v), { message });
+
+/** An optional https URL (an ad network's script or hosted ads.txt). */
+const optionalHttpsUrl = optionalString.pipe(
+  z
+    .string()
+    .url()
+    .refine((v) => v.startsWith("https://"), { message: "must be an https URL" })
+    .optional(),
+);
+
+/** An AdSense ad unit id (`data-ad-slot`): digits only. */
+const adSlotId = emptyOr(/^\d{6,20}$/, "must be an AdSense ad unit id (digits only)");
+
 export const nodeEnvSchema = z.enum(["development", "test", "production"]).default("development");
 
 export const adsProviderSchema = z.enum(["adsense", "journey", "raptive"]);
@@ -45,9 +65,26 @@ export const adsProviderSchema = z.enum(["adsense", "journey", "raptive"]);
 export const siteEnvSchema = z.object({
   NODE_ENV: nodeEnvSchema,
   PUBLIC_SITE_URL: z.string().url(),
-  PUBLIC_ADSENSE_CLIENT: z.string().default(""),
-  PUBLIC_GA4_ID: z.string().default(""),
+  /** AdSense publisher id, `ca-pub-` plus 16 digits (`pub-...` is accepted too). */
+  PUBLIC_ADSENSE_CLIENT: emptyOr(/^(ca-)?pub-\d{10,20}$/, "must be an AdSense publisher id like ca-pub-0000000000000000"),
+  /** GA4 measurement id, `G-` plus letters and digits. */
+  PUBLIC_GA4_ID: emptyOr(/^G-[A-Z0-9]{4,20}$/, "must be a GA4 measurement id like G-XXXXXXXXXX"),
   ADS_PROVIDER: adsProviderSchema.default("adsense"),
+  /** AdSense ad unit ids per placement (SPEC.md 9.5). Optional: a display unit serves without one. */
+  PUBLIC_ADSENSE_SLOT_LIST: adSlotId,
+  PUBLIC_ADSENSE_SLOT_OUTING: adSlotId,
+  PUBLIC_ADSENSE_SLOT_SIDEBAR: adSlotId,
+  /** Journey or Raptive site id; Raptive's script URL is built from it. */
+  ADS_SITE_ID: optionalString.pipe(
+    z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{1,64}$/, { message: "must be the network's site id (letters, digits, - and _)" })
+      .optional(),
+  ),
+  /** The ad network's script URL from its dashboard; overrides the built-in one. Required for Journey. */
+  ADS_SCRIPT_URL: optionalHttpsUrl,
+  /** Journey and Raptive host the site's ads.txt; /ads.txt redirects there (one hop, IAB ads.txt). */
+  ADS_TXT_REDIRECT_URL: optionalHttpsUrl,
   INDEXNOW_KEY: optionalString,
   TURNSTILE_SECRET: optionalString,
   GOOGLE_SITE_VERIFICATION: verificationToken,
@@ -147,6 +184,12 @@ export const SPEC_ENV_VARS = [
   "PUBLIC_ADSENSE_CLIENT",
   "PUBLIC_GA4_ID",
   "ADS_PROVIDER",
+  "PUBLIC_ADSENSE_SLOT_LIST",
+  "PUBLIC_ADSENSE_SLOT_OUTING",
+  "PUBLIC_ADSENSE_SLOT_SIDEBAR",
+  "ADS_SITE_ID",
+  "ADS_SCRIPT_URL",
+  "ADS_TXT_REDIRECT_URL",
   "GOOGLE_SITE_VERIFICATION",
   "BING_SITE_VERIFICATION",
   "PIPELINE_NOW",
