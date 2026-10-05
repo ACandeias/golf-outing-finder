@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { siteEnv } from "./lib/env.ts";
-import { SECURITY_HEADERS } from "./lib/security.ts";
+import { adsConfig } from "./lib/ads.ts";
+import { SECURITY_HEADERS, securityHeaders } from "./lib/security.ts";
 
 /** Paths that keep their exact spelling (files with their own names). */
 const KEEP_PATH = /^\/(_astro|_image)\//;
@@ -15,14 +16,24 @@ function isIndexNowKeyPath(pathname: string): boolean {
   }
 }
 
+/** The base headers plus the ad and analytics origins the env turns on (SPEC.md 10). */
+function headersForEnv(): Readonly<Record<string, string>> {
+  try {
+    return securityHeaders(adsConfig(siteEnv()).cspOrigins);
+  } catch {
+    return SECURITY_HEADERS;
+  }
+}
+
 function withHeaders(res: Response): Response {
+  const headers = headersForEnv();
   let out = res;
   try {
-    for (const [k, v] of Object.entries(SECURITY_HEADERS)) out.headers.set(k, v);
+    for (const [k, v] of Object.entries(headers)) out.headers.set(k, v);
   } catch {
     // Immutable headers (a fetched or cached response): copy it.
     out = new Response(res.body, res);
-    for (const [k, v] of Object.entries(SECURITY_HEADERS)) out.headers.set(k, v);
+    for (const [k, v] of Object.entries(headers)) out.headers.set(k, v);
   }
   return out;
 }
