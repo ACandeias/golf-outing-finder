@@ -154,4 +154,21 @@ describe("queueBookkeeping", () => {
       },
     ]);
   });
+
+  it("adds links found on directory pages as new rows, leaving a row that already exists alone", () => {
+    const found = q("https://org.example/golf", { found_via: "directory", kind: "organizer", priority: 6 });
+    const plan = queueBookkeeping(now, {
+      deferred: [q("https://later.example/")],
+      fetched: [],
+      pending: [],
+      discovered: [found, q("https://later.example/", { found_via: "directory", kind: "organizer", priority: 6 })],
+    });
+    expect(() => parseUpsertPlan(plan)).not.toThrow();
+    expect(plan.ops).toContainEqual({
+      op: "upsert",
+      table: "discovery_queue",
+      rows: [{ url: "https://org.example/golf", found_via: "directory", found_at: "2026-09-28T07:20:00.000Z", priority: 6, next_attempt_at: null, attempts: 0 }],
+      update: [],
+    });
+  });
 });

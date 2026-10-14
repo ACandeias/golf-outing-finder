@@ -72,6 +72,31 @@ export function parseSitemap(xml: string): Sitemap {
 const NAV_PATH =
   /\/(privacy|terms|legal|login|log-in|signin|sign-in|signup|register-account|account|cart|checkout|contact|about|careers|jobs|news|blog|press|search|donate|shop|faq|help|sitemap|wp-admin|wp-login|feed|tag|category|author)(\/|$|\?)/i;
 
+/** Social and sharing sites a directory page links to that are never an organizer's event page. */
+const SOCIAL =
+  /(^|\.)(facebook|fb|instagram|twitter|x|linkedin|youtube|youtu|tiktok|pinterest|threads|bsky|reddit|whatsapp)\.(com|be|net|app|me)$/i;
+
+/**
+ * Heuristic for the links on a directory event page that lead to the organizer
+ * or its registration ("Official event page", "Official golfer registration"),
+ * not navigation, social profiles or the course's contact page.
+ */
+export function looksLikeOrganizerLink(link: PageLink): boolean {
+  let path: string;
+  let host: string;
+  try {
+    const u = new URL(link.url);
+    path = u.pathname;
+    host = u.hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  if (SOCIAL.test(host) || NAV_PATH.test(path)) return false;
+  return /event|golf|classic|tournament|outing|invitational|scramble|regist|ticket|sign[\s-]?up|official|organi[sz]er/i.test(
+    `${host} ${path} ${link.text}`,
+  );
+}
+
 /** Heuristic for series index pages: an event-like link, not navigation. */
 export function looksLikeEventLink(link: PageLink, indexUrl: string): boolean {
   if (link.url === normalizeUrl(indexUrl)) return false;

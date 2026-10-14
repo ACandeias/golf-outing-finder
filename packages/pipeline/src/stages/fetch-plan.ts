@@ -113,6 +113,8 @@ export function queueBookkeeping(
     deferred: readonly QueueEntry[];
     fetched: readonly FetchedPage[];
     pending: readonly DiscoveryQueueRow[];
+    /** Organizer and registration links found on directory pages, for a later run. */
+    discovered?: readonly QueueEntry[];
   },
 ): UpsertPlan {
   const ops: TableOp[] = [];
@@ -157,6 +159,18 @@ export function queueBookkeeping(
       rows: retry,
       update: ["next_attempt_at", "attempts"],
     });
+  }
+
+  // Links found on directory pages this run (directory-links.ts): new rows only.
+  const taken = new Set([...pending.keys(), ...keep.map((k) => k.url), ...retry.map((r) => r.url)]);
+  const fresh: DiscoveryQueueRow[] = [];
+  for (const q of input.discovered ?? []) {
+    if (taken.has(q.url)) continue;
+    taken.add(q.url);
+    fresh.push({ url: q.url, found_via: q.found_via, found_at: nowIso, priority: q.priority, next_attempt_at: null, attempts: 0 });
+  }
+  if (fresh.length > 0) {
+    ops.push({ op: "upsert", table: "discovery_queue", rows: fresh, update: [] });
   }
   return { ops };
 }

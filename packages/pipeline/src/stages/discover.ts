@@ -424,7 +424,13 @@ export const discover: DiscoverStage = (ctx, input) => {
     // outing's canonical source becomes the off-directory registration page
     // (SPEC.md 8.2 item 6). discovery_queue rows don't keep the host; this restores it.
     const onDirectory = verdict?.directory === true && !verdict.listing;
-    const kind: SourceKind = onDirectory ? "directory" : c.kind;
+    // A directory-found URL that isn't on a directory is one of its organizer or
+    // registration links (directory-links.ts; discovery_queue keeps no kind).
+    const kind: SourceKind = onDirectory
+      ? "directory"
+      : input.platform_rules && c.kind === "directory"
+        ? "organizer"
+        : c.kind;
     const directoryHost = c.directory_host ?? (onDirectory ? hostOf(url) : null);
     const existing = byUrl.get(url);
     if (existing) {

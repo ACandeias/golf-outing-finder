@@ -6,6 +6,7 @@ import { runSerpQueries } from "../serp/fixture.ts";
 import { EXTRACTOR_VERSION } from "../extract/prompt.ts";
 import { sqlValue } from "../sql/literal.ts";
 import { discover, planSearch } from "../stages/discover.ts";
+import { directoryLinks } from "../stages/directory-links.ts";
 import { planFetch, queueBookkeeping } from "../stages/fetch-plan.ts";
 import { normalize } from "../stages/normalize.ts";
 import { sourceKindSchema, type DiscoveryQueueRow } from "../stages/rows.ts";
@@ -277,10 +278,26 @@ export async function fetchHandler(env: StageEnv): Promise<HandlerOutcome> {
     });
   }
   const deferred = [...plan.output.deferred, ...fetched.deferred.map(toQueueEntry)];
+  // SPEC.md 8.2 item 6: a directory event page's organizer and registration links, for a later run.
+  const pending = fetchSide(state).pending;
+  const found = ports.platformRules
+    ? directoryLinks(ctx, {
+        pages: state.fetched,
+        platform_rules: ports.platformRules,
+        known: [...pending.map((p) => p.url), ...state.queue.map((q) => q.url)],
+      })
+    : { queue: [], skipped: [] };
+  if (found.queue.length > 0 || found.skipped.length > 0) {
+    ctx.log.info("fetch: links found on directory pages", {
+      queued: found.queue.length,
+      skipped: found.skipped.length,
+    });
+  }
   const bookkeeping = queueBookkeeping(ctx.now, {
     deferred,
     fetched: fetched.pages,
-    pending: fetchSide(state).pending,
+    pending,
+    discovered: found.queue,
   });
   ctx.log.info("fetch", {
     planned: plan.output.items.length,
