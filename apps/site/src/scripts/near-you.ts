@@ -63,7 +63,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElement {
   const li = el("li", "tee-row");
   const d = dateBlock({ status: p.status, startDate: p.startDate ?? null }, { currentYear });
-  const date = el("p", "tee-date data");
+  const date = el("p", "tee-date");
   date.setAttribute("aria-hidden", "true");
   add(date, el("span", "tee-date-top", d.top), el("span", "tee-date-big", d.big), el("span", "tee-date-bottom", d.bottom));
 
@@ -72,16 +72,21 @@ function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElemen
   const a = el("a", undefined, p.title);
   a.href = p.url;
   add(h, a);
-  const course = el("p", "tee-course data");
+  const course = el("p", "tee-course");
   add(course, el("span", "visually-hidden", `${p.when}. `), document.createTextNode(`${p.course}, ${p.place}`));
   if (p.time) add(course, el("span", "tee-time", `, ${p.time}`));
-  const labels = el("p", "labels");
-  add(labels, el("span", "label", p.courseType), el("span", "label", p.label));
-  if (p.status === "waitlist") add(labels, el("span", "label", "Waitlist"));
-  if (p.status === "sold_out") add(labels, el("span", "label alert", "Sold out"));
-  add(main, h, course, labels);
+  const facts = el("p", "facts");
+  const courseType = el("span", "fact");
+  add(courseType, el("span", "visually-hidden", "Course type: "), document.createTextNode(p.courseType));
+  const outingType = el("span", "fact");
+  add(outingType, el("span", "visually-hidden", "Outing type: "), document.createTextNode(p.label));
+  add(facts, courseType, outingType);
+  if (p.status === "waitlist") add(facts, el("span", "fact", "Waitlist"));
+  if (p.status === "sold_out") add(facts, el("span", "fact alert", "Sold out"));
+  if (p.status === "cancelled") add(facts, el("span", "fact alert", "Cancelled"));
+  add(main, h, course, facts);
 
-  const price = el("p", /^\$/.test(p.price) ? "tee-price data" : "tee-price data tee-price-unknown");
+  const price = el("p", /^\$/.test(p.price) ? "tee-price" : "tee-price tee-price-unknown");
   p.price.split(", ").forEach((line, i) => {
     const span = el("span");
     if (i > 0) add(span, el("span", "visually-hidden", ", "));

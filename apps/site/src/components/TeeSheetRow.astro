@@ -39,22 +39,22 @@ const priceKnown = o.singlePriceCents !== null || o.foursomePriceCents !== null;
   data-format={o.format ?? ""}
   data-distance={distanceMiles === null ? "" : distanceMiles.toFixed(1)}
 >
-  <p class="tee-date data" aria-hidden="true">
+  <p class="tee-date" aria-hidden="true">
     <span class="tee-date-top">{d.top}</span>
     <span class="tee-date-big">{d.big}</span>
     <span class="tee-date-bottom">{d.bottom}</span>
   </p>
   <div class="tee-main">
     <h3 class="tee-title"><a href={outingPath(o.slug)}>{o.title}</a></h3>
-    <p class="tee-course data">
+    <p class="tee-course">
       <span class="visually-hidden">{v.when}. </span>{o.course.name}, {v.place}{v.time && <span class="tee-time">, {v.time}</span>}
     </p>
     <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
-    <p class="tee-verified data">Last verified {verifiedDate(o.lastVerified)}</p>
-    {v.includes && <p class="tee-note data">{v.includes}</p>}
-    {o.audienceNote && <p class="tee-note data muted">{o.audienceNote}</p>}
+    <p class="tee-verified">Last verified {verifiedDate(o.lastVerified)}</p>
+    {v.includes && <p class="tee-note">{v.includes}</p>}
+    {o.audienceNote && <p class="tee-note muted">{o.audienceNote}</p>}
   </div>
-  <p class:list={["tee-price data", { "tee-price-unknown": !priceKnown }]}>
+  <p class:list={["tee-price", { "tee-price-unknown": !priceKnown }]}>
     {priceLines.map((line, i) => (i === 0 ? <span>{line}</span> : <span><span class="visually-hidden">, </span>{line}</span>))}
   </p>
   <div class="tee-action">
