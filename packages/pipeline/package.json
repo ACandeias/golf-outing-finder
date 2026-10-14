@@ -19,7 +19,7 @@
     "@gof/shared": "workspace:*",
     "@mozilla/readability": "0.6.0",
     "linkedom": "0.18.13",
-    "pdfjs-dist": "6.3.289",
+    "pdfjs-dist": "6.4.299",
     "tz-lookup": "6.1.25",
     "undici": "7.29.1",
     "yaml": "2.9.1",
