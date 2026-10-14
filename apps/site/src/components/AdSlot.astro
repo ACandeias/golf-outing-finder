@@ -63,11 +63,10 @@ const view = Astro.isPrerendered ? null : adSlotView(siteAdsConfig(), placement,
   .ad-label {
     margin: 0 0 0.25rem;
     height: 1.125rem;
-    font-family: var(--sans);
+    font-family: var(--serif);
     font-size: 0.8125rem;
+    font-style: italic;
     line-height: 1.125rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--ink-muted);
     max-width: none;
   }
@@ -79,8 +78,8 @@ const view = Astro.isPrerendered ? null : adSlotView(siteAdsConfig(), placement,
   }
   .ad-row {
     max-width: none;
-    padding: 0.75rem;
-    border-bottom: 1.5px solid var(--rule);
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
   }
   .ad-row .ad-slot {
     margin: 0;
@@ -91,7 +90,7 @@ const view = Astro.isPrerendered ? null : adSlotView(siteAdsConfig(), placement,
       display: none !important;
     }
     .ad-row {
-      padding: 0.75rem 0.5rem;
+      padding: 0.875rem 0;
     }
   }
   @media (max-width: 1023.98px) {

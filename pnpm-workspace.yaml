@@ -9,6 +9,15 @@ allowBuilds:
   sharp: true
   workerd: true
 
+# Patch-level floors for transitive packages with published fixes (pnpm audit in
+# ci.yml). Both arrive through astro; remove an entry once astro's own range
+# resolves to the patched version.
+overrides:
+  # GHSA-wq5f-xc86-pv6w (librsvg in sharp's bundled libvips), fixed in 0.35.5.
+  "sharp@<0.35.5": "^0.35.5"
+  # GHSA-68fv-2mgg-jv7q, fixed in 1.2.2.
+  "source-map-js@<1.2.2": "^1.2.2"
+
 # Advisories reviewed and accepted. Revisit when a patched version ships.
 auditConfig:
   ignoreGhsas:

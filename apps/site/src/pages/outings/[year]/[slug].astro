@@ -17,6 +17,7 @@ import { clip, FORMAT_LABELS, stateName, verifiedDate } from "../../../lib/forma
 import { outingTitle, outingView } from "../../../lib/outing-view.ts";
 import { absoluteUrl, cityPath, coursePath, organizerPath, outingPath, statePath } from "../../../lib/urls.ts";
 import { guideLinks } from "../../../lib/guides.ts";
+import { bandPhotoFor } from "../../../lib/photos.ts";
 
 export const prerender = false;
 
@@ -93,15 +94,23 @@ const adsOn = siteAdsConfig().enabled;
 setCache(Astro, TTL.list);
 ---
 
-<Base title={title} description={description} path={path} noindex={o.sourceGone} crumbs={crumbs} jsonLd={event ? [event] : []}>
+<Base
+  title={title}
+  description={description}
+  path={path}
+  noindex={o.sourceGone}
+  crumbs={crumbs}
+  jsonLd={event ? [event] : []}
+  heading={o.title}
+  tagline={`${v.when}${v.time ? `, ${v.time}` : ""}`}
+  photo={bandPhotoFor(o.course.state)}
+>
   <div class:list={["outing-layout", { "has-sidebar": adsOn }]}>
     <div class="outing-main">
       <article class="outing">
-        <h1>{o.title}</h1>
-        <p class="where data">
+        <p class="where">
           <a href={coursePath(o.course.slug)}>{o.course.name}</a>, {v.place}
         </p>
-        <p class="when data">{v.when}{v.time && <span class="when-time">, {v.time}</span>}</p>
         <Labels courseTypeLabel={v.courseTypeLabel} label={o.label} status={o.status} />
 
         {o.sourceGone && <p class="note">The organizer's page for this outing is gone. Check with the organizer before making plans.</p>}
@@ -122,13 +131,13 @@ setCache(Astro, TTL.list);
         <div class="actions">
           {
             canRegister && (
-              <a class="button" href={o.registrationUrl ?? o.canonicalSourceUrl} rel="nofollow noopener" target="_blank">
+              <a class="button large" href={o.registrationUrl ?? o.canonicalSourceUrl} rel="nofollow noopener" target="_blank">
                 {o.registrationUrl ? "Register" : "See site"}
                 <span class="visually-hidden"> (opens the organizer's site)</span>
               </a>
             )
           }
-          <span class="small muted">Last verified {verifiedDate(o.lastVerified)}</span>
+          <span class="verified muted">Last verified {verifiedDate(o.lastVerified)}</span>
         </div>
 
         <h2>Details</h2>
@@ -171,15 +180,16 @@ setCache(Astro, TTL.list);
         </p>
         {
           newcomerGuides.length > 0 && (
-            <p class="small newcomer">
-              New to outings?{" "}
-              {newcomerGuides.map((g, i) => (
-                <>
-                  {i > 0 && " · "}
-                  <a href={g.path}>{g.title}</a>
-                </>
-              ))}
-            </p>
+            <div class="newcomer">
+              <p class="newcomer-title">New to outings?</p>
+              <ul class="inline-links">
+                {newcomerGuides.map((g) => (
+                  <li>
+                    <a href={g.path}>{g.title}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )
         }
       </article>
@@ -194,11 +204,13 @@ setCache(Astro, TTL.list);
           </section>
         )
       }
-      <p class="more data">
-        More: <a href={coursePath(o.course.slug)}>outings at {o.course.name}</a>
-        {o.course.city && <> · <a href={cityPath(o.course.state, o.course.city)}>outings in {o.course.city}</a></>}
-        {o.organizer && <> · <a href={organizerPath(o.organizer.slug)}>outings by {o.organizer.name}</a></>}
-      </p>
+      <nav class="more" aria-label="More outings">
+        <ul class="inline-links">
+          <li><a href={coursePath(o.course.slug)}>More outings at {o.course.name}</a></li>
+          {o.course.city && <li><a href={cityPath(o.course.state, o.course.city)}>Outings in {o.course.city}</a></li>}
+          {o.organizer && <li><a href={organizerPath(o.organizer.slug)}>Outings by {o.organizer.name}</a></li>}
+        </ul>
+      </nav>
     </div>
     {
       adsOn && (
@@ -216,13 +228,13 @@ setCache(Astro, TTL.list);
     .outing-layout.has-sidebar {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 300px;
-      gap: 0 2.5rem;
+      gap: 0 3.5rem;
       align-items: start;
     }
     .outing-side {
       position: sticky;
-      top: 1rem;
-      padding-top: 1rem;
+      top: 1.5rem;
+      padding-top: 0.25rem;
     }
   }
   @media (max-width: 1023.98px) {
@@ -230,42 +242,60 @@ setCache(Astro, TTL.list);
       display: none;
     }
   }
+  .outing {
+    max-width: 46rem;
+  }
   .where {
-    font-size: 1.125rem;
-    margin: 0 0 0.25rem;
+    margin: 0;
+    font-size: 1.25rem;
+    font-style: italic;
+    line-height: 1.4;
   }
   .where a {
-    text-decoration: none;
-  }
-  .where a:hover {
+    color: var(--title);
     text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
   }
-  .when {
-    font-size: 1.125rem;
-    font-weight: 600;
-    line-height: 1.3;
-    margin: 0 0 0.25rem;
-  }
-  .when-time {
-    font-weight: 400;
-  }
-  @media (min-width: 720px) {
-    .when {
-      font-size: 1.375rem;
-    }
+  .outing :global(.facts) {
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
   }
   .summary {
-    font-size: 1.125rem;
-    margin: 1.25rem 0;
+    font-size: 1.1875rem;
+    line-height: 1.65;
+    margin: 1.75rem 0;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 1rem;
-    margin: 1.25rem 0;
+    gap: 0.75rem 1.5rem;
+    margin: 1.75rem 0 0.5rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
   }
   .actions .button {
-    min-width: 9rem;
+    min-width: 12rem;
+  }
+  .verified {
+    font-style: italic;
+    font-size: 0.9375rem;
+  }
+  .outing h2 {
+    margin-top: 2.5rem;
+  }
+  .newcomer {
+    margin: 1.5rem 0 0;
+    font-size: 0.9375rem;
+  }
+  .newcomer-title {
+    margin: 0 0 0.25rem;
+    font-style: italic;
+    color: var(--ink-muted);
+  }
+  .more {
+    margin: 1.5rem 0 0;
   }
 </style>
+

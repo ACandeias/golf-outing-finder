@@ -1,0 +1,48 @@
+---
+/**
+ * A decorative stock photograph behind the home hero or a page band
+ * (lib/photos.ts). AVIF first, WebP second, art-directed: the hero switches to a
+ * 3:4 crop on portrait screens and a band to a 2:1 crop below 1024px. It is the
+ * page's LCP element, so it loads eagerly at high priority.
+ */
+import {
+  BAND_NARROW_WIDTHS,
+  BAND_WIDE_WIDTHS,
+  HERO_TALL_WIDTHS,
+  HERO_WIDE_WIDTHS,
+  photoSrcset,
+  photoUrl,
+  type PhotoKey,
+} from "../lib/photos.ts";
+
+interface Props {
+  photo: PhotoKey;
+  kind: "hero" | "band";
+}
+
+const { photo, kind } = Astro.props;
+const hero = kind === "hero";
+const narrowMedia = hero ? "(orientation: portrait)" : "(max-width: 1023.98px)";
+const narrowCrop = hero ? "hero-m" : "band-m";
+const wideCrop = hero ? "hero" : "band";
+const narrowWidths = hero ? HERO_TALL_WIDTHS : BAND_NARROW_WIDTHS;
+const wideWidths = hero ? HERO_WIDE_WIDTHS : BAND_WIDE_WIDTHS;
+// A 2:1 band crop is shown taller than 2:1 on phones (object-fit: cover), so ask for a wider file.
+const narrowSizes = hero ? "100vw" : "140vw";
+---
+
+<picture class="photo">
+  <source media={narrowMedia} type="image/avif" srcset={photoSrcset(photo, narrowCrop, narrowWidths, "avif")} sizes={narrowSizes} />
+  <source media={narrowMedia} type="image/webp" srcset={photoSrcset(photo, narrowCrop, narrowWidths, "webp")} sizes={narrowSizes} />
+  <source type="image/avif" srcset={photoSrcset(photo, wideCrop, wideWidths, "avif")} sizes="100vw" />
+  <source type="image/webp" srcset={photoSrcset(photo, wideCrop, wideWidths, "webp")} sizes="100vw" />
+  <img
+    src={photoUrl(photo, wideCrop, 1440, "webp")}
+    width="1440"
+    height={hero ? 810 : 360}
+    alt=""
+    loading="eager"
+    decoding="async"
+    fetchpriority="high"
+  />
+</picture>

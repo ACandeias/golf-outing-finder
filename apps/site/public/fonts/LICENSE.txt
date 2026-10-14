@@ -1,10 +1,11 @@
 Fonts in this directory are self-hosted woff2 files, latin subset, as served by
 Google Fonts (fonts.gstatic.com) in October 2026:
 
+  marcellus-v14-400-latin.woff2               Marcellus Regular (display: wordmark,
+                                              nav, titles, headings, buttons)
   libre-caslon-text-v5-400-latin.woff2        Libre Caslon Text Regular
   libre-caslon-text-v5-400italic-latin.woff2  Libre Caslon Text Italic
   libre-caslon-text-v5-700-latin.woff2        Libre Caslon Text Bold
-  archivo-narrow-v35-latin.woff2              Archivo Narrow (variable, wght 400 to 700)
 
 Both families are licensed under the SIL Open Font License, Version 1.1. The
 licence for each family follows.
@@ -108,10 +109,11 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ================================================================================
-Archivo Narrow
+Marcellus
 ================================================================================
 
-Copyright 2019 The Archivo Narrow Project Authors (https://github.com/Omnibus-Type/ArchivoNarrow)
+Copyright (c) 2012, Brian J. Bonislawsky DBA Astigmatic (AOETI) (astigma@astigmatic.com),
+with Reserved Font Names "Marcellus"
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

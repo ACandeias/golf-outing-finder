@@ -5,6 +5,9 @@ import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
 import TeeSheet from "../components/TeeSheet.astro";
+import Crest from "../components/Crest.astro";
+import Photo from "../components/Photo.astro";
+import { HERO_PHOTO, HERO_TALL_WIDTHS, HERO_WIDE_WIDTHS, photoSrcset } from "../lib/photos.ts";
 import { getDb } from "../lib/db.ts";
 import { listToday, siteYear } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
@@ -61,118 +64,322 @@ setCache(Astro, TTL.home);
   path="/"
   noindex={Astro.url.searchParams.has("q")}
   jsonLd={[buildItemListJsonLd(soonest.map((o) => absoluteUrl(outingPath(o.slug))))]}
+  home
 >
   {googleVerification && <meta slot="head" name="google-site-verification" content={googleVerification} />}
   {bingVerification && <meta slot="head" name="msvalidate.01" content={bingVerification} />}
-  <h1>Find a golf outing you can sign up for</h1>
-  <p class="lead">
-    Charity scrambles, school fundraisers, trade group days and open tournaments at municipal, public, semi-private, private and
-    resort courses. Every listing shows the date, the price and how to register.
-  </p>
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    type="image/avif"
+    media="(orientation: portrait)"
+    imagesrcset={photoSrcset(HERO_PHOTO, "hero-m", HERO_TALL_WIDTHS, "avif")}
+    imagesizes="100vw"
+    fetchpriority="high"
+  />
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    type="image/avif"
+    media="(orientation: landscape)"
+    imagesrcset={photoSrcset(HERO_PHOTO, "hero", HERO_WIDE_WIDTHS, "avif")}
+    imagesizes="100vw"
+    fetchpriority="high"
+  />
 
-  <form class="search" method="get" action="/" role="search">
-    <label for="q">City or ZIP code</label>
-    <div class="search-row">
-      <input id="q" name="q" type="search" autocomplete="off" placeholder="e.g. Mamaroneck, NY or 10543" maxlength="100" required />
-      <button class="button" type="submit">Find outings</button>
+  <section class="hero" aria-labelledby="hero-title">
+    <Photo photo={HERO_PHOTO} kind="hero" />
+    <div class="scrim hero-scrim"></div>
+    <div class="frame hero-frame"></div>
+    <div class="hero-inner">
+      <Crest size={76} class="hero-crest" />
+      <h1 id="hero-title" class="hero-title">
+        <span class="hero-kicker">Welcome to </span><span class="hero-wordmark">Golf Outing Finder</span>
+      </h1>
+      <p class="hero-tagline">Outings anyone can enter, from the muni down the road to the club across town.</p>
+      <form class="search" method="get" action="/" role="search">
+        <label for="q">Search by city or ZIP code</label>
+        <div class="search-row">
+          <input id="q" name="q" type="search" autocomplete="off" placeholder="Mamaroneck, NY or 10543" maxlength="100" required />
+          <button class="button" type="submit">Find outings</button>
+        </div>
+      </form>
     </div>
-  </form>
-  {
-    searchMessage && (
-      <div class="note" role="status">
-        <p>{searchMessage}</p>
-        {suggestions.length > 0 && (
-          <ul class="grid-links">
-            {suggestions.map((c) => (
-              <li>
-                <a href={cityPath(c.state, c.name)}>
-                  {c.name}, {c.state}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    )
-  }
-
-  <section aria-labelledby="soonest">
-    <h2 id="soonest">Coming up</h2>
-    {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : <TeeSheet outings={soonest} />}
-    <p class="data"><a href="/golf-outings">See outings in every state</a></p>
   </section>
 
-  <section aria-labelledby="near">
-    <h2 id="near">Outings near you</h2>
-    <p class="muted" data-near-status aria-live="polite">Share your location to see outings within 100 miles. We don't store it.</p>
-    <button class="button secondary" type="button" data-near-button>Use my location</button>
-    <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
-  </section>
+  <div class="wrap home-body">
+    {
+      searchMessage && (
+        <div class="note search-note" role="status">
+          <p>{searchMessage}</p>
+          {suggestions.length > 0 && (
+            <ul class="grid-links">
+              {suggestions.map((c) => (
+                <li>
+                  <a href={cityPath(c.state, c.name)}>
+                    {c.name}, {c.state}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )
+    }
 
-  <section aria-labelledby="states">
-    <h2 id="states">Browse by state</h2>
-    <ul class="state-list">
-      {
-        states.map(([code, name]) => (
-          <li>
-            <a href={statePath(code)}>{name}</a>
-            {countBy.get(code) ? <span class="muted"> ({countBy.get(code)})</span> : null}
-          </li>
-        ))
-      }
-    </ul>
-  </section>
+    <p class="intro">
+      Charity scrambles, school fundraisers, trade group days and open tournaments at municipal, public, semi-private, private
+      and resort courses. Every listing shows the date, the price and how to register.
+    </p>
+    <span class="ornament"></span>
+
+    <section aria-labelledby="soonest">
+      <h2 id="soonest" class="section-title">Coming up</h2>
+      {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : <TeeSheet outings={soonest} />}
+      <p class="more-link"><a href="/golf-outings">See outings in every state</a></p>
+    </section>
+
+    <section aria-labelledby="near" class="near">
+      <h2 id="near" class="section-title">Outings near you</h2>
+      <p class="muted near-status" data-near-status aria-live="polite">
+        Share your location to see outings within 100 miles. We don't store it.
+      </p>
+      <p class="near-action"><button class="button secondary" type="button" data-near-button>Use my location</button></p>
+      <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
+    </section>
+
+    <section aria-labelledby="states">
+      <h2 id="states" class="section-title">Browse by state</h2>
+      <ul class="state-list">
+        {
+          states.map(([code, name]) => (
+            <li>
+              <a href={statePath(code)}>{name}</a>
+              {countBy.get(code) ? <span class="muted num"> {countBy.get(code)}</span> : null}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
 </Base>
 
 <style>
+  /* The first screen: one photograph, a hairline frame, the wordmark and the search. */
+  .hero {
+    --link: var(--band-fg);
+    --focus: var(--band-fg);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    min-height: 70svh;
+    padding: 6.5rem 20px 3rem;
+    color: var(--band-fg);
+    background: var(--band);
+    text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  @media (min-width: 720px) {
+    .hero {
+      min-height: 88vh;
+      min-height: 88svh;
+      padding: 8rem 96px 5rem;
+    }
+  }
+  /* Darker at the top (the nav) and behind the wordmark, lighter where the fairway shows. */
+  .hero-scrim {
+    background:
+      radial-gradient(ellipse 52% 46% at 50% 52%, rgb(20 41 31 / 0.38), rgb(20 41 31 / 0)),
+      linear-gradient(180deg, rgb(20 41 31 / 0.62), rgb(20 41 31 / 0.34) 30%, rgb(20 41 31 / 0.3) 62%, rgb(20 41 31 / 0.6));
+  }
+  @media (min-width: 720px) {
+    .hero-frame {
+      inset: 56px;
+      top: 72px;
+    }
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 46rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-inner {
+      animation: hero-in 900ms ease-out both;
+    }
+    @keyframes hero-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+  }
+  .hero :global(.hero-crest) {
+    color: var(--band-fg);
+    margin: 0 auto 1.25rem;
+    display: block;
+  }
+  .hero-title {
+    margin: 0;
+    color: var(--band-fg);
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    line-height: 1.15;
+    text-shadow: 0 1px 18px rgb(0 0 0 / 0.3);
+  }
+  .hero-kicker,
+  .hero-wordmark {
+    display: block;
+  }
+  .hero-kicker {
+    font-size: 1.125rem;
+    letter-spacing: 0.24em;
+  }
+  .hero-wordmark {
+    margin-top: 0.375rem;
+    font-size: 2.125rem;
+    letter-spacing: 0.14em;
+  }
+  @media (min-width: 720px) {
+    .hero-kicker {
+      font-size: 1.75rem;
+      letter-spacing: 0.2em;
+    }
+    .hero-wordmark {
+      font-size: 3.375rem;
+      letter-spacing: 0.12em;
+    }
+  }
+  .hero-tagline {
+    margin: 1.25rem auto 0;
+    max-width: 34ch;
+    font-style: italic;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+  }
+  @media (min-width: 720px) {
+    .hero-tagline {
+      font-size: 1.375rem;
+    }
+  }
+
+  /* The search: an underlined ivory field and an outlined ivory button. */
   .search {
-    margin: 1.75rem 0 0.5rem;
-    max-width: 600px;
+    margin: 2.25rem auto 0;
+    max-width: 30rem;
+    text-align: left;
   }
   .search label {
     display: block;
-    font-weight: 600;
-    margin-bottom: 0.125rem;
+    font-size: 0.875rem;
+    font-style: italic;
+    color: var(--band-fg);
   }
   .search-row {
     display: flex;
     align-items: flex-end;
     gap: 1rem;
   }
-  /* The search is a single ruled line, like a name line on a sign-up sheet. */
   .search input {
     flex: 1;
     min-width: 0;
     min-height: 44px;
     padding: 0.25rem 0;
     border: 0;
-    border-bottom: 2px solid var(--fairway);
+    border-bottom: 1px solid var(--band-fg);
     border-radius: 0;
     background: transparent;
-    color: var(--ink);
+    color: var(--band-fg);
+    font: inherit;
     font-size: 1.125rem;
   }
   .search input::placeholder {
-    color: var(--ink-muted);
+    color: rgb(252 252 250 / 0.82);
+    font-style: italic;
     opacity: 1;
   }
+  .search input:focus-visible {
+    outline-offset: 4px;
+  }
   .search .button {
+    --btn: var(--band-fg);
+    --btn-fg: #14291f;
     flex: none;
+  }
+  @media (max-width: 479.98px) {
+    .search-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1.25rem;
+    }
+  }
+
+  .home-body {
+    padding-top: 3.5rem;
+    padding-bottom: 4.5rem;
+  }
+  .search-note {
+    margin: 0 auto 2.5rem;
+    max-width: 46rem;
+  }
+  .intro {
+    margin: 0 auto;
+    max-width: 40rem;
+    text-align: center;
+    font-size: 1.1875rem;
+    line-height: 1.65;
+  }
+  @media (min-width: 720px) {
+    .intro {
+      font-size: 1.3125rem;
+    }
+  }
+  .section-title {
+    margin-top: 4rem;
+    text-align: center;
+  }
+  @media (min-width: 720px) {
+    .section-title {
+      font-size: 1.875rem;
+    }
+  }
+  .more-link,
+  .near-status,
+  .near-action {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .more-link a {
+    font-style: italic;
+    font-size: 1.0625rem;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--rule-strong);
+  }
+  .near-status {
+    margin-top: 0;
+    max-width: 44ch;
+    font-style: italic;
   }
   .tee-sheet:empty {
     display: none;
   }
-  [data-near-button] {
-    margin-top: 0.25rem;
-  }
+
+  /* States: a calm directory in columns. */
   .state-list {
     list-style: none;
-    margin: 0;
-    padding: 0;
+    margin: 1.25rem 0 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid var(--rule-strong);
     columns: 2;
-    column-gap: 1.5rem;
-    font-family: var(--sans);
-    font-variant-numeric: lining-nums tabular-nums;
+    column-gap: 2rem;
   }
   @media (min-width: 560px) {
     .state-list {
@@ -182,11 +389,13 @@ setCache(Astro, TTL.home);
   @media (min-width: 860px) {
     .state-list {
       columns: 4;
+      column-rule: 1px solid var(--rule);
+      column-gap: 2.5rem;
     }
   }
   .state-list li {
     break-inside: avoid;
-    padding: 0.25rem 0;
+    padding: 0.3rem 0;
   }
   .state-list a {
     text-decoration: none;
@@ -194,9 +403,14 @@ setCache(Astro, TTL.home);
   .state-list a:hover {
     text-decoration: underline;
   }
+  .state-list .muted {
+    font-size: 0.875rem;
+    font-style: italic;
+  }
 </style>
 
 <script>
   import { initNearYou } from "../scripts/near-you.ts";
   initNearYou();
 </script>
+

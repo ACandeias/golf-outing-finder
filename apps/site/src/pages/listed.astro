@@ -7,8 +7,7 @@ const origin = siteOrigin(Astro);
 const snippet = `<a href="${origin}/"><img src="${origin}/listed-badge.svg" width="200" height="48" alt="Listed on Golf Outing Finder"></a>`;
 ---
 
-<Base title="Listed on Golf Outing Finder | Golf Outing Finder" description="A badge organizers can add to their outing page." path="/listed" noindex crumbs={[{ name: "Listed here?", path: "/listed" }]}>
-  <h1>Is your outing listed here?</h1>
+<Base title="Listed on Golf Outing Finder | Golf Outing Finder" description="A badge organizers can add to their outing page." path="/listed" noindex crumbs={[{ name: "Listed here?", path: "/listed" }]} heading="Is your outing listed here?">
   <p>If your outing is on Golf Outing Finder, you're welcome to add this badge to your event page. It's a plain image and link, with no script.</p>
   <p><img src="/listed-badge.svg" width="200" height="48" alt="Listed on Golf Outing Finder" /></p>
   <label for="badge-code">Copy this HTML</label>
@@ -21,14 +20,15 @@ const snippet = `<a href="${origin}/"><img src="${origin}/listed-badge.svg" widt
     max-width: 640px;
     font: 0.9rem ui-monospace, Menlo, Consolas, monospace;
     padding: 0.5rem;
-    border: 1px solid var(--muted);
-    border-radius: 6px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
     background: var(--surface);
-    color: var(--fg);
+    color: var(--ink);
   }
   label {
     display: block;
-    font-weight: 600;
+    font-style: italic;
+    color: var(--ink-muted);
     margin-bottom: 0.25rem;
   }
 </style>
