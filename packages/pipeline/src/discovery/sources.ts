@@ -24,7 +24,11 @@ const listingEntrySchema = z
     name: z.string().min(1),
     allowed: z.boolean().default(false),
     terms_url: z.string().url().optional(),
-    terms_checked: z.string().optional(),
+    /** The date (YYYY-MM-DD) the owner last read the site's terms; required to turn a platform or directory on. */
+    terms_checked: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "terms_checked must be a YYYY-MM-DD date")
+      .optional(),
     adapter: z.enum(["page", "links", "sitemap"]),
     cadence: z.enum(["daily", "weekly"]).default("weekly"),
     months_ahead: z.number().int().min(1).max(12).default(1),
@@ -71,7 +75,25 @@ const platformsFileSchema = z
     associations: z.array(listingEntrySchema).nullable().default([]).transform((v) => v ?? []),
     directories: z.array(listingEntrySchema).nullable().default([]).transform((v) => v ?? []),
   })
-  .strict();
+  .strict()
+  .superRefine((f, ctx) => {
+    // A platform or directory is turned on only after its terms were read (SPEC.md 8.2).
+    const groups = [
+      ["platforms", f.platforms],
+      ["directories", f.directories],
+    ] as const;
+    for (const [group, entries] of groups) {
+      entries.forEach((e, i) => {
+        if (e.allowed && !e.terms_checked) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [group, i, "terms_checked"],
+            message: `${e.name}: allowed: true needs terms_checked (the date the terms were read)`,
+          });
+        }
+      });
+    }
+  });
 export type ListingConfig = z.infer<typeof platformsFileSchema>;
 
 export function parsePlatformsYaml(text: string): ListingConfig {
@@ -140,6 +162,24 @@ export interface ListingSourceDeps {
 }
 
 export const MAX_LINKS_PER_SOURCE = 500;
+
+/**
+ * The links one run takes from a source that lists more than `cap`: a window of
+ * `cap` that moves on by `cap` each time the source runs (nightly or weekly), so
+ * a sitemap longer than the cap is covered over several runs instead of always
+ * stopping at the same place.
+ */
+export function rotatingWindow<T>(items: readonly T[], cap: number, runIndex: number): T[] {
+  if (items.length <= cap) return [...items];
+  const start = (((runIndex * cap) % items.length) + items.length) % items.length;
+  return Array.from({ length: cap }, (_, i) => items[(start + i) % items.length] as T);
+}
+
+/** How many times a source has come due before `now` (its nights since the epoch, or its weeks). */
+function runIndexFor(entry: Pick<ListingEntry, "cadence">, now: Date): number {
+  const day = Math.floor(now.getTime() / DAY_MS);
+  return entry.cadence === "daily" ? day : Math.floor(day / 7);
+}
 const MAX_CHILD_SITEMAPS = 5;
 
 type Kind = "platform" | "association" | "directory";
@@ -159,10 +199,9 @@ export function createListingSource(deps: ListingSourceDeps): ListingSource {
   async function fromEntry(kind: Kind, e: ListingEntry, budget: BudgetCheck): Promise<ListingLink[]> {
     const urls = expandUrls(e.urls, e.months_ahead, deps.now);
     const pattern = e.event_url_pattern ? new RegExp(e.event_url_pattern, "i") : null;
-    const out: ListingLink[] = [];
+    const found = new Map<string, string | null>();
     const push = (url: string, title: string | null) => {
-      if (out.length >= cap) return;
-      out.push({ found_via: kind, origin: e.name, url, title, text: null, registration_url: null });
+      if (!found.has(url)) found.set(url, title);
     };
     for (const listUrl of urls) {
       if (e.adapter === "page") {
@@ -188,7 +227,23 @@ export function createListingSource(deps: ListingSourceDeps): ListingSource {
       }
       for (const u of all) if (pattern?.test(u)) push(u, null);
     }
-    return out;
+    const entries = [...found];
+    const taken = rotatingWindow(entries, cap, runIndexFor(e, deps.now));
+    if (taken.length < entries.length) {
+      deps.log.info("listing source over its per-run link cap; this run takes the next window", {
+        source: e.name,
+        links: entries.length,
+        taken: taken.length,
+      });
+    }
+    return taken.map(([url, title]) => ({
+      found_via: kind,
+      origin: e.name,
+      url,
+      title,
+      text: null,
+      registration_url: null,
+    }));
   }
 
   async function fromSeries(s: SeriesEntry, budget: BudgetCheck): Promise<ListingLink[]> {

@@ -4,6 +4,7 @@ import type { DiscoveryQueueRow } from "./rows.ts";
 import {
   COUNTS_AS_FETCH_ERROR,
   emptyResult,
+  isRobotsUnavailable,
   type BudgetHit,
   type FetchedPage,
   type FetchPlanItem,
@@ -102,7 +103,9 @@ function iso(d: Date): string {
 /**
  * What the fetch stage writes to `discovery_queue`: deferred entries are
  * stored (or keep their row), fetched URLs leave the queue, and network, timeout
- * and 5xx failures come back the next day, up to three attempts.
+ * and 5xx failures come back the next day, up to three attempts. So does a page
+ * whose host's robots.txt could not be read this run (not an error, but not a
+ * real Disallow either).
  */
 export function queueBookkeeping(
   now: Date,
@@ -133,7 +136,8 @@ export function queueBookkeeping(
     const url = p.requested_url;
     const prev = pending.get(url);
     const attempts = (prev?.attempts ?? 0) + 1;
-    if (COUNTS_AS_FETCH_ERROR.has(p.outcome) && attempts < MAX_QUEUE_ATTEMPTS) {
+    const transient = COUNTS_AS_FETCH_ERROR.has(p.outcome) || isRobotsUnavailable(p);
+    if (transient && attempts < MAX_QUEUE_ATTEMPTS) {
       retry.push({
         url,
         found_via: p.found_via,

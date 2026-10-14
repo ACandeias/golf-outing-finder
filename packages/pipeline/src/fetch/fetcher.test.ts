@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BudgetGuard } from "../budget.ts";
 import { staticResolver } from "../net/ssrf.ts";
 import type { Renderer } from "../render/renderer.ts";
-import type { FetchedPage, FetchPlanItem, PageFetcher } from "../stages/types.ts";
+import { isRobotsUnavailable, type FetchedPage, type FetchPlanItem, type PageFetcher } from "../stages/types.ts";
 import {
   createPageFetcher,
   fetchAll,
@@ -288,6 +288,39 @@ describe("createPageFetcher", () => {
     expect((await f.fetchPage(item("https://excluded.example/"), budget)).outcome).toBe("ssrf_blocked");
     expect(calls.map((c) => c.url)).toEqual(["https://example.org/robots.txt"]);
     expect(budget.spent("MAX_FETCHES_PER_RUN")).toBe(0);
+  });
+
+  it("a robots.txt that answers 403 or a challenge page blocks its host for the run, without spending a fetch", async () => {
+    const challenge =
+      '<!DOCTYPE html><html><head><title>Just a moment...</title></head><body><script src="/cdn-cgi/challenge-platform/x"></script></body></html>';
+    const { fn, calls } = fakeFetch({
+      "https://example.org/robots.txt": () => new Response("forbidden", { status: 403 }),
+      "https://other.example/robots.txt": () => html(challenge),
+      "https://a.example/robots.txt": () => new Response("User-agent: *\nDisallow: /private\n"),
+    });
+    const unavailable: string[] = [];
+    const f = createPageFetcher(deps(fn, { onRobotsUnavailable: (origin, reason) => unavailable.push(`${origin} ${reason}`) }));
+    const budget = guardFor();
+    const a = await f.fetchPage(item("https://example.org/golf"), budget);
+    const b = await f.fetchPage(item("https://example.org/golf-2"), budget);
+    const c = await f.fetchPage(item("https://other.example/events/1"), budget);
+    const d = await f.fetchPage(item("https://a.example/private/x"), budget);
+    expect([a, b, c].map((p) => [p.outcome, p.error, isRobotsUnavailable(p)])).toEqual([
+      ["robots_blocked", "robots.txt unavailable: HTTP 403", true],
+      ["robots_blocked", "robots.txt unavailable: HTTP 403", true],
+      ["robots_blocked", "robots.txt unavailable: challenge page", true],
+    ]);
+    // A real Disallow is a plain robots block, not "unavailable".
+    expect([d.outcome, isRobotsUnavailable(d)]).toEqual(["robots_blocked", false]);
+    expect(calls.map((x) => x.url)).toEqual([
+      "https://example.org/robots.txt",
+      "https://other.example/robots.txt",
+      "https://a.example/robots.txt",
+    ]);
+    expect(unavailable).toEqual(["https://example.org HTTP 403", "https://other.example challenge page"]);
+    expect(budget.spent("MAX_FETCHES_PER_RUN")).toBe(0);
+    // Listing reads (sitemaps) see the same block.
+    expect((await f.fetchRaw("https://example.org/sitemap.xml", budget)).kind).toBe("robots_blocked");
   });
 
   it("checks robots.txt on the host a redirect lands on", async () => {

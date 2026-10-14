@@ -5,6 +5,12 @@ Product doc: https://claude.ai/code/artifact/a182964d-da53-4a9e-b128-adc756bed08
 
 ## Changelog
 
+**2026-10-14.** Listing sources and robots.txt (owner decisions after a terms check of every platform and directory):
+
+- Play Private Golf is allowed and read through its sitemap (474 event pages on 2026-10-14) instead of its home page. Its Terms of Use have no clause on automated access and its robots.txt allows everything but `/api/`. At 150 fetches per host per run the events take about four nights; the rest wait in `discovery_queue`. Every other platform and directory stays `allowed: false`, each with `terms_checked: 2026-10-14` and its verdict in `platforms.yaml`; an allowed platform or directory must have a `terms_checked` date (§8.2).
+- Directory rules hold for every route: on a directory, a page that doesn't match `event_url_pattern` is an index page wherever it was found, and an outing whose canonical source is still a directory page doesn't publish (§8.2 item 6).
+- A robots.txt that can't be read disallows the host for the rest of the run: 401, 403, 429, any 5xx, a network error, or a bot-challenge page in place of the file. It's an expected outcome, not an error for the 20% rule, logged per host, and the pages are retried from `discovery_queue` the next day. 404 and 410 still mean no robots.txt, so everything is allowed (§8.3).
+
 **2026-10-04.** Guides are plain Markdown, not MDX (owner decision: no new dependency); drafts build only outside production and never reach a sitemap (§9.8). Optional `GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` Worker vars for Search Console and Bing (§6).
 
 **2026-10-04.** Phase 5, unattended operation:
@@ -418,7 +424,7 @@ Sources in priority order. Normalize every URL (lowercase host, strip tracking p
 3. **Series.** Index pages in `series.yaml`, daily. Enqueue every event link.
 4. **Platforms.** Public event listings and sitemaps on GolfStatus, TourneyLinks, Golf Genius, BirdEase, GiveSmart, OneCause, GoFundMe Pro (Classy), Network for Good and Eventbrite, only where robots.txt and the platform's terms allow it. Each platform has an `allowed` flag that defaults to false until the owner confirms its terms. Enqueue event URLs whose title or text mentions golf together with outing, tournament, scramble, classic or invitational.
 5. **State association calendars.** Weekly. Start with Arizona, Southern California and Colorado, which already publish charity calendars, then add others to the list.
-6. **Directories.** Play Private Golf, Scramble Hunter, charitygolfevent.com and golfsync.io, weekly. Enqueue each listing's event page and the organizer and registration links found on it. A directory *index* page never publishes. A directory *event* page (one event per page) may publish when its `registration_url` resolves to a domain other than the directory's; its `canonical_source_url` is then the registration page.
+6. **Directories.** Play Private Golf, Scramble Hunter, charitygolfevent.com and golfsync.io, weekly. Enqueue each listing's event page and the organizer and registration links found on it. A directory *index* page never publishes. A directory *event* page (one event per page) may publish when its `registration_url` resolves to a domain other than the directory's; its `canonical_source_url` is then the registration page. These rules apply whichever route finds the page: any page on a directory's domain that doesn't match its `event_url_pattern` is an index page, and an outing whose canonical source is still a directory page doesn't publish. Play Private Golf is read through its sitemap; the other three stay off (their terms ban automated access).
 7. **Search by place.** Through DataForSEO (Google organic, standard queue). For each metro in `metros.yaml`: `golf outing {city} {year}`, `charity golf tournament {city} {year}`, `golf scramble {city} {month}`. Weekly from April through September and monthly the rest of the year, spread evenly across nights so each night stays under the cap.
 8. **Search by course.** For courses with `outing_count > 0` or `notable = 1`: `"{course name}" golf outing {year}` and `"{course name}" golf classic register`, monthly.
 9. **The coming season.** `{year}` in items 7 and 8 is the current year until August 31; from September 1 each such query also runs with next year (`golf outing Mamaroneck NY 2027`), and from December 1 only with next year.
@@ -428,12 +434,12 @@ The platform and directory flags apply to every source above, not only to items 
 ### 8.3 Fetch
 
 - Fetch with undici. User agent `GolfOutingFinderBot/1.0 (+{SITE_URL}/bot)`, 20-second timeout, at most 5 redirects, 5 MB maximum body, no cookies.
-- Honor robots.txt per host, cached for 24 hours. One request at a time per host with at least 5 seconds between requests; 8 hosts in parallel. At most `MAX_FETCHES_PER_HOST_PER_RUN` (150) fetches per host per run, and the fetch stage stops after `MAX_FETCH_MINUTES` (45).
+- Honor robots.txt per host, cached for 24 hours. A 404 or 410 for robots.txt means there is none, so everything is allowed (RFC 9309). A robots.txt that can't be read means the host is disallowed for the rest of the run: 401, 403 or 429, any 5xx, a network error or timeout, or an HTML bot-challenge page (Cloudflare's "Just a moment..." and the like) served in its place. That outcome is held in memory for the run only, so the next run asks again; the host's pages count as robots blocks (expected, not errors), the host is logged, and its pages go back to `discovery_queue` for the next day. One request at a time per host with at least 5 seconds between requests; 8 hosts in parallel. At most `MAX_FETCHES_PER_HOST_PER_RUN` (150) fetches per host per run, and the fetch stage stops after `MAX_FETCH_MINUTES` (45).
 - SSRF guard: allow only http and https on ports 80 and 443. Resolve DNS and reject private, loopback, link-local, CGNAT and cloud metadata addresses, and check again after every redirect.
 - Render with Playwright only when the host is in `js-platforms.yaml` or the extracted main text is under 400 characters. Playwright only opens URLs the SSRF guard has already vetted, and it aborts every request whose host isn't the document's host or that resolves to a private range. Block images, fonts and media. 25-second timeout. A fresh browser context for every page.
 - PDFs: extract text with pdfjs-dist when the file is 2 MB or smaller.
 - Normalize main text with Readability, keep any schema.org JSON-LD blocks separately, truncate the text at 12,000 characters, and hash it. When the hash matches the last extraction, skip extraction and only update `last_verified` on the source's outings.
-- Errors: network failures and 5xx responses count toward the 20% failure rule in section 8.10. 404, 410 and robots blocks are expected outcomes, not errors.
+- Errors: network failures and 5xx responses count toward the 20% failure rule in section 8.10. 404, 410 and robots blocks, including a host skipped because its robots.txt couldn't be read, are expected outcomes, not errors.
 
 ### 8.4 Extract
 

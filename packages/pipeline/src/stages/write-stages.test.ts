@@ -458,6 +458,42 @@ describe("publish", () => {
     ]);
   });
 
+  const ppgRules = [
+    {
+      name: "Play Private Golf",
+      allowed: true,
+      domains: ["playprivategolf.com"],
+      listing_url_pattern: null,
+      directory: true,
+      event_url_pattern: "^https://(www\\.)?playprivategolf\\.com/events/[a-z0-9-]+-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/?$",
+    },
+  ];
+  const ppgEvent =
+    "https://www.playprivategolf.com/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b-f60a-47f7-8ee8-16ce0cdbdfba";
+
+  it("a directory page is never the published canonical source: index pages and event pages without an off-directory registration hold", () => {
+    const { output } = publish(testCtx(), {
+      outings: [
+        // An event page whose registration link stayed on the directory (or had none).
+        entry(outingRow({ id: "event-only", canonical_source_url: ppgEvent })),
+        entry(outingRow({ id: "index", canonical_source_url: "https://www.playprivategolf.com/states/montana" })),
+        // canonicalUrlFor pointed it at the organizer's registration page: it publishes.
+        {
+          ...entry(outingRow({ id: "registration", canonical_source_url: "https://younglife.example/golf" })),
+          source_urls: [ppgEvent],
+        },
+      ],
+      heldSources: [],
+      changed: [],
+      platform_rules: ppgRules,
+    });
+    expect(output.decisions.map((d) => [d.outing_id, d.publish, d.why])).toEqual([
+      ["event-only", false, "directory_page"],
+      ["index", false, "platform_listing"],
+      ["registration", true, "dated"],
+    ]);
+  });
+
   it("removals.yaml still wins over the platform rule", () => {
     const url = "https://www.eventbrite.ca/d/ct--darien/golf-tournament/";
     const { output } = publish(testCtx({ removals: { outing_ids: [], urls: [url] } }), {

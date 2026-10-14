@@ -4,7 +4,13 @@
 # until the owner has read the site's terms of use and confirmed that reading
 # its public listings is permitted; robots.txt is honored on every fetch either
 # way. Set `allowed: true` (and `terms_checked`, the date you checked) to turn
-# one on. Nothing here is fetched while `allowed` is false.
+# one on; the loader refuses an allowed platform or directory without
+# `terms_checked`. Nothing here is fetched while `allowed` is false.
+#
+# Terms were last read for every platform and directory on 2026-10-14; the
+# comment on each entry gives the verdict (ALLOW, DENY: the clause, or
+# UNCLEAR: why). Recheck an allowed site's terms when `terms_checked` is a
+# year old.
 #
 # adapter:
 #   page     - the URL itself is the source: queue it and let extraction read
@@ -15,9 +21,15 @@
 # cadence: daily, or weekly (each weekly source gets a fixed night of the week).
 # urls may contain {yyyy-mm}; it expands to this month and the next
 # `months_ahead - 1` months.
+# A source yields at most 500 links a run; a longer list is read in a window
+# that moves on each run. Fetches stay within 150 per host per run, and the
+# rest wait in discovery_queue for the next nights.
 # Platform links are queued only when their title, text or URL mentions golf
 # with outing, tournament, scramble, classic or invitational.
 # Directory index pages are never sources; only their event pages are queued.
+# On a directory, every URL that doesn't match `event_url_pattern` counts as an
+# index page wherever it comes from, and an event page publishes only through
+# its off-directory registration page (SPEC.md section 8.2 item 6).
 # URLs marked "unverified" are best guesses; check them when turning one on.
 #
 # The flags apply wherever a URL comes from, not only to these adapters
@@ -31,66 +43,101 @@
 # listing_url_pattern: path regex for the site's listing and search pages.
 
 platforms:
+  # DENY: ToS 1.6 bans scraping, spidering and crawling and "any automated use";
+  # 1.4 licenses non-commercial use only. Events live on events.golfstatus.com;
+  # golfstatus.com/sitemap.xml is the marketing site and lists blog posts only.
   - name: golfstatus
     allowed: false
-    terms_url: https://golfstatus.com/terms
-    adapter: sitemap
+    terms_checked: 2026-10-14
+    terms_url: https://golfstatus.com/golfstatus-terms-of-service
+    adapter: links
     cadence: daily
-    urls: [https://golfstatus.com/sitemap.xml] # unverified
-    event_url_pattern: "^https://(www\\.)?golfstatus\\.com/(events|tournaments)/"
+    urls: [https://events.golfstatus.com/] # unverified
+    event_url_pattern: "^https://events\\.golfstatus\\.com/.+"
+  # DENY: terms 10 ban "automated collection, scraping or bulk export"; they
+  # invite data requests at hello@tourneylinks.com.
   - name: tourneylinks
     allowed: false
-    terms_url: https://www.tourneylinks.com/
+    terms_checked: 2026-10-14
+    terms_url: https://www.tourneylinks.com/terms
     adapter: links
     cadence: daily
     urls: [https://www.tourneylinks.com/] # unverified
-    event_url_pattern: "^https://(www\\.)?tourneylinks\\.com/.+"
+    event_url_pattern: "^https://(www\\.)?tourneylinks\\.com/tournaments/.+"
+  # DENY: "User Conduct" bans spidering and screen scraping, and the terms cover
+  # users of the public site. No sitemap (/sitemap.xml was 404 on 2026-10-14).
   - name: golfgenius
     allowed: false
-    terms_url: https://www.golfgenius.com/terms
-    adapter: sitemap
+    terms_checked: 2026-10-14
+    terms_url: https://golfgenius.com/legal/terms-conditions
+    adapter: links
     cadence: daily
-    urls: [https://www.golfgenius.com/sitemap.xml] # unverified
+    urls: [https://www.golfgenius.com/] # unverified; no sitemap
     event_url_pattern: "^https://(www\\.)?golfgenius\\.com/pages/"
+  # UNCLEAR: no scraping clause, but the only license is to view pages "solely on
+  # your computer and for your personal use". JavaScript-only site; no sitemap
+  # (/sitemap.xml was 404 on 2026-10-14) and robots.txt is 404.
   - name: birdease
     allowed: false
+    terms_checked: 2026-10-14
     terms_url: https://birdease.com/terms
-    adapter: sitemap
+    adapter: links
     cadence: daily
-    urls: [https://birdease.com/sitemap.xml] # unverified
+    urls: [https://birdease.com/] # unverified; no sitemap
     event_url_pattern: "^https://([a-z0-9-]+\\.)?birdease\\.com/"
+  # UNCLEAR: no scraping clause, but the terms bind every visitor to event
+  # microsites and limit access to learning about GiveSmart and joining auctions.
+  # www.givesmart.com/robots.txt sets Crawl-delay: 600 and lists no sitemap.
   - name: givesmart
     allowed: false
-    terms_url: https://www.givesmart.com/terms-of-use
+    terms_checked: 2026-10-14
+    terms_url: https://www.givesmart.com/terms-conditions/
     adapter: sitemap
     cadence: daily
     urls: [https://www.givesmart.com/sitemap.xml] # unverified
     event_url_pattern: "^https://(www\\.)?e\\.givesmart\\.com/events/"
+  # UNCLEAR: no scraping clause, but it bars exploiting information "for
+  # commercial purposes" (we run ads), and OneCause is now part of Bonterra,
+  # whose terms ban scraping. No confirmed public event host.
   - name: onecause
     allowed: false
-    terms_url: https://www.onecause.com/terms-of-use
+    terms_checked: 2026-10-14
+    terms_url: https://www.onecause.com/general/user-terms/
     adapter: sitemap
     cadence: daily
-    urls: [https://www.onecause.com/sitemap.xml] # unverified
+    urls: [https://www.onecause.com/sitemap_index.xml] # unverified; marketing pages
     event_url_pattern: "^https://(www\\.)?onecause\\.com/"
+  # DENY: GoFundMe ToS 12.3 bans "data mining, spiders, robots, scraping", and
+  # 6.2(g) applies those terms to every nonprofit site GoFundMe Pro powers.
+  # classy.org/terms is the nonprofit customer agreement, not the visitor terms.
   - name: gofundme-pro
     allowed: false
+    terms_checked: 2026-10-14
     terms_url: https://www.gofundme.com/c/terms
     adapter: sitemap
     cadence: daily
-    urls: [https://www.classy.org/sitemap.xml] # unverified
+    urls: [https://www.classy.org/sitemap_index.xml] # unverified
+    domains: [classy.org, gofundme.com]
     event_url_pattern: "^https://(www\\.)?(classy\\.org|pro\\.gofundme\\.com)/(event|events)/"
+  # DENY: networkforgood.com now redirects to Bonterra, whose terms 2.1 and
+  # 2.7(k) ban scraping and robots on the site and Bonterra Products. Events
+  # are still on {org}.networkforgood.com; the sitemap below redirects to
+  # bonterratech.com and lists no events.
   - name: networkforgood
     allowed: false
-    terms_url: https://www.networkforgood.com/about/terms-of-use/
+    terms_checked: 2026-10-14
+    terms_url: https://www.bonterratech.com/legal/bonterra-website-terms-and-conditions
     adapter: sitemap
     cadence: daily
-    urls: [https://www.networkforgood.com/sitemap.xml] # unverified
+    urls: [https://www.networkforgood.com/sitemap.xml] # redirects to Bonterra; lists no events
     listing_url_pattern: "^/events/?$"
     event_url_pattern: "^https://[a-z0-9-]+\\.networkforgood\\.com/events/"
+  # DENY: ToS 13: "agree not to, scrape, crawl, or employ any automated means to
+  # extract data". The public event-search API was retired in 2020.
   - name: eventbrite
     allowed: false
-    terms_url: https://www.eventbrite.com/help/en-us/articles/541760/eventbrite-terms-of-service/
+    terms_checked: 2026-10-14
+    terms_url: https://www.eventbrite.com/help/en-us/articles/251210/eventbrite-terms-of-service/
     adapter: links
     cadence: daily
     urls: [https://www.eventbrite.com/d/united-states/golf-tournament/] # unverified
@@ -117,31 +164,48 @@ associations:
     urls: [https://www.coloradogolf.org/charity-events]
 
 directories:
+  # ALLOW (owner approved 2026-10-14): the Terms of Use have no clause on
+  # scraping, crawling or automated access, and robots.txt allows everything
+  # but /api/. The sitemap lists every event (474 on 2026-10-14), which the
+  # home page doesn't; at 150 fetches per host a night they take about four
+  # nights. Event pages link to the organizer's registration page, which
+  # becomes the canonical source; an event page without one doesn't publish.
   - name: Play Private Golf
-    allowed: false
-    terms_url: https://playprivategolf.com/
-    adapter: links
+    allowed: true
+    terms_checked: 2026-10-14
+    terms_url: https://www.playprivategolf.com/terms
+    adapter: sitemap
     cadence: weekly
-    urls: [https://playprivategolf.com/] # unverified
-    event_url_pattern: "^https://(www\\.)?playprivategolf\\.com/.*event"
+    urls: [https://www.playprivategolf.com/sitemap.xml]
+    # /events/<slug>-<uuid>; the home, /states, /courses and /guides pages are index pages.
+    event_url_pattern: "^https://(www\\.)?playprivategolf\\.com/events/[a-z0-9-]+-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/?$"
+  # DENY: Golf Point terms 5 ban "robots, spiders or scrapers" and commercial
+  # use without written consent.
   - name: Scramble Hunter
     allowed: false
-    terms_url: https://scramblehunter.com/
+    terms_checked: 2026-10-14
+    terms_url: https://scramblehunter.com/terms-of-use/
     adapter: links
     cadence: weekly
     urls: [https://scramblehunter.com/]
     event_url_pattern: "^https://(www\\.)?scramblehunter\\.com/event/[^/]+/?$"
+  # DENY: the Acceptable Use Policy bans "automated systems (bots, scrapers)
+  # without our permission". Events are /en-US/charity-golf-events/... in its sitemap.
   - name: charitygolfevent.com
     allowed: false
-    terms_url: https://charitygolfevent.com/
-    adapter: links
+    terms_checked: 2026-10-14
+    terms_url: https://www.charitygolfevent.com/en-US/terms
+    adapter: sitemap
     cadence: weekly
-    urls: [https://charitygolfevent.com/] # unverified
-    event_url_pattern: "^https://(www\\.)?charitygolfevent\\.com/.+"
+    urls: [https://www.charitygolfevent.com/sitemap.xml]
+    event_url_pattern: "^https://(www\\.)?charitygolfevent\\.com/en-(us|gb)/charity-golf-events/.+"
+  # DENY: ToS 5 Acceptable Use: "Scrape, reverse engineer, or copy the Service".
+  # Events are /tournament-center/tournaments/... in its sitemap (about 1,163).
   - name: golfsync.io
     allowed: false
-    terms_url: https://golfsync.io/
-    adapter: links
+    terms_checked: 2026-10-14
+    terms_url: https://golfsync.io/terms
+    adapter: sitemap
     cadence: weekly
-    urls: [https://golfsync.io/] # unverified
-    event_url_pattern: "^https://(www\\.)?golfsync\\.io/.*event"
+    urls: [https://golfsync.io/sitemap.xml]
+    event_url_pattern: "^https://(www\\.)?golfsync\\.io/tournament-center/tournaments/[^/]+/?$"

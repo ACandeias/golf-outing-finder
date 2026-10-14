@@ -50,7 +50,21 @@ describe("parseSitemap", () => {
 });
 
 describe("platforms.yaml", () => {
-  it("parses the committed file, with every platform and directory off until the owner checks its terms", async () => {
+  it("parses the committed file: only Play Private Golf is on, and every platform and directory has its terms date", async () => {
+    const cfg = await loadPlatforms(PATHS.overrides);
+    const listed = [...cfg.platforms, ...cfg.directories];
+    expect(listed.filter((e) => e.allowed).map((e) => e.name)).toEqual(["Play Private Golf"]);
+    expect(listed.every((e) => e.terms_checked === "2026-10-14" && e.terms_url !== undefined)).toBe(true);
+    expect(cfg.directories.find((d) => d.name === "Play Private Golf")).toMatchObject({
+      allowed: true,
+      adapter: "sitemap",
+      cadence: "weekly",
+      terms_url: "https://www.playprivategolf.com/terms",
+      urls: ["https://www.playprivategolf.com/sitemap.xml"],
+    });
+  });
+
+  it("lists the expected platforms and associations", async () => {
     const cfg = await loadPlatforms(PATHS.overrides);
     expect(cfg.platforms.map((p) => p.name)).toEqual([
       "golfstatus",
@@ -64,7 +78,12 @@ describe("platforms.yaml", () => {
       "eventbrite",
     ]);
     expect(cfg.platforms.every((p) => !p.allowed)).toBe(true);
-    expect(cfg.directories.every((p) => !p.allowed)).toBe(true);
+    expect(cfg.directories.map((d) => d.name)).toEqual([
+      "Play Private Golf",
+      "Scramble Hunter",
+      "charitygolfevent.com",
+      "golfsync.io",
+    ]);
     expect(cfg.associations.map((a) => a.name)).toEqual([
       "Arizona Golf Association",
       "Southern California Golf Association",
@@ -77,6 +96,19 @@ describe("platforms.yaml", () => {
     expect(cfg.platforms[0]?.allowed).toBe(false);
     expect(() => parsePlatformsYaml("platforms:\n  - name: x\n    adapter: links\n")).toThrow(/event_url_pattern/);
     expect(() => parsePlatformsYaml("bogus: []\n")).toThrow(/platforms.yaml/);
+  });
+
+  it("an allowed platform or directory needs a terms_checked date; associations don't", () => {
+    const entry = "    adapter: page\n    urls: [https://x.example/]\n";
+    expect(() => parsePlatformsYaml(`directories:\n  - name: x\n    allowed: true\n${entry}`)).toThrow(/terms_checked/);
+    expect(() =>
+      parsePlatformsYaml(`platforms:\n  - name: x\n    allowed: true\n    terms_checked: last week\n${entry}`),
+    ).toThrow(/terms_checked/);
+    expect(
+      parsePlatformsYaml(`directories:\n  - name: x\n    allowed: true\n    terms_checked: 2026-10-14\n${entry}`)
+        .directories[0]?.terms_checked,
+    ).toBe("2026-10-14");
+    expect(parsePlatformsYaml(`associations:\n  - name: x\n    allowed: true\n${entry}`).associations[0]?.allowed).toBe(true);
   });
 });
 
@@ -218,5 +250,76 @@ describe("createListingSource", () => {
     const g = new BudgetGuard({ profile: "nightly", env: { MAX_FETCHES_PER_RUN: "1" }, now: NOW, clock: { nowMs: () => 0 } });
     expect(await src.links(g)).toEqual([]);
     expect(g.spent("MAX_FETCHES_PER_RUN")).toBe(1);
+  });
+
+  describe("Play Private Golf (the committed entry, on the recorded sitemap)", () => {
+    const ppgEntry = async () => {
+      const cfg = await loadPlatforms(PATHS.overrides);
+      const e = cfg.directories.find((d) => d.name === "Play Private Golf");
+      if (!e) throw new Error("Play Private Golf missing from platforms.yaml");
+      return e;
+    };
+    const events = [
+      "https://www.playprivategolf.com/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b-f60a-47f7-8ee8-16ce0cdbdfba",
+      "https://www.playprivategolf.com/events/5th-annual-tee-it-up-for-veterans-charity-golf-classic-santa-maria-country-club-591adcd4-8f36-4084-baef-2a5192df33d2",
+      "https://www.playprivategolf.com/events/fort-payne-fire-and-rescue-annual-charity-golf-tournament-terrapin-hills-country-club-7d616344-741f-4c30-85dd-5a12af22a525",
+      "https://www.playprivategolf.com/events/39th-annual-united-way-of-southeast-missouri-golf-tournament-cape-girardeau-country-club-c76a944e-1ab1-432e-8de5-d4feb2aeed59",
+      "https://www.playprivategolf.com/events/4th-annual-lake-of-the-woods-diffability-golf-tournament-lake-of-the-woods-country-club-0bf3a2a2-d7ba-4ba0-b610-ce7445765e73",
+    ];
+
+    it("queues only event pages from its sitemap, as directory links, in one fetch", async () => {
+      const e = await ppgEntry();
+      const { src, requested } = source({ platforms: [], associations: [], directories: [{ ...e, cadence: "daily" }] });
+      const g = guard();
+      const links = await src.links(g);
+      expect(links.map((l) => l.url)).toEqual(events);
+      expect(links.every((l) => l.found_via === "directory" && l.origin === "Play Private Golf")).toBe(true);
+      expect(requested).toEqual([
+        "https://www.playprivategolf.com/robots.txt",
+        "https://www.playprivategolf.com/sitemap.xml",
+      ]);
+      expect(g.spent("MAX_FETCHES_PER_RUN")).toBe(1);
+    });
+
+    it("runs weekly, on one fixed night", async () => {
+      const e = await ppgEntry();
+      const nights = Array.from({ length: 7 }, (_, d) => sourceDueTonight(e, new Date(NOW.getTime() + d * 86_400_000)));
+      expect(nights.filter(Boolean)).toHaveLength(1);
+    });
+  });
+
+  it("a sitemap with more event links than the per-source cap gives each run a different window, covering all of them", async () => {
+    const e = (await loadPlatforms(PATHS.overrides)).directories.find((d) => d.name === "Play Private Golf");
+    if (!e) throw new Error("Play Private Golf missing from platforms.yaml");
+    const { fetchFn } = fixtureFetch(loadFixtureDocs());
+    const seen = new Set<string>();
+    const sizes: number[] = [];
+    for (let night = 0; night < 3; night++) {
+      const now = new Date(NOW.getTime() + night * 86_400_000);
+      const fetcher = createPageFetcher({
+        fetchFn,
+        guard: { resolver: fixtureResolver, exclusions: emptyOverrides().exclusions },
+        userAgent: userAgentFor("http://localhost:8787"),
+        clock: { nowMs: () => 0 },
+        nowIso: () => now.toISOString(),
+        pdfText,
+        hostSpacingMs: 0,
+        sleep: async () => {},
+      });
+      const src = createListingSource({
+        fetcher,
+        config: { platforms: [], associations: [], directories: [{ ...e, cadence: "daily" }] },
+        series: [],
+        registrationHosts: [],
+        now,
+        log,
+        maxLinksPerSource: 2,
+      });
+      const links = await src.links(new BudgetGuard({ profile: "nightly", now, clock: { nowMs: () => 0 } }));
+      sizes.push(links.length);
+      for (const l of links) seen.add(l.url);
+    }
+    expect(sizes).toEqual([2, 2, 2]);
+    expect(seen.size).toBe(5);
   });
 });

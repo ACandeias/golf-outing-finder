@@ -122,6 +122,9 @@ export async function createFetchSidePorts(
     new Date(ctx.now.getTime() + Math.max(0, Math.round(ctx.clock.nowMs() - startMs))).toISOString();
   const userAgent = userAgentFor(siteUrl(env));
   const config = await loadPlatforms(PATHS.overrides);
+  // SPEC.md 8.3: an expected outcome (not toward the 20% rule), but logged.
+  const onRobotsUnavailable = (origin: string, reason: string): void =>
+    ctx.log.info("robots.txt unavailable; host skipped for this run", { origin, reason });
 
   if (mode === "dry-run") {
     const docs = loadFixtureDocs();
@@ -139,6 +142,7 @@ export async function createFetchSidePorts(
       validators,
       hostSpacingMs: 0,
       sleep: async () => {},
+      onRobotsUnavailable,
     });
     return {
       fetcher,
@@ -170,6 +174,7 @@ export async function createFetchSidePorts(
     pdfText,
     renderer,
     validators,
+    onRobotsUnavailable,
   });
   const credentials = env.SERP_API_KEY;
   const provider = opts.serp ?? "dataforseo";

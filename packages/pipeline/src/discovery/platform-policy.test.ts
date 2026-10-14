@@ -20,6 +20,7 @@ platforms:
     event_url_pattern: "^https://[a-z0-9-]+\\\\.networkforgood\\\\.com/events/"
   - name: golfgenius
     allowed: true
+    terms_checked: 2026-10-14
     adapter: sitemap
     urls: [https://www.golfgenius.com/sitemap.xml]
     listing_url_pattern: "^/(pages)?/?$"
@@ -31,7 +32,16 @@ directories:
     adapter: links
     urls: [https://scramblehunter.com/]
     event_url_pattern: "^https://(www\\\\.)?scramblehunter\\\\.com/event/[^/]+/?$"
+  - name: Play Private Golf
+    allowed: true
+    terms_checked: 2026-10-14
+    adapter: sitemap
+    urls: [https://www.playprivategolf.com/sitemap.xml]
+    event_url_pattern: "^https://(www\\\\.)?playprivategolf\\\\.com/events/[a-z0-9-]+-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/?$"
 `;
+
+const PPG_EVENT =
+  "https://www.playprivategolf.com/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b-f60a-47f7-8ee8-16ce0cdbdfba";
 
 const rules = platformRulesFrom(parsePlatformsYaml(YAML));
 
@@ -42,6 +52,7 @@ describe("platform policy (platforms.yaml applied to any URL)", () => {
       platform: "eventbrite",
       allowed: false,
       listing: true,
+      directory: false,
     });
     expect(platformVerdict("https://www.eventbrite.com.au/d/nj--northfield/pine-beach-golf-outing/", rules)).toMatchObject({
       platform: "eventbrite",
@@ -51,6 +62,7 @@ describe("platform policy (platforms.yaml applied to any URL)", () => {
       platform: "eventbrite",
       allowed: false,
       listing: false,
+      directory: false,
     });
     expect(platformVerdict("https://stgeorgetheatre.networkforgood.com/events/102872-laughs", rules)).toMatchObject({
       platform: "networkforgood",
@@ -69,8 +81,35 @@ describe("platform policy (platforms.yaml applied to any URL)", () => {
       platform: "golfgenius",
       allowed: true,
       listing: false,
+      directory: false,
     });
     expect(platformVerdict("https://www.golfgenius.com/", rules)).toMatchObject({ allowed: true, listing: true });
+  });
+
+  it("on a directory, an event page is a directory page and every other page is an index (listing)", () => {
+    expect(platformVerdict(PPG_EVENT, rules)).toEqual({
+      platform: "Play Private Golf",
+      allowed: true,
+      listing: false,
+      directory: true,
+    });
+    expect(blockedAsSource(PPG_EVENT, rules)).toBeNull();
+    for (const index of [
+      "https://www.playprivategolf.com/",
+      "https://playprivategolf.com/states/arizona",
+      "https://www.playprivategolf.com/courses/cobblestone-creek-country-club",
+      "https://www.playprivategolf.com/events",
+      "https://www.playprivategolf.com/guides/golf-tournament-formats-explained",
+    ]) {
+      expect(platformVerdict(index, rules), index).toMatchObject({ allowed: true, listing: true, directory: true });
+      expect(blockedAsSource(index, rules), index).not.toBeNull();
+    }
+    // A disallowed directory's event page is blocked whatever its shape.
+    expect(platformVerdict("https://scramblehunter.com/event/x/", rules)).toMatchObject({
+      listing: false,
+      directory: true,
+      allowed: false,
+    });
   });
 
   it("other sites are not platforms (a brand only matches as the registrable domain's own label)", () => {
@@ -99,6 +138,30 @@ describe("the committed platforms.yaml", () => {
     });
     expect(platformVerdict("https://bgcnr.networkforgood.com/events", committed)).toMatchObject({ listing: true });
     expect(platformVerdict("https://www.eventbrite.com/e/x-tickets-1", committed)).toMatchObject({ listing: false });
+  });
+
+  it("lets Play Private Golf event pages through, and treats its other pages as index pages", async () => {
+    const committed = platformRulesFrom(await loadPlatforms(PATHS.overrides));
+    expect(platformVerdict(PPG_EVENT, committed)).toEqual({
+      platform: "Play Private Golf",
+      allowed: true,
+      listing: false,
+      directory: true,
+    });
+    for (const index of [
+      "https://www.playprivategolf.com/",
+      "https://www.playprivategolf.com/states/al",
+      "https://www.playprivategolf.com/courses/marsh-creek-country-club",
+      "https://www.playprivategolf.com/guides/are-charity-golf-tournament-fees-tax-deductible",
+      "https://www.playprivategolf.com/submit",
+    ]) {
+      expect(blockedAsSource(index, committed), index).toMatchObject({ listing: true });
+    }
+    // Its registration links to platforms we haven't cleared stay unfetched.
+    expect(blockedAsSource("https://www.golfgenius.com/pages/12345-young-life-fall", committed)).not.toBeNull();
+    expect(blockedAsSource("https://events.golfstatus.com/x", committed)).not.toBeNull();
+    expect(blockedAsSource("https://golfsync.io/tournament-center/tournaments/x", committed)).not.toBeNull();
+    expect(blockedAsSource("https://pro.gofundme.com/event/e793429", committed)).not.toBeNull();
   });
 
   it("leaves organizer sites and association calendars alone", async () => {

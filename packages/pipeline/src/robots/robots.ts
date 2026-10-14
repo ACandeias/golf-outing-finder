@@ -5,12 +5,20 @@ import type { Clock } from "../stages/types.ts";
  * `GolfOutingFinderBot` win over `*`; within the chosen groups the longest
  * matching rule wins and `allow` wins a tie; `*` and `$` are supported.
  * Crawl-delay is honored up to 30 s. Files are cached per origin for 24 hours.
+ *
+ * A robots.txt we could not read is not a green light. 404, 410 and other
+ * plain 4xx mean "no robots.txt", so everything is allowed (RFC 9309). But
+ * 401, 403 and 429, any 5xx, a network failure, or a bot-challenge page served
+ * in place of the file (Cloudflare "Just a moment...", seen on first contact
+ * with several platforms on 2026-10-14) make the whole host disallowed for the
+ * rest of the run. That outcome is kept only in memory, so the next run asks
+ * again.
  */
 
 export const ROBOTS_AGENT = "golfoutingfinderbot";
 export const ROBOTS_TTL_MS = 24 * 3600_000;
-/** A robots.txt that could not be read (5xx, network) is retried sooner. */
-export const ROBOTS_ERROR_TTL_MS = 3600_000;
+/** Status codes that mean "we were refused", not "there is no file". */
+const REFUSED_STATUSES: ReadonlySet<number> = new Set([401, 403, 429]);
 export const MAX_CRAWL_DELAY_MS = 30_000;
 /** RFC 9309 lets crawlers stop parsing after 500 KiB. */
 export const MAX_ROBOTS_BYTES = 500 * 1024;
@@ -32,13 +40,15 @@ export interface Robots {
   rules: Rule[];
   crawlDelayMs: number;
   sitemaps: string[];
-  /** Set for a robots.txt that could not be fetched (5xx or network): disallow all. */
-  unreachable?: boolean;
+  /** Why the file could not be read (`HTTP 403`, `challenge page`, a network error): disallow all. */
+  unavailable?: string;
 }
 
 export interface RobotsDecision {
   allowed: boolean;
   crawlDelayMs: number;
+  /** Set when the host is blocked because its robots.txt could not be read this run. */
+  unavailable?: string;
 }
 
 function canonicalPath(p: string): string {
@@ -110,7 +120,9 @@ export function parseRobots(text: string, agent = ROBOTS_AGENT): Robots {
 
 /** Whether `pathAndQuery` (path plus `?query`) may be fetched. */
 export function robotsDecision(robots: Robots, pathAndQuery: string): RobotsDecision {
-  if (robots.unreachable) return { allowed: false, crawlDelayMs: robots.crawlDelayMs };
+  if (robots.unavailable !== undefined) {
+    return { allowed: false, crawlDelayMs: robots.crawlDelayMs, unavailable: robots.unavailable };
+  }
   if (pathAndQuery === "/robots.txt") return { allowed: true, crawlDelayMs: robots.crawlDelayMs };
   const path = canonicalPath(pathAndQuery);
   let best: { allow: boolean; len: number } | null = null;
@@ -128,6 +140,31 @@ export type RobotsFetch = (url: string) => Promise<{ status: number; body: strin
 export interface RobotsCacheOptions {
   fetchRobots: RobotsFetch;
   clock: Clock;
+  /** Called once per origin whose robots.txt could not be read (the host is skipped this run). */
+  onUnavailable?: (origin: string, reason: string) => void;
+}
+
+/**
+ * Markers of the bot-challenge and WAF interstitials that some hosts serve with
+ * a 200 in place of robots.txt. A real robots.txt never contains these.
+ */
+const CHALLENGE_MARKERS: readonly RegExp[] = [
+  /<title>\s*just a moment/i, // Cloudflare managed challenge
+  /\/cdn-cgi\/challenge-platform\//i,
+  /_cf_chl_opt|cf-chl-|cf_chl_/i,
+  /<title>\s*attention required!? \| cloudflare/i,
+  /_incapsula_resource|incapsula incident/i, // Imperva
+  /sucuri website firewall/i,
+  /captcha-delivery\.com/i, // DataDome
+  /px-captcha|perimeterx/i,
+  /awswaf|gokuprops/i, // AWS WAF
+];
+
+/** True for an HTML page that is a bot challenge rather than a robots.txt file. */
+export function isChallengePage(body: string): boolean {
+  const head = body.slice(0, 64 * 1024);
+  if (!/<(!doctype\s+html|html|head|body|script|title)[\s>]/i.test(head)) return false;
+  return CHALLENGE_MARKERS.some((re) => re.test(head));
 }
 
 interface Entry {
@@ -135,7 +172,7 @@ interface Entry {
   expiresMs: number;
 }
 
-/** Per-origin robots.txt cache, 24 hours (one hour for an unreachable file). */
+/** Per-origin robots.txt cache: 24 hours, or the rest of the run for a file we could not read. */
 export class RobotsCache {
   private readonly entries = new Map<string, Entry>();
   private readonly inflight = new Map<string, Promise<Entry>>();
@@ -165,25 +202,33 @@ export class RobotsCache {
 
   private async load(origin: string): Promise<Entry> {
     const now = this.opts.clock.nowMs();
-    let entry: Entry;
+    let reason: string | null = null;
+    let robots: Robots | null = null;
     try {
       const res = await this.opts.fetchRobots(`${origin}/robots.txt`);
       if (res.status >= 200 && res.status < 300) {
-        entry = { robots: parseRobots(res.body), expiresMs: now + ROBOTS_TTL_MS };
-      } else if (res.status >= 400 && res.status < 500) {
-        // RFC 9309: 4xx means no robots.txt, so everything is allowed.
-        entry = { robots: parseRobots(""), expiresMs: now + ROBOTS_TTL_MS };
+        if (isChallengePage(res.body)) reason = "challenge page";
+        else robots = parseRobots(res.body);
+      } else if (REFUSED_STATUSES.has(res.status) || res.status >= 500) {
+        reason = `HTTP ${res.status}`;
       } else {
-        entry = { robots: unreachable(), expiresMs: now + ROBOTS_ERROR_TTL_MS };
+        // RFC 9309: 404, 410 and other 4xx mean there is no robots.txt, so everything is allowed.
+        robots = parseRobots("");
       }
-    } catch {
-      entry = { robots: unreachable(), expiresMs: now + ROBOTS_ERROR_TTL_MS };
+    } catch (err) {
+      reason = (err instanceof Error ? err.message : String(err)).slice(0, 200) || "network error";
     }
+    const entry: Entry =
+      robots !== null
+        ? { robots, expiresMs: now + ROBOTS_TTL_MS }
+        : // Held for the rest of the run: this cache lives only as long as the run.
+          { robots: unavailable(reason ?? "unreadable"), expiresMs: Number.POSITIVE_INFINITY };
     this.entries.set(origin, entry);
+    if (robots === null) this.opts.onUnavailable?.(origin, entry.robots.unavailable ?? "unreadable");
     return entry;
   }
 }
 
-function unreachable(): Robots {
-  return { rules: [], crawlDelayMs: 0, sitemaps: [], unreachable: true };
+function unavailable(reason: string): Robots {
+  return { rules: [], crawlDelayMs: 0, sitemaps: [], unavailable: reason };
 }
