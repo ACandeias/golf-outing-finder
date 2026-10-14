@@ -33,17 +33,14 @@ async function liveFeatures(states: readonly string[]): Promise<OsmFeature[]> {
   return out;
 }
 
+// A failed read aborts the import: treating it as empty would give existing
+// courses new ids and slugs, orphaning their outings. Use --fresh for an empty D1.
 function existingFromD1(persistTo: string | undefined): ExistingCourse[] {
-  try {
-    return queryLocalD1("SELECT id, slug, osm_ref FROM courses", { persistTo }).map((r) => ({
-      id: String(r.id),
-      slug: String(r.slug),
-      osmRef: typeof r.osm_ref === "string" ? r.osm_ref : null,
-    }));
-  } catch (err) {
-    console.warn(`could not read existing courses from the local D1 (${String(err)}); treating as empty`);
-    return [];
-  }
+  return queryLocalD1("SELECT id, slug, osm_ref FROM courses", { persistTo }).map((r) => ({
+    id: String(r.id),
+    slug: String(r.slug),
+    osmRef: typeof r.osm_ref === "string" ? r.osm_ref : null,
+  }));
 }
 
 async function main(): Promise<void> {
