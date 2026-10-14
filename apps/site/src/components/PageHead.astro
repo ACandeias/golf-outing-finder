@@ -1,0 +1,39 @@
+---
+/**
+ * The page title block. With a photo: a full-bleed band, bottle-green scrim and
+ * an inset hairline frame, breadcrumbs small above a centred title in tracked
+ * capitals. Without one (guides, legal pages, the map): a plain linen header with
+ * a gilt rule ornament. Titles and taglines are text, never HTML.
+ */
+import Breadcrumbs, { type CrumbLink } from "./Breadcrumbs.astro";
+import Photo from "./Photo.astro";
+import type { PhotoKey } from "../lib/photos.ts";
+
+interface Props {
+  title: string;
+  tagline?: string;
+  crumbs: CrumbLink[];
+  photo?: PhotoKey | null;
+  compact?: boolean;
+}
+
+const { title, tagline, crumbs, photo = null, compact = false } = Astro.props;
+---
+
+<div class:list={["page-head", photo ? "page-head-band" : "page-head-plain", { compact }]}>
+  {
+    photo && (
+      <>
+        <Photo photo={photo} kind="band" />
+        <div class="scrim" />
+        <div class="frame" />
+      </>
+    )
+  }
+  <div class="page-head-inner">
+    <Breadcrumbs crumbs={crumbs} />
+    <h1 class="page-title">{title}</h1>
+    {tagline && <p class="page-tagline">{tagline}</p>}
+    {!photo && <span class="ornament" />}
+  </div>
+</div>

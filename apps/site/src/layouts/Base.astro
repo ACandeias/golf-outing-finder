@@ -1,11 +1,15 @@
 ---
 import { buildBreadcrumbJsonLd } from "@gof/shared/jsonld";
-import Breadcrumbs, { type CrumbLink } from "../components/Breadcrumbs.astro";
+import { OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
+import type { CrumbLink } from "../components/Breadcrumbs.astro";
+import Crest from "../components/Crest.astro";
 import JsonLd from "../components/JsonLd.astro";
+import PageHead from "../components/PageHead.astro";
 import AdsRuntime from "../components/AdsRuntime.astro";
 import { siteAdsConfig } from "../lib/ads-env.ts";
 import { absoluteUrl, canonicalPath } from "../lib/urls.ts";
 import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
+import type { PhotoKey } from "../lib/photos.ts";
 
 interface Props {
   title: string;
@@ -18,9 +22,28 @@ interface Props {
   jsonLd?: unknown[];
   /** Full-bleed main area (the map page). */
   wide?: boolean;
+  /** The page's h1, set in the page head. Omit when the page renders its own (home). */
+  heading?: string;
+  /** An italic line under the heading. */
+  tagline?: string;
+  /** The page head's band photo; null for the plain linen header. */
+  photo?: PhotoKey | null;
+  /** The home page: the header floats over the hero and there is no page head. */
+  home?: boolean;
 }
 
-const { title, description, noindex = false, crumbs = [], jsonLd = [], wide = false } = Astro.props;
+const {
+  title,
+  description,
+  noindex = false,
+  crumbs = [],
+  jsonLd = [],
+  wide = false,
+  heading,
+  tagline,
+  photo = null,
+  home = false,
+} = Astro.props;
 const path = canonicalPath(Astro.props.path ?? Astro.url.pathname);
 const canonical = absoluteUrl(path, Astro);
 const allCrumbs: CrumbLink[] = [{ name: "Home", path: "/" }, ...crumbs];
@@ -33,6 +56,13 @@ const showGuides = await hasGuides();
 // Consent, analytics and ads run on server-rendered pages only: prerendered pages
 // are built before any Worker var exists (SPEC.md 9.5; see AdsRuntime.astro).
 const ads = Astro.isPrerendered ? null : siteAdsConfig();
+const navItems = [
+  { href: "/golf-outings", label: "Browse outings", match: ["/golf-outings", "/charity-golf-tournaments", "/outings", "/courses", "/organizers"] },
+  { href: "/map", label: "Map", match: ["/map"] },
+  ...(showGuides ? [{ href: GUIDES_PATH, label: "Guides", match: [GUIDES_PATH] }] : []),
+  { href: "/about", label: "About", match: ["/about"] },
+];
+const current = (match: string[]) => match.some((m) => path === m || path.startsWith(`${m}/`));
 ---
 
 <!doctype html>
@@ -48,43 +78,53 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
-    <meta name="theme-color" content="#1F4D3A" />
-    <link rel="preload" href="/fonts/libre-caslon-text-v5-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="theme-color" content="#14291F" />
+    <link rel="preload" href="/fonts/marcellus-v14-400-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/libre-caslon-text-v5-400-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/archivo-narrow-v35-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/libre-caslon-text-v5-400italic-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <slot name="head" />
     <JsonLd data={breadcrumbLd} />
     {jsonLd.map((d) => <JsonLd data={d} />)}
     {ads?.runtime && <AdsRuntime config={ads} />}
-    <slot name="head" />
   </head>
-  <body>
+  <body class:list={{ "is-home": home }}>
     <a class="skip" href="#main">Skip to main content</a>
-    <header class="site-header">
-      <div class="wrap header-row">
-        <a class="brand" href="/">
-          <svg class="mark" width="14" height="22" viewBox="0 0 14 22" aria-hidden="true" focusable="false">
-            <path d="M2 1.5v19" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
-            <path d="M2.9 1.8 13 5.9 2.9 10Z" fill="currentColor" />
-          </svg>
-          Golf Outing Finder
-        </a>
+    <header class:list={["site-header", home ? "is-overlay" : "is-solid"]}>
+      <div class="header-row">
+        {
+          !home && (
+            <a class="brand" href="/">
+              <Crest size={34} />
+              <span class="brand-name">Golf Outing Finder</span>
+            </a>
+          )
+        }
         <nav aria-label="Main">
           <ul class="nav">
-            <li><a href="/golf-outings">Browse outings</a></li>
-            <li><a href="/map">Map</a></li>
-            {showGuides && <li><a href={GUIDES_PATH}>Guides</a></li>}
-            <li><a href="/about">About</a></li>
+            {
+              navItems.map((n) => (
+                <li>
+                  <a href={n.href} aria-current={current(n.match) ? "page" : undefined}>
+                    {n.label}
+                  </a>
+                </li>
+              ))
+            }
           </ul>
         </nav>
       </div>
     </header>
-    <main id="main" tabindex="-1" class={wide ? "wide" : "wrap"}>
-      {wide ? <div class="wrap"><Breadcrumbs crumbs={allCrumbs} /></div> : <Breadcrumbs crumbs={allCrumbs} />}
-      <slot />
+    <main id="main" tabindex="-1" class:list={{ wide }}>
+      {heading && <PageHead title={heading} tagline={tagline} crumbs={allCrumbs} photo={photo} compact={wide} />}
+      {home ? <slot /> : <div class:list={["page-body", { wrap: !wide }]}><slot /></div>}
     </main>
     <footer class="site-footer">
-      <div class="wrap">
+      <div class="wrap footer-inner">
+        <a class="footer-brand" href="/">
+          <Crest size={44} />
+          <span class="brand-name">Golf Outing Finder</span>
+        </a>
         <nav aria-label="Site">
           <ul class="footer-links">
             <li><a href="/about">About</a></li>
@@ -103,9 +143,13 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
             }
           </ul>
         </nav>
-        <p class="small footer-note">
+        <p class="footer-note">
           Golf Outing Finder lists outings anyone can pay to enter. Every listing links to its source; check details with the
-          organizer before you pay. © {year} Golf Outing Finder.
+          organizer before you pay.
+        </p>
+        <p class="footer-note">
+          Course data {OSM_ATTRIBUTION_TEXT}. Photographs from Unsplash and Pexels, <a href="/about#photo-credits">credited here</a>.
+          © {year} Golf Outing Finder.
         </p>
       </div>
     </footer>
@@ -114,6 +158,14 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
 
 <style is:global>
   /* Self-hosted, latin subset, OFL (public/fonts/LICENSE.txt). */
+  @font-face {
+    font-family: "Marcellus";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/marcellus-v14-400-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
   @font-face {
     font-family: "Libre Caslon Text";
     font-style: normal;
@@ -130,6 +182,7 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
     src: url("/fonts/libre-caslon-text-v5-400italic-latin.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
+  /* Bold appears only in <strong> inside prose; not preloaded. */
   @font-face {
     font-family: "Libre Caslon Text";
     font-style: normal;
@@ -138,19 +191,11 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
     src: url("/fonts/libre-caslon-text-v5-700-latin.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
-  /* Archivo Narrow is a variable font: one file covers 400 and 600. */
-  @font-face {
-    font-family: "Archivo Narrow";
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url("/fonts/archivo-narrow-v35-latin.woff2") format("woff2");
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-  }
   /*
-   * Metric-matched fallbacks so the swap doesn't move anything (CLS 0). Values come
-   * from each font's hhea/OS2 tables: size-adjust matches average glyph width, and
-   * the overrides are the web font's ascent and descent divided by size-adjust.
+   * Metric-matched fallbacks so the swap doesn't move anything. size-adjust matches
+   * average glyph width; the overrides are the web font's ascent and descent divided
+   * by size-adjust (Caslon from its hhea/OS2 tables; Marcellus measured in Chromium
+   * against Georgia and Times New Roman over capitals, figures and lowercase).
    */
   @font-face {
     font-family: "Caslon fallback";
@@ -169,63 +214,70 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
     line-gap-override: 0%;
   }
   @font-face {
-    font-family: "Archivo Narrow fallback";
-    src: local("Arial Narrow");
-    size-adjust: 100.1%;
-    ascent-override: 103.4%;
-    descent-override: 31.2%;
+    font-family: "Marcellus fallback";
+    src: local("Georgia");
+    size-adjust: 96.7%;
+    ascent-override: 100.3%;
+    descent-override: 29%;
     line-gap-override: 0%;
   }
   @font-face {
-    font-family: "Archivo Narrow fallback 2";
-    src: local("Arial");
-    size-adjust: 82.1%;
-    ascent-override: 126.1%;
-    descent-override: 38%;
+    font-family: "Marcellus fallback 2";
+    src: local("Times New Roman");
+    size-adjust: 101.1%;
+    ascent-override: 95.9%;
+    descent-override: 27.7%;
     line-gap-override: 0%;
   }
 
+  /* Members' Gate tokens (design/README.md). */
   :root {
     color-scheme: light;
-    /* Clubhouse tokens (design/README.md). */
-    --page: #faf8f3;
-    --surface: #eef2ec;
-    --fairway: #1f4d3a;
-    --ink: #1b2a22;
-    --ink-muted: #4e5b54;
-    --brass: #9a7b2e;
-    --flag: #b4332e;
-    --band: #1f4d3a;
-    --band-fg: #ede9df;
-    --plaque: #1f4d3a;
-    --plaque-fg: #faf8f3;
+    --bottle: #14291f;
+    --page: #fcfcfa;
+    --surface: #eceeea;
+    --fairway: #2c5640;
+    --ink: #1e2622;
+    --ink-muted: #56605a;
+    --title: #14291f;
+    --gilt: #b0915a;
+    --claret: #7a2430;
+    --rule: rgb(176 145 90 / 0.42);
+    --rule-strong: rgb(176 145 90 / 0.8);
     --link: var(--fairway);
-    --rule: var(--fairway);
     --focus: var(--fairway);
-    --radius: 2px;
+    --btn: var(--fairway);
+    --btn-fg: #fcfcfa;
+    /* Header, footer and photo bands: always dark, in both schemes. */
+    --band: #14291f;
+    --band-fg: #fcfcfa;
+    --band-muted: #c9d2cb;
+    --band-rule: rgb(176 145 90 / 0.65);
+    --display: "Marcellus", "Marcellus fallback", "Marcellus fallback 2", Georgia, serif;
     --serif: "Libre Caslon Text", "Caslon fallback", "Caslon fallback 2", Georgia, serif;
-    --sans: "Archivo Narrow", "Archivo Narrow fallback", "Archivo Narrow fallback 2", "Arial Narrow", sans-serif;
+    --track: 0.16em;
     /* Older names, still used by a few pages. */
     --fg: var(--ink);
     --bg: var(--page);
     --muted: var(--ink-muted);
-    --border: var(--ink-muted);
-    --accent: var(--plaque);
-    --accent-fg: var(--plaque-fg);
+    --border: var(--rule-strong);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --page: #10201a;
-      --surface: #17291f;
-      --fairway: #8ccba6;
-      --ink: #ede9df;
-      --ink-muted: #b8c0b6;
-      --flag: #e0706a;
-      --band: #1f4d3a;
-      --band-fg: #ede9df;
-      --plaque: #2e6b50;
-      --plaque-fg: #ede9df;
+      --page: #14291f;
+      --surface: #1c3529;
+      --fairway: #a8cdb5;
+      --ink: #eef0ea;
+      --ink-muted: #b4bfb7;
+      --title: #f4f4ef;
+      --gilt: #c9ac74;
+      --claret: #e9a3ab;
+      --rule: rgb(201 172 116 / 0.32);
+      --rule-strong: rgb(201 172 116 / 0.7);
+      --btn: #a8cdb5;
+      --btn-fg: #14291f;
+      --band: #0e1e16;
     }
   }
   *,
@@ -241,7 +293,8 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
     margin: 0;
     font-family: var(--serif);
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.65;
+    font-variant-numeric: lining-nums;
     color: var(--ink);
     background: var(--page);
   }
@@ -261,57 +314,74 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-thickness: 1px;
+    text-decoration-color: var(--rule-strong);
+  }
+  p a:not(.button):hover,
+  dd a:hover,
+  main ul:not([class]) a:hover {
+    text-decoration-color: currentColor;
   }
   :focus-visible {
-    outline: 3px solid var(--focus);
-    outline-offset: 2px;
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
   }
   main:focus {
     outline: none;
   }
   .wrap {
-    max-width: 1040px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 0 16px;
   }
-  main.wrap {
-    padding-top: 1rem;
-    padding-bottom: 3rem;
+  @media (min-width: 720px) {
+    .wrap {
+      padding: 0 32px;
+    }
+  }
+  main {
+    display: block;
     min-height: 60vh;
   }
-  main.wide {
-    padding: 0;
+  .page-body.wrap {
+    padding-top: 2.25rem;
+    padding-bottom: 4rem;
+  }
+  /* Reading pages (guides, legal) under a plain header: one calm measure. */
+  .page-head-plain + .page-body.wrap {
+    max-width: calc(44rem + 64px);
   }
   h1,
   h2,
   h3 {
-    font-family: var(--serif);
-    font-weight: 700;
-    line-height: 1.1;
+    color: var(--title);
+    font-weight: 400;
+    line-height: 1.2;
     text-wrap: balance;
   }
   h1 {
+    font-family: var(--display);
     font-size: 2rem;
     margin: 1rem 0 0.75rem;
-    max-width: 30ch;
-  }
-  @media (min-width: 720px) {
-    h1 {
-      font-size: 2.5rem;
-    }
   }
   h2 {
-    font-size: 1.375rem;
-    margin: 2.5rem 0 0.75rem;
+    font-family: var(--display);
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+    margin: 3rem 0 1rem;
   }
   h3 {
-    font-size: 1.125rem;
+    font-family: var(--serif);
+    font-size: 1.1875rem;
     margin: 0 0 0.25rem;
+    text-wrap: pretty;
   }
   p,
   li,
   dd {
     max-width: 70ch;
+  }
+  strong {
+    font-weight: 700;
   }
   .lead {
     font-size: 1.125rem;
@@ -322,221 +392,502 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
   .small {
     font-size: 0.875rem;
   }
-  /* Archivo Narrow: every piece of data and chrome. */
-  .data,
-  .small,
-  .crumbs,
-  .nav,
-  .footer-links,
-  .button,
-  .label,
-  label,
-  legend,
-  summary,
-  button,
-  input,
-  select,
-  table {
-    font-family: var(--sans);
+  .num {
     font-variant-numeric: lining-nums tabular-nums;
   }
   .skip {
     position: absolute;
     left: 8px;
-    top: -48px;
-    padding: 8px 12px;
-    background: var(--plaque);
-    color: var(--plaque-fg);
-    font-family: var(--sans);
-    z-index: 10;
-    border-radius: var(--radius);
+    top: -60px;
+    padding: 10px 14px;
+    background: var(--band);
+    color: var(--band-fg);
+    z-index: 20;
   }
   .skip:focus {
     top: 8px;
+    outline-color: var(--band-fg);
   }
 
-  /* Header and footer: fairway band, pale stone type, brass hairline. */
-  .site-header,
-  .site-footer {
+  /* Tracked capitals: the wordmark, nav, page titles and buttons, and nothing else. */
+  .brand-name,
+  .nav a,
+  .footer-links a,
+  .footer-links .link-button,
+  .page-title,
+  .button {
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: var(--track);
+  }
+
+  /* Header: a bottle-green band with a gilt hairline; on the home page it floats over the photo. */
+  .site-header {
     --link: var(--band-fg);
     --focus: var(--band-fg);
-    background: var(--band);
     color: var(--band-fg);
   }
-  .site-header {
-    border-bottom: 2px solid var(--brass);
+  .site-header.is-solid {
+    background: var(--band);
+    border-bottom: 1px solid var(--band-rule);
+  }
+  .site-header.is-overlay {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 5;
   }
   .header-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0 1.5rem;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    min-height: 60px;
+    gap: 0.25rem;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0.75rem 16px 0.25rem;
   }
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    font-family: var(--serif);
-    font-weight: 700;
-    font-size: 1.125rem;
+    gap: 0.75rem;
     color: var(--band-fg);
-    padding: 0.5rem 0;
+    padding: 0.25rem 0;
+    text-decoration: none;
   }
-  .brand .mark {
-    color: var(--brass);
+  .brand:hover {
+    text-decoration: none;
+  }
+  .brand .crest {
+    color: var(--gilt);
     flex: none;
+  }
+  .brand-name {
+    font-size: 0.9375rem;
+    letter-spacing: 0.2em;
   }
   .nav,
   .footer-links {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0 1.25rem;
+    justify-content: center;
+    gap: 0 1.5rem;
     margin: 0;
     padding: 0;
   }
-  .nav a,
-  .footer-links a {
+  .nav li,
+  .footer-links li {
+    max-width: none;
+  }
+  .nav a {
     display: inline-block;
-    padding: 0.625rem 0;
+    padding: 0.75rem 0;
+    font-size: 0.75rem;
     text-decoration: none;
+    border-bottom: 1px solid transparent;
   }
   .nav a:hover,
-  .footer-links a:hover {
-    text-decoration: underline;
+  .nav a[aria-current="page"] {
+    text-decoration: none;
+    border-bottom-color: var(--gilt);
   }
-  .site-footer {
-    padding: 1.5rem 0 2rem;
+  @media (max-width: 380px) {
+    .nav {
+      gap: 0 1rem;
+    }
+    .nav a {
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+    }
   }
-  /* "Privacy choices" reopens the consent message: a button that looks like the footer links. */
-  .link-button {
-    display: inline-block;
-    padding: 0.625rem 0;
-    border: 0;
-    background: none;
-    color: var(--link);
-    font-size: 1rem;
-    line-height: inherit;
-    cursor: pointer;
+  @media (min-width: 900px) {
+    .header-row {
+      flex-direction: row;
+      justify-content: space-between;
+      min-height: 76px;
+      padding: 0 40px;
+    }
+    .nav {
+      gap: 0 2.5rem;
+    }
+    .nav a {
+      font-size: 0.8125rem;
+    }
+    .is-overlay .header-row {
+      justify-content: center;
+      padding-top: 1rem;
+    }
   }
-  .link-button:hover {
-    text-decoration: underline;
-  }
-  .footer-note {
-    margin: 0.75rem 0 0;
-    font-family: var(--sans);
+  .is-overlay .nav a {
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.35);
   }
 
-  /* Breadcrumbs. */
+  /* Page head: a photo band with scrim and frame, or a plain linen header. */
+  .page-head {
+    position: relative;
+    text-align: center;
+  }
+  .page-head-band {
+    --link: var(--band-fg);
+    --focus: var(--band-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 270px;
+    padding: 2.5rem 20px;
+    color: var(--band-fg);
+    background: var(--band);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  @media (min-width: 720px) {
+    .page-head-band {
+      min-height: 340px;
+      padding: 3.5rem 72px;
+    }
+  }
+  .photo,
+  .photo img,
+  .scrim,
+  .frame {
+    position: absolute;
+    inset: 0;
+  }
+  .photo {
+    z-index: -2;
+  }
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Bottle green from about 70% at the edges to 55% behind the title: 4.5:1 for small linen text over any of the photos. */
+  .scrim {
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 60% 70% at 50% 50%, rgb(20 41 31 / 0.22), rgb(20 41 31 / 0)),
+      linear-gradient(180deg, rgb(20 41 31 / 0.74), rgb(20 41 31 / 0.6) 45%, rgb(20 41 31 / 0.74));
+  }
+  .frame {
+    display: none;
+    pointer-events: none;
+  }
+  @media (min-width: 720px) {
+    .frame {
+      display: block;
+      inset: 24px;
+      border: 1px solid rgb(252 252 250 / 0.5);
+    }
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgb(176 145 90 / 0.55);
+    }
+  }
+  .page-head-inner {
+    position: relative;
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+  .page-title {
+    margin: 0.5rem auto 0;
+    max-width: 30ch;
+    font-size: 1.5rem;
+    line-height: 1.3;
+    letter-spacing: 0.12em;
+  }
+  @media (min-width: 720px) {
+    .page-title {
+      font-size: 2.25rem;
+      letter-spacing: 0.14em;
+    }
+  }
+  .page-head-band .page-title {
+    color: var(--band-fg);
+    text-shadow: 0 1px 14px rgb(0 0 0 / 0.25);
+  }
+  .page-tagline {
+    margin: 0.875rem auto 0;
+    font-style: italic;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+  @media (min-width: 720px) {
+    .page-tagline {
+      font-size: 1.1875rem;
+    }
+  }
+  .page-head-band .page-tagline {
+    color: var(--band-fg);
+  }
+  .page-head-plain {
+    padding: 2.75rem 16px 0;
+  }
+  .page-head-plain .page-title {
+    color: var(--title);
+  }
+  .page-head-plain .page-tagline {
+    color: var(--ink-muted);
+  }
+  .page-head-plain.compact {
+    padding-top: 1.75rem;
+  }
+  .page-head-plain.compact .page-title {
+    font-size: 1.375rem;
+  }
+  @media (min-width: 720px) {
+    .page-head-plain.compact .page-title {
+      font-size: 1.75rem;
+    }
+  }
+  /* A gilt rule with a lozenge: under plain titles and in the footer. */
+  .ornament {
+    position: relative;
+    display: block;
+    width: 8.5rem;
+    height: 9px;
+    margin: 1.25rem auto 0;
+    background:
+      linear-gradient(var(--gilt), var(--gilt)) left center / calc(50% - 9px) 1px no-repeat,
+      linear-gradient(var(--gilt), var(--gilt)) right center / calc(50% - 9px) 1px no-repeat;
+  }
+  .ornament::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--gilt);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  /* Breadcrumbs: small italic, gilt separators. */
   .crumbs ol {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    margin: 0.5rem 0 0;
+    justify-content: center;
+    gap: 0.125rem 0;
+    margin: 0;
     padding: 0;
     font-size: 0.875rem;
+    font-style: italic;
     color: var(--ink-muted);
+  }
+  .page-head-band .crumbs ol {
+    color: var(--band-fg);
   }
   .crumbs li {
     max-width: none;
   }
   .crumbs li + li::before {
     content: "/";
-    margin-right: 0.25rem;
+    margin: 0 0.5rem;
+    color: var(--gilt);
+    font-style: normal;
+  }
+  .crumbs a {
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  /* Phones: the title already names this page, so its crumb is for screen readers only. */
+  @media (max-width: 719.98px) {
+    .page-head .crumbs li:last-child:not(:first-child) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
   }
 
-  /* The Register plaque and the outlined secondary button. */
+  /* Footer: a bottle-green band, the crest and wordmark centred, one line of links. */
+  .site-footer {
+    --link: var(--band-fg);
+    --focus: var(--band-fg);
+    background: var(--band);
+    color: var(--band-muted);
+    border-top: 1px solid var(--band-rule);
+    padding: 3rem 0 2.5rem;
+    text-align: center;
+  }
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--band-fg);
+    text-decoration: none;
+  }
+  .footer-brand:hover {
+    text-decoration: none;
+  }
+  .footer-brand .crest {
+    color: var(--gilt);
+  }
+  .footer-brand .brand-name {
+    font-size: 1rem;
+    letter-spacing: 0.22em;
+  }
+  .footer-links {
+    margin: 1.75rem 0 1.25rem;
+    padding: 0.5rem 0;
+    gap: 0 1.75rem;
+    border-top: 1px solid rgb(176 145 90 / 0.35);
+    border-bottom: 1px solid rgb(176 145 90 / 0.35);
+  }
+  .footer-links a,
+  .footer-links .link-button {
+    display: inline-block;
+    padding: 0.625rem 0;
+    font-size: 0.6875rem;
+    text-decoration: none;
+  }
+  .footer-links a:hover,
+  .footer-links .link-button:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .footer-note {
+    margin: 0.25rem auto 0;
+    max-width: 62ch;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .footer-note a {
+    color: var(--band-fg);
+  }
+  /* "Privacy choices" reopens the consent message: a button that looks like the footer links. */
+  .link-button {
+    border: 0;
+    background: none;
+    color: var(--link);
+    line-height: inherit;
+    cursor: pointer;
+  }
+
+  /* Buttons: slim, outlined, tracked capitals; they fill on hover. */
   .button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-height: 44px;
-    padding: 0 1.125rem;
-    border: 1.5px solid var(--plaque);
-    border-radius: var(--radius);
-    background: var(--plaque);
-    color: var(--plaque-fg);
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 0 1.25rem;
+    border: 1px solid var(--btn);
+    border-radius: 0;
+    background: transparent;
+    color: var(--btn);
+    font-size: 0.75rem;
     line-height: 1.2;
+    text-align: center;
     text-decoration: none;
     cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
   }
   .button:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    background: var(--btn);
+    color: var(--btn-fg);
+    text-decoration: none;
   }
   .button.secondary {
-    background: transparent;
-    border-color: var(--fairway);
-    color: var(--fairway);
-  }
-
-  /* Labels: course type, outing type, status. Outlined, never pills. */
-  .labels {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    margin: 0.375rem 0 0;
-  }
-  .label {
-    display: inline-block;
-    padding: 0 0.375rem;
-    border: 1px solid var(--ink);
-    border-radius: var(--radius);
-    font-size: 0.875rem;
-    line-height: 1.5;
+    border-color: var(--rule-strong);
     color: var(--ink);
   }
-  .label.alert {
-    border-color: var(--flag);
-    color: var(--flag);
+  .button.secondary:hover {
+    border-color: var(--btn);
+    color: var(--btn-fg);
+  }
+  .button.large {
+    min-height: 52px;
+    padding: 0 2.25rem;
+    font-size: 0.8125rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .button {
+      transition: none;
+    }
   }
 
-  /* Notes: a left-ruled aside. */
+  /* Facts: course type, outing type, status. Plain small text between thin rules, never chips. */
+  /*
+   * Every item carries a left rule and padding. Clipping the list's leftmost pixel
+   * hides the rule of whichever item starts a line (the first, or a wrapped one),
+   * and shifting the list left by one gap lines the text up with the column, so
+   * separators only ever sit between items. translate, not a negative margin, so
+   * margin resets can't undo it; the clip leaves focus rings room on every side.
+   */
+  .facts,
+  .inline-links {
+    --sep: 0.625rem;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.125rem;
+    clip-path: inset(-6px -6px -6px 1px);
+    translate: calc(-1 * var(--sep) - 1px) 0;
+  }
+  .fact,
+  .inline-links li {
+    max-width: none;
+    margin-right: var(--sep);
+    padding-left: var(--sep);
+    border-left: 1px solid var(--rule-strong);
+  }
+  .facts {
+    margin-top: 0.375rem;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+  .fact.alert {
+    color: var(--claret);
+  }
+
+  /* Notes: a gilt left rule. */
   .note {
-    margin: 1rem 0;
+    margin: 1.25rem 0;
     padding: 0.125rem 0 0.125rem 1rem;
-    border-left: 3px solid var(--rule);
+    border-left: 2px solid var(--gilt);
   }
   .note > p {
     margin: 0.25rem 0;
   }
   .note.alert {
-    border-left-color: var(--flag);
-    color: var(--flag);
+    border-left-color: var(--claret);
+    color: var(--claret);
   }
 
-  /* Scorecard: a ruled definition list (outing details, course facts). */
+  /* Scorecard: a definition list between gilt hairlines (outing details, course facts). */
   .scorecard {
-    margin: 0 0 1rem;
-    border-top: 1.5px solid var(--rule);
+    margin: 0 0 1.25rem;
+    border-top: 1px solid var(--rule-strong);
   }
   .scorecard > div {
     display: grid;
-    grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr);
-    gap: 0 1rem;
-    padding: 0.5rem 0.75rem;
+    grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr);
+    gap: 0 1.5rem;
+    padding: 0.75rem 0;
     border-bottom: 1px solid var(--rule);
   }
-  .scorecard > div:nth-child(even) {
-    background: var(--surface);
-  }
   .scorecard dt {
-    font-family: var(--sans);
-    font-weight: 600;
-    font-variant-numeric: lining-nums tabular-nums;
+    font-style: italic;
+    color: var(--ink-muted);
   }
   .scorecard dd {
     margin: 0;
-    font-variant-numeric: lining-nums;
-  }
-  .scorecard dd.num {
-    font-family: var(--sans);
-    font-variant-numeric: lining-nums tabular-nums;
   }
   @media (max-width: 479.98px) {
     .scorecard > div {
@@ -547,51 +898,65 @@ const ads = Astro.isPrerendered ? null : siteAdsConfig();
   /* Ruled tables. */
   table {
     border-collapse: collapse;
+    font-variant-numeric: lining-nums tabular-nums;
   }
   .ruled {
     width: 100%;
-    max-width: 32rem;
-    border-top: 1.5px solid var(--rule);
-    border-bottom: 1.5px solid var(--rule);
+    max-width: 34rem;
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
   }
   .ruled th,
   .ruled td {
     text-align: left;
-    padding: 0.4rem 0.75rem;
+    padding: 0.55rem 0.75rem 0.55rem 0;
     border-bottom: 1px solid var(--rule);
   }
   .ruled thead th {
-    font-weight: 600;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-muted);
   }
   .ruled tbody th {
     font-weight: 400;
   }
-  .ruled td {
-    text-align: right;
-  }
+  .ruled td,
   .ruled thead th:not(:first-child) {
     text-align: right;
-  }
-  .ruled tbody tr:nth-child(even) {
-    background: var(--surface);
   }
   .grid-links {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
-    gap: 0 1.5rem;
-    font-family: var(--sans);
-    font-variant-numeric: lining-nums tabular-nums;
+    grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr));
+    gap: 0 2rem;
+  }
+  .grid-links li {
+    border-bottom: 1px solid var(--rule);
   }
   .grid-links a {
     display: inline-block;
-    padding: 0.3rem 0;
+    padding: 0.45rem 0;
     text-decoration: none;
   }
   .grid-links a:hover {
     text-decoration: underline;
+  }
+  /* A short run of links between thin rules ("More outings at ..."). */
+  .inline-links {
+    --sep: 0.875rem;
+    list-style: none;
+    row-gap: 0.25rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+  }
+  .inline-links a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--rule-strong);
   }
   .visually-hidden {
     position: absolute;
