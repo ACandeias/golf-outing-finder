@@ -7,8 +7,7 @@ const ua = botUserAgent(Astro);
 const email = correctionsEmail(Astro);
 ---
 
-<Base title="GolfOutingFinderBot | Golf Outing Finder" description="About GolfOutingFinderBot, the crawler that finds golf outings for Golf Outing Finder, and how to control it." path="/bot" noindex crumbs={[{ name: "Our crawler", path: "/bot" }]}>
-  <h1>GolfOutingFinderBot</h1>
+<Base title="GolfOutingFinderBot | Golf Outing Finder" description="About GolfOutingFinderBot, the crawler that finds golf outings for Golf Outing Finder, and how to control it." path="/bot" noindex crumbs={[{ name: "Our crawler", path: "/bot" }]} heading="GolfOutingFinderBot">
   <p>Our crawler visits public pages that announce golf outings, about once a week per page, to keep listings current. It identifies itself as:</p>
   <p><code>{ua}</code></p>
   <h2>What it does and doesn't do</h2>

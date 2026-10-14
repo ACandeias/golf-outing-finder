@@ -6,10 +6,9 @@ export const prerender = true;
 const email = correctionsEmail(Astro);
 ---
 
-<Base title="Corrections and removals | Golf Outing Finder" description="How organizers can correct or remove a listing on Golf Outing Finder." path="/corrections" noindex crumbs={[{ name: "Corrections", path: "/corrections" }]}>
-  <h1>Corrections and removals</h1>
+<Base title="Corrections and removals | Golf Outing Finder" description="How organizers can correct or remove a listing on Golf Outing Finder." path="/corrections" noindex crumbs={[{ name: "Corrections", path: "/corrections" }]} heading="Corrections and removals">
   <p>
-    If a listing has the wrong date, price, course or details, or you run an outing and would rather it not be listed, email
+    If a listing has the wrong date, price, course or details, or you run an outing and would rather it not be listed, email{" "}
     <a href={`mailto:${email}`}>{email}</a>.
   </p>
   <p>Please include:</p>

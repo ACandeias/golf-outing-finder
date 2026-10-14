@@ -36,11 +36,11 @@ setCache(Astro, TTL.list);
   path="/golf-outings"
   crumbs={[{ name: "Golf outings", path: "/golf-outings" }]}
   jsonLd={[buildItemListJsonLd(soonest.map((o) => absoluteUrl(outingPath(o.slug))))]}
+  heading="Golf outings across the US"
+  photo="bunker-edge"
 >
-  <h1>Golf outings across the US</h1>
-  <p>
-    {total} upcoming {total === 1 ? "outing" : "outings"} in {counts.length} {counts.length === 1 ? "state" : "states"}, and
-    {expected.length} more expected to return on their usual dates. Pick a state to see outings by month and city.
+  <p class="lead">
+    {`${total} upcoming ${total === 1 ? "outing" : "outings"} in ${counts.length} ${counts.length === 1 ? "state" : "states"}, and ${expected.length} more expected to return on their usual dates. Pick a state to see outings by month and city.`}
   </p>
 
   <section aria-labelledby="by-state">

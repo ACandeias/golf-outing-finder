@@ -11,6 +11,7 @@ import { requestNow } from "../../lib/clock.ts";
 import { TTL } from "../../lib/cache.ts";
 import { notFound, setCache } from "../../lib/page.ts";
 import { absoluteUrl, organizerPath, outingPath } from "../../lib/urls.ts";
+import { bandPhotoFor } from "../../lib/photos.ts";
 
 export const prerender = false;
 
@@ -45,9 +46,10 @@ setCache(Astro, TTL.list);
   path={path}
   crumbs={[{ name: "Golf outings", path: "/golf-outings" }, { name: org.name, path }]}
   jsonLd={[buildItemListJsonLd([...upcoming, ...expected, ...past].map((o) => absoluteUrl(outingPath(o.slug))))]}
+  heading={`Golf outings by ${org.name}`}
+  photo={bandPhotoFor(org.slug)}
 >
-  <h1>Golf outings by {org.name}</h1>
-  <p>{charityLine[org.charityStatus] ?? ""} {courses.length > 1 ? `They run outings at ${courses.length} courses.` : ""}</p>
+  <p class="lead">{charityLine[org.charityStatus] ?? ""} {courses.length > 1 ? `They run outings at ${courses.length} courses.` : ""}</p>
 
   <section aria-labelledby="upcoming">
     <h2 id="upcoming">Upcoming outings</h2>

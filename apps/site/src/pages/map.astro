@@ -13,11 +13,9 @@ Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=3600");
   noindex
   crumbs={[{ name: "Map", path: "/map" }]}
   wide
+  heading="Map of upcoming outings"
 >
-  <div class="map-head wrap">
-    <h1>Map of upcoming outings</h1>
-    <p class="muted small" aria-live="polite" data-map-count>Loading the map…</p>
-  </div>
+  <p class="map-count muted" aria-live="polite" data-map-count>Loading the map…</p>
   <div class="map" id="map" data-map role="region" aria-label="Map of upcoming golf outings"></div>
   <p class="wrap small muted attr">
     Map data: {OPENFREEMAP_ATTRIBUTION_TEXT}. {OSM_ATTRIBUTION_TEXT}. Prefer a list? <a href="/golf-outings">Browse outings by state</a>.
@@ -25,14 +23,18 @@ Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=3600");
 </Base>
 
 <style>
-  .map-head h1 {
-    margin-bottom: 0.25rem;
+  .map-count {
+    margin: 0.75rem auto 1rem;
+    padding: 0 16px;
+    max-width: 60ch;
+    text-align: center;
+    font-style: italic;
   }
   .map {
-    height: calc(100vh - 220px);
+    height: calc(100vh - 300px);
     min-height: 420px;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
   }
   .attr {
     margin-top: 0.5rem;

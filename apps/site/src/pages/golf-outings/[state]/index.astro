@@ -13,6 +13,7 @@ import { notFound, setCache } from "../../../lib/page.ts";
 import { stateName } from "../../../lib/format.ts";
 import { filtersFromUrl, isVisible, listDescription } from "../../../lib/listing.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../../../lib/urls.ts";
+import { bandPhotoFor } from "../../../lib/photos.ts";
 
 export const prerender = false;
 
@@ -46,12 +47,12 @@ setCache(Astro, TTL.list);
   path={path}
   noindex={anyFilterParam || all.length === 0}
   crumbs={[{ name: "Golf outings", path: "/golf-outings" }, { name, path }]}
+  heading={`Golf outings in ${name}`}
+  photo={bandPhotoFor(st)}
   jsonLd={[buildItemListJsonLd(all.filter((o) => isVisible(o, filters, null)).map((o) => absoluteUrl(outingPath(o.slug))))]}
 >
-  <h1>Golf outings in {name}</h1>
-  <p>
-    {dated.length} upcoming {dated.length === 1 ? "outing" : "outings"}
-    {expected.length > 0 && <>and {expected.length} expected to return</>} in {name}, by month. Prices are per player unless noted.
+  <p class="lead">
+    {`${dated.length} upcoming ${dated.length === 1 ? "outing" : "outings"}${expected.length > 0 ? ` and ${expected.length} expected to return` : ""} in ${name}, by month. Prices are per player unless noted.`}
   </p>
 
   {

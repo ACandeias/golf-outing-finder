@@ -6,10 +6,9 @@ Astro.response.status = 404;
 Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=300");
 ---
 
-<Base title="Page not found | Golf Outing Finder" description="We couldn't find that page." noindex crumbs={[{ name: "Not found" }]}>
-  <h1>We couldn't find that page</h1>
+<Base title="Page not found | Golf Outing Finder" description="We couldn't find that page." noindex crumbs={[{ name: "Not found" }]} heading="We couldn't find that page">
   <p>
-    The outing or course may have been removed, or the link may be mistyped. Try <a href="/golf-outings">browsing outings by state</a>
+    The outing or course may have been removed, or the link may be mistyped. Try <a href="/golf-outings">browsing outings by state</a>{" "}
     or the <a href="/map">map</a>.
   </p>
 </Base>

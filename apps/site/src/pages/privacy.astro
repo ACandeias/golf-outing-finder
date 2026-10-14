@@ -6,8 +6,7 @@ export const prerender = true;
 const email = correctionsEmail(Astro);
 ---
 
-<Base title="Privacy | Golf Outing Finder" description="What Golf Outing Finder collects and why: no accounts, no tracking of your location, and ads only with consent where required." path="/privacy" noindex crumbs={[{ name: "Privacy", path: "/privacy" }]}>
-  <h1>Privacy</h1>
+<Base title="Privacy | Golf Outing Finder" description="What Golf Outing Finder collects and why: no accounts, no tracking of your location, and ads only with consent where required." path="/privacy" noindex crumbs={[{ name: "Privacy", path: "/privacy" }]} heading="Privacy">
   <p>Golf Outing Finder has no accounts and no sign-up. Here is what happens when you use it.</p>
   <h2>Your location</h2>
   <p>
@@ -25,7 +24,7 @@ const email = correctionsEmail(Astro);
   <p>
     These services can set cookies and use similar storage in your browser: advertising cookies that help choose and measure
     ads and limit how often you see the same one, and analytics cookies that tell one visit from the next. Google uses this
-    information as described in
+    information as described in{" "}
     <a href="https://policies.google.com/technologies/partner-sites">How Google uses information from sites or apps that use
     our services</a>.
   </p>

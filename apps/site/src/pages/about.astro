@@ -2,6 +2,7 @@
 import { DATA_ATTRIBUTIONS } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
 import { correctionsEmail } from "../lib/contact.ts";
+import { PHOTO_CREDITS } from "../lib/photos.ts";
 
 export const prerender = true;
 const email = correctionsEmail(Astro);
@@ -12,9 +13,10 @@ const email = correctionsEmail(Astro);
   description="How Golf Outing Finder lists golf outings anyone can pay to enter, how listings are checked, and where our course and map data comes from."
   path="/about"
   crumbs={[{ name: "About", path: "/about" }]}
+  heading="About Golf Outing Finder"
+  photo="flag-at-dusk"
 >
-  <h1>About Golf Outing Finder</h1>
-  <p>
+  <p class="lead">
     Golf Outing Finder lists golf outings in the United States that anyone can pay to enter: charity scrambles, school
     fundraisers, trade group days, open tournaments and access days, at municipal, public, semi-private, private and resort
     courses. A $125 muni scramble gets the same listing as a charity day at a private club.
@@ -34,7 +36,7 @@ const email = correctionsEmail(Astro);
   <p>The site is free to use. It may show display ads. Organizers never pay to be listed, and we don't handle registration or payments.</p>
   <h2>Corrections and removals</h2>
   <p>
-    Organizers can ask us to fix or remove a listing at <a href={`mailto:${email}`}>{email}</a>. See
+    Organizers can ask us to fix or remove a listing at <a href={`mailto:${email}`}>{email}</a>. See{" "}
     <a href="/corrections">corrections</a>.
   </p>
   <h2>Data sources and credits</h2>
@@ -47,4 +49,24 @@ const email = correctionsEmail(Astro);
       ))
     }
   </ul>
+  <h2 id="photo-credits">Photographs</h2>
+  <p>
+    The course photographs are generic stock images, not pictures of the outings or courses listed here. We use them under the
+    Unsplash and Pexels licences, and we're grateful to the photographers:
+  </p>
+  <ul>
+    {
+      PHOTO_CREDITS.map((c) => (
+        <li>
+          {c.subject}, by <a href={c.profileUrl}>{c.photographer}</a> on <a href={c.sourceUrl}>{c.source}</a>{" "}
+          (<a href={c.licenseUrl}>{c.license}</a>)
+        </li>
+      ))
+    }
+  </ul>
+  <h2>Type</h2>
+  <p>
+    Headings are set in Marcellus by Brian J. Bonislawsky and text in Libre Caslon Text by Pablo Impallari and Rodrigo Fuenzalida,
+    both under the SIL Open Font License.
+  </p>
 </Base>

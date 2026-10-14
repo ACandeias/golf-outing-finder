@@ -10,6 +10,7 @@ import { stateName } from "../lib/format.ts";
 import { isVisible, listDescription } from "../lib/listing.ts";
 import { absoluteUrl, charityCityPath, cityPath, outingPath, statePath } from "../lib/urls.ts";
 import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
+import { bandPhotoFor } from "../lib/photos.ts";
 
 interface Props {
   data: CityPageData;
@@ -43,16 +44,17 @@ const crumbs = [
   noindex={anyFilterParam || !indexable}
   crumbs={crumbs}
   jsonLd={[buildItemListJsonLd(visibleUrls)]}
+  heading={charity ? `Charity golf tournaments in ${place}` : `Golf outings in ${place}`}
+  photo={bandPhotoFor(st)}
 >
-  {charity ? <h1>Charity golf tournaments in {place}</h1> : <h1>Golf outings in {place}</h1>}
   {
     charity ? (
-      <p>
+      <p class="lead">
         Charity outings and school fundraisers in and around {city.name}. When a listing shows "Charity", we've checked the
         organizer against IRS records of 501(c)(3) organizations. Other fundraisers say their charity status is unverified.
       </p>
     ) : (
-      <p>
+      <p class="lead">
         Golf outings you can pay to enter in {city.name}: charity scrambles, school fundraisers, trade group days and open
         tournaments, at every kind of course. <a href={charityCityPath(st, city.name)}>Only charity outings in {city.name}</a>
       </p>
@@ -139,8 +141,7 @@ const crumbs = [
     position: relative;
     height: 420px;
     margin-top: 0.75rem;
-    border: 1.5px solid var(--rule);
-    border-radius: var(--radius);
+    border: 1px solid var(--rule-strong);
     overflow: hidden;
   }
 </style>
