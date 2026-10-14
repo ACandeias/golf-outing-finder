@@ -20,6 +20,7 @@ platforms:
     event_url_pattern: "^https://[a-z0-9-]+\\\\.networkforgood\\\\.com/events/"
   - name: golfgenius
     allowed: true
+    terms_checked: 2026-10-14
     adapter: sitemap
     urls: [https://www.golfgenius.com/sitemap.xml]
     listing_url_pattern: "^/(pages)?/?$"
@@ -33,6 +34,7 @@ directories:
     event_url_pattern: "^https://(www\\\\.)?scramblehunter\\\\.com/event/[^/]+/?$"
   - name: Play Private Golf
     allowed: true
+    terms_checked: 2026-10-14
     adapter: sitemap
     urls: [https://www.playprivategolf.com/sitemap.xml]
     event_url_pattern: "^https://(www\\\\.)?playprivategolf\\\\.com/events/[a-z0-9-]+-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/?$"
@@ -136,6 +138,30 @@ describe("the committed platforms.yaml", () => {
     });
     expect(platformVerdict("https://bgcnr.networkforgood.com/events", committed)).toMatchObject({ listing: true });
     expect(platformVerdict("https://www.eventbrite.com/e/x-tickets-1", committed)).toMatchObject({ listing: false });
+  });
+
+  it("lets Play Private Golf event pages through, and treats its other pages as index pages", async () => {
+    const committed = platformRulesFrom(await loadPlatforms(PATHS.overrides));
+    expect(platformVerdict(PPG_EVENT, committed)).toEqual({
+      platform: "Play Private Golf",
+      allowed: true,
+      listing: false,
+      directory: true,
+    });
+    for (const index of [
+      "https://www.playprivategolf.com/",
+      "https://www.playprivategolf.com/states/al",
+      "https://www.playprivategolf.com/courses/marsh-creek-country-club",
+      "https://www.playprivategolf.com/guides/are-charity-golf-tournament-fees-tax-deductible",
+      "https://www.playprivategolf.com/submit",
+    ]) {
+      expect(blockedAsSource(index, committed), index).toMatchObject({ listing: true });
+    }
+    // Its registration links to platforms we haven't cleared stay unfetched.
+    expect(blockedAsSource("https://www.golfgenius.com/pages/12345-young-life-fall", committed)).not.toBeNull();
+    expect(blockedAsSource("https://events.golfstatus.com/x", committed)).not.toBeNull();
+    expect(blockedAsSource("https://golfsync.io/tournament-center/tournaments/x", committed)).not.toBeNull();
+    expect(blockedAsSource("https://pro.gofundme.com/event/e793429", committed)).not.toBeNull();
   });
 
   it("leaves organizer sites and association calendars alone", async () => {

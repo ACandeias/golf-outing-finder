@@ -1,5 +1,6 @@
 {
-  "_note": "Hand-written listing pages and sitemaps (made-up events, no organizer text) for the discovery tests and the dry run. Keys are the URLs each file stands in for.",
+  "_note": "Listing pages and sitemaps for the discovery tests and the dry run. Keys are the URLs each file stands in for. All are hand-written (made-up events, no organizer text) except playprivategolf-sitemap.xml, a trimmed recording of URLs only (see its header comment).",
+  "https://www.playprivategolf.com/sitemap.xml": "playprivategolf-sitemap.xml",
   "https://www.series.example/golf/events": "series-index.html",
   "https://platform.example/sitemap.xml": "sitemap-index.xml",
   "https://platform.example/sitemap-events-1.xml": "sitemap-events-1.xml",

@@ -43,6 +43,14 @@ describe("parseRobots + robotsDecision", () => {
     expect(robotsDecision(parseRobots(""), "/anything")).toEqual({ allowed: true, crawlDelayMs: 0 });
   });
 
+  it("Play Private Golf's robots.txt (recorded 2026-10-14) allows its event and sitemap paths, not /api/", () => {
+    const r = parseRobots(fx("playprivategolf.txt"));
+    expect(robotsDecision(r, "/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b").allowed).toBe(true);
+    expect(robotsDecision(r, "/sitemap.xml").allowed).toBe(true);
+    expect(robotsDecision(r, "/api/events").allowed).toBe(false);
+    expect(r.sitemaps).toEqual(["https://www.playprivategolf.com/sitemap.xml"]);
+  });
+
   it("matches percent-encoded and plain paths alike", () => {
     const r = parseRobots("User-agent: *\nDisallow: /caf%C3%A9\n");
     expect(robotsDecision(r, "/café").allowed).toBe(false);

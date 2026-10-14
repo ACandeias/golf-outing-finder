@@ -1,0 +1,7 @@
+# Recorded 2026-10-14 from https://www.playprivategolf.com/robots.txt (user agent GolfOutingFinderBot/1.0).
+User-Agent: *
+Allow: /
+Disallow: /api/
+
+Host: https://www.playprivategolf.com
+Sitemap: https://www.playprivategolf.com/sitemap.xml
