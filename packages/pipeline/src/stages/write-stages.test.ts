@@ -208,6 +208,102 @@ describe("dedupe-upsert", () => {
     expect(row && "rows" in row ? row.rows[0] : null).toMatchObject({ id: "out_stale", canonical_source_url: event });
   });
 
+  describe("a directory event and the organizer page its link led to (SPEC.md 8.2 item 6, 8.7)", () => {
+    const ppgEvent =
+      "https://www.playprivategolf.com/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b-f60a-47f7-8ee8-16ce0cdbdfba";
+    const organizerPage = "https://missoula.younglife.org/events/";
+    // The directory's registration link pointed at a host not on registration-hosts.yaml, so it was dropped.
+    const fromDirectory = () =>
+      matched({
+        source_url: ppgEvent,
+        source_kind: "directory",
+        directory_host: "www.playprivategolf.com",
+        registration_url: null,
+        title: "Young Life Fall Golf Tournament",
+        organizer_name: "Young Life Missoula",
+      });
+    const fromOrganizer = () =>
+      matched({
+        source_url: organizerPage,
+        source_kind: "organizer",
+        title: "2026 Young Life Fall Golf Tournament",
+        organizer_name: "Missoula Young Life",
+        registration_url: "https://missoula.younglife.org/events/register",
+      });
+    const outingsUpsert = (ops: readonly { op: string; table: string }[]) => {
+      const op = ops.find((o) => o.op === "upsert" && o.table === "outings");
+      return op && "rows" in op ? (op.rows as OutingRow[]) : [];
+    };
+
+    it("found in the same run, they are one outing whose canonical source is the organizer page", () => {
+      const { output } = dedupeUpsert(testCtx(), {
+        outings: [fromDirectory(), fromOrganizer()],
+        existing: emptyExisting,
+        unchanged: [],
+        fetches: [],
+      });
+      const rows = outingsUpsert(output.plan.ops);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        canonical_source_url: organizerPage,
+        registration_url: "https://missoula.younglife.org/events/register",
+      });
+      expect(output.outcomes.map((o) => o.action).sort()).toEqual(["insert", "merge"]);
+    });
+
+    it("found a run apart, the organizer page takes over the canonical source and a later directory-only update keeps it", () => {
+      // Run 1: only the directory page; its canonical is the directory page, so publish holds it.
+      const first = dedupeUpsert(testCtx(), { outings: [fromDirectory()], existing: emptyExisting, unchanged: [], fetches: [] });
+      const [inserted] = outingsUpsert(first.output.plan.ops);
+      expect(inserted?.canonical_source_url).toBe(ppgEvent);
+
+      // Run 2: the organizer page it queued is extracted and merges into the same outing.
+      const second = dedupeUpsert(testCtx(), {
+        outings: [fromOrganizer()],
+        existing: { ...emptyExisting, outings: [inserted as OutingRow] },
+        unchanged: [],
+        fetches: [],
+      });
+      const [updated] = outingsUpsert(second.output.plan.ops);
+      expect(updated).toMatchObject({
+        id: inserted?.id,
+        canonical_source_url: organizerPage,
+        registration_url: "https://missoula.younglife.org/events/register",
+      });
+      expect(second.output.outcomes.map((o) => o.action)).toEqual(["update"]);
+
+      // Run 3: the directory page changed and is extracted again on its own; the organizer page stays canonical.
+      const third = dedupeUpsert(testCtx(), {
+        outings: [fromDirectory()],
+        existing: { ...emptyExisting, outings: [updated as OutingRow] },
+        unchanged: [],
+        fetches: [],
+      });
+      expect(outingsUpsert(third.output.plan.ops)[0]).toMatchObject({ canonical_source_url: organizerPage });
+
+      // And it publishes through the organizer page.
+      const ppgRules = [
+        {
+          name: "Play Private Golf",
+          allowed: true,
+          domains: ["playprivategolf.com"],
+          listing_url_pattern: null,
+          directory: true,
+          event_url_pattern: "^https://(www\\.)?playprivategolf\\.com/events/.+",
+        },
+      ];
+      const pub = (o: OutingRow) =>
+        publish(testCtx(), {
+          outings: [{ outing: o, time_zone: "America/Phoenix", source_urls: [ppgEvent, organizerPage] }],
+          heldSources: [],
+          changed: [],
+          platform_rules: ppgRules,
+        }).output.decisions.map((d) => [d.publish, d.why]);
+      expect(pub(inserted as OutingRow)).toEqual([[false, "directory_page"]]);
+      expect(pub(updated as OutingRow)).toEqual([[true, "dated"]]);
+    });
+  });
+
   it("a page re-extracted this run that no longer yields an outing retracts it (confidence 0, so publish holds it)", () => {
     const article = "https://patch.com/new-jersey/brick/bmac-golf-outing";
     const stale = outingRow({ id: "out_bmac", canonical_source_url: article, published: 1 });

@@ -387,6 +387,35 @@ describe("discover: directory pages, whichever route finds them (SPEC.md 8.2 ite
     ]);
   });
 
+  it("a link a directory page handed to discovery_queue comes back as an organizer page, through the platform gate", () => {
+    const row = (url: string) => ({
+      url,
+      found_via: "directory",
+      found_at: NOW,
+      priority: PRIORITY.directory,
+      next_attempt_at: null,
+      attempts: 0,
+    });
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        pending: [
+          row("https://missoula.younglife.org/events/"),
+          row(event), // a deferred directory event page stays a directory page
+          row("https://www.golfgenius.com/pages/123-young-life"),
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => [q.url, q.kind, q.directory_host])).toEqual([
+      ["https://missoula.younglife.org/events/", "organizer", null],
+      [event, "directory", "www.playprivategolf.com"],
+    ]);
+    expect(out.output.skipped).toEqual([
+      { url: "https://www.golfgenius.com/pages/123-young-life", reason: "platform_not_allowed" },
+    ]);
+  });
+
   it("a directory listing's registration link still honors platforms.yaml", () => {
     const out = discover(
       ctx,
