@@ -60,17 +60,23 @@ function decide(
 
 /**
  * platforms.yaml at publish (SPEC.md 8.2): an outing whose canonical source is
- * a platform listing or search page never publishes, and neither does one that
- * only pages on a platform or directory with `allowed: false` support.
+ * a platform listing or search page (or a directory's index page) never
+ * publishes, and neither does one that only pages on a platform or directory
+ * with `allowed: false` support. A directory event page publishes only through
+ * its off-directory registration page (item 6): when the canonical source is
+ * still the directory's own page, the registration link was missing, stayed on
+ * the directory, or was dropped, and the outing waits.
  */
 function platformBlock(
   canonical: string,
   sourceUrls: readonly string[],
   rules: readonly PlatformRule[],
-): "platform_listing" | "platform_not_allowed" | null {
-  if (platformVerdict(canonical, rules)?.listing) return "platform_listing";
+): "platform_listing" | "platform_not_allowed" | "directory_page" | null {
+  const v = platformVerdict(canonical, rules);
+  if (v?.listing) return "platform_listing";
   const pages = [canonical, ...sourceUrls];
-  return pages.every((u) => blockedAsSource(u, rules) !== null) ? "platform_not_allowed" : null;
+  if (pages.every((u) => blockedAsSource(u, rules) !== null)) return "platform_not_allowed";
+  return v?.directory ? "directory_page" : null;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { localToday } from "@gof/shared/dates";
-import { blockedAsSource } from "../discovery/platform-policy.ts";
+import { platformVerdict } from "../discovery/platform-policy.ts";
 import { normalizeUrl, hostOf } from "../discovery/url.ts";
 import { isExcludedUrl, removedUrlSet } from "../overrides/load.ts";
 import {
@@ -207,6 +207,8 @@ interface Candidate {
   bypass: boolean;
   recheck_outing_id: string | null;
   directory_host: string | null;
+  /** The listing adapter already applied platforms.yaml to this URL (sources.ts skips `allowed: false`). */
+  adapterChecked: boolean;
 }
 
 function kindFor(via: FoundVia): SourceKind {
@@ -230,7 +232,7 @@ function kindFor(via: FoundVia): SourceKind {
   }
 }
 
-/** Routes whose listing adapter already applied platforms.yaml (sources.ts skips `allowed: false`). */
+/** Routes whose listing adapter already applied platforms.yaml to the links it lists. */
 const ADAPTER_ROUTES: ReadonlySet<FoundVia> = new Set(["platform", "association", "directory"]);
 
 export const discover: DiscoverStage = (ctx, input) => {
@@ -239,11 +241,14 @@ export const discover: DiscoverStage = (ctx, input) => {
   const nowMs = now.getTime();
   const skipped: DiscoverOutput["skipped"] = [];
   const candidates: Candidate[] = [];
-  const add = (c: Omit<Candidate, "kind" | "priority" | "bypass"> & Partial<Candidate>): void => {
+  const add = (
+    c: Omit<Candidate, "kind" | "priority" | "bypass" | "adapterChecked"> & Partial<Candidate>,
+  ): void => {
     candidates.push({
       kind: c.kind ?? kindFor(c.found_via),
       priority: c.priority ?? PRIORITY[c.found_via],
       bypass: c.bypass ?? (c.found_via === "recheck" || c.found_via === "series"),
+      adapterChecked: false,
       ...c,
     });
   };
@@ -306,7 +311,14 @@ export const discover: DiscoverStage = (ctx, input) => {
     }
     if (l.found_via === "directory") {
       const directoryHost = hostOf(l.url);
-      add({ rawUrl: l.url, found_via: "directory", recheck_outing_id: null, directory_host: directoryHost });
+      add({
+        rawUrl: l.url,
+        found_via: "directory",
+        recheck_outing_id: null,
+        directory_host: directoryHost,
+        adapterChecked: true,
+      });
+      // The registration link is another site: platforms.yaml applies to it below.
       if (l.registration_url) {
         add({
           rawUrl: l.registration_url,
@@ -324,6 +336,7 @@ export const discover: DiscoverStage = (ctx, input) => {
       ...(l.kind ? { kind: l.kind } : {}),
       recheck_outing_id: null,
       directory_host: null,
+      adapterChecked: ADAPTER_ROUTES.has(l.found_via),
     });
   }
 
@@ -398,26 +411,31 @@ export const discover: DiscoverStage = (ctx, input) => {
       continue;
     }
     // platforms.yaml applies to every route (SPEC.md 8.2): search results, series
-    // links, submissions, rechecks, held retries and leftover queue rows never
-    // reach a platform or directory with allowed: false, or any listing page.
-    // The platform, association and directory adapters check `allowed` themselves.
-    if (input.platform_rules && !ADAPTER_ROUTES.has(c.found_via)) {
-      const v = blockedAsSource(url, input.platform_rules);
-      if (v) {
-        skipped.push({ url, reason: v.allowed ? "platform_listing" : "platform_not_allowed" });
-        continue;
-      }
+    // links, submissions, rechecks, held retries, leftover queue rows and a
+    // directory's registration links never reach a platform or directory with
+    // allowed: false, or any listing page (a directory's index pages included).
+    // The links a listing adapter lists were checked by the adapter itself.
+    const verdict = input.platform_rules ? platformVerdict(url, input.platform_rules) : null;
+    if (verdict && !c.adapterChecked && (!verdict.allowed || verdict.listing)) {
+      skipped.push({ url, reason: verdict.allowed ? "platform_listing" : "platform_not_allowed" });
+      continue;
     }
+    // A directory event page is a directory page whichever route found it, so its
+    // outing's canonical source becomes the off-directory registration page
+    // (SPEC.md 8.2 item 6). discovery_queue rows don't keep the host; this restores it.
+    const onDirectory = verdict?.directory === true && !verdict.listing;
+    const kind: SourceKind = onDirectory ? "directory" : c.kind;
+    const directoryHost = c.directory_host ?? (onDirectory ? hostOf(url) : null);
     const existing = byUrl.get(url);
     if (existing) {
       if (c.priority < existing.priority) {
         byUrl.set(url, {
           ...existing,
           found_via: c.found_via,
-          kind: c.kind,
+          kind,
           priority: c.priority,
           recheck_outing_id: c.recheck_outing_id ?? existing.recheck_outing_id,
-          directory_host: c.directory_host ?? existing.directory_host,
+          directory_host: directoryHost ?? existing.directory_host,
           bypass_dedupe: existing.bypass_dedupe || c.bypass,
         });
       }
@@ -435,11 +453,11 @@ export const discover: DiscoverStage = (ctx, input) => {
     byUrl.set(url, {
       url,
       found_via: c.found_via,
-      kind: c.kind,
+      kind,
       priority: c.priority,
       bypass_dedupe: c.bypass,
       recheck_outing_id: c.recheck_outing_id,
-      directory_host: c.directory_host,
+      directory_host: directoryHost,
     });
     order.push(url);
   }

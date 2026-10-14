@@ -324,6 +324,93 @@ describe("discover: platforms.yaml applies to search results and rechecks", () =
   });
 });
 
+describe("discover: directory pages, whichever route finds them (SPEC.md 8.2 item 6)", () => {
+  const ppg: PlatformRule = {
+    name: "Play Private Golf",
+    allowed: true,
+    domains: ["playprivategolf.com"],
+    listing_url_pattern: null,
+    directory: true,
+    event_url_pattern:
+      "^https://(www\\.)?playprivategolf\\.com/events/[a-z0-9-]+-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/?$",
+  };
+  const rules: PlatformRule[] = [
+    ppg,
+    { name: "golfgenius", allowed: false, domains: ["golfgenius.com"], listing_url_pattern: null },
+  ];
+  const event =
+    "https://www.playprivategolf.com/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b-f60a-47f7-8ee8-16ce0cdbdfba";
+  const serp = (url: string) => ({
+    query: { kind: "place" as const, q: "golf outing Missoula MT 2026", subject: "Missoula, MT" },
+    rank: 1,
+    url,
+    title: "t",
+    snippet: "s",
+  });
+
+  it("a directory event page from search is queued as a directory page; its index pages are skipped", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        serpResults: [
+          serp(event),
+          serp("https://www.playprivategolf.com/states/montana"),
+          serp("https://www.playprivategolf.com/"),
+        ],
+      }),
+    );
+    expect(out.output.queue).toEqual([
+      queueEntrySchema.parse({
+        url: event,
+        found_via: "search_place",
+        kind: "directory",
+        priority: PRIORITY.search_place,
+        bypass_dedupe: false,
+        recheck_outing_id: null,
+        directory_host: "www.playprivategolf.com",
+      }),
+    ]);
+    expect(out.output.skipped).toEqual([
+      { url: "https://www.playprivategolf.com/states/montana", reason: "platform_listing" },
+      { url: "https://www.playprivategolf.com/", reason: "platform_listing" },
+    ]);
+  });
+
+  it("a recheck of a directory event page keeps its directory host, so the canonical stays the registration page", () => {
+    const out = discover(
+      ctx,
+      input({ platform_rules: rules, recheck: [recheck("o1", "2026-10-20", "2026-09-01T00:00:00Z", event)] }),
+    );
+    expect(out.output.queue.map((q) => [q.url, q.kind, q.directory_host])).toEqual([
+      [event, "directory", "www.playprivategolf.com"],
+    ]);
+  });
+
+  it("a directory listing's registration link still honors platforms.yaml", () => {
+    const out = discover(
+      ctx,
+      input({
+        platform_rules: rules,
+        listings: [
+          {
+            found_via: "directory",
+            origin: "Play Private Golf",
+            url: event,
+            title: null,
+            text: null,
+            registration_url: "https://www.golfgenius.com/pages/123-young-life",
+          },
+        ],
+      }),
+    );
+    expect(out.output.queue.map((q) => q.url)).toEqual([event]);
+    expect(out.output.skipped).toEqual([
+      { url: "https://www.golfgenius.com/pages/123-young-life", reason: "platform_not_allowed" },
+    ]);
+  });
+});
+
 describe("discover: recheck queue", () => {
   it("force_recheck queues every published outing, due or not (within the 40% share)", () => {
     const fresh = recheck("o2", "2026-12-01", "2026-09-28T11:00:00Z");

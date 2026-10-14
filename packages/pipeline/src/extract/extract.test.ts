@@ -104,6 +104,18 @@ describe("domains", () => {
     expect(canonicalUrlFor({ ...e, registration_url: "https://scramblehunter.com/r" })).toBe(e.source_url);
   });
 
+  it("does the same for Play Private Golf event pages, comparing registrable domains (www or not)", () => {
+    const e = {
+      source_url:
+        "https://www.playprivategolf.com/events/2026-missoula-young-life-fall-golf-tournament-the-ranch-club-10e0f29b-f60a-47f7-8ee8-16ce0cdbdfba",
+      registration_url: "https://www.golfgenius.com/pages/12345-young-life-fall",
+      directory_host: "www.playprivategolf.com",
+    };
+    expect(canonicalUrlFor(e)).toBe("https://www.golfgenius.com/pages/12345-young-life-fall");
+    expect(canonicalUrlFor({ ...e, registration_url: "https://playprivategolf.com/submit" })).toBe(e.source_url);
+    expect(canonicalUrlFor({ ...e, registration_url: null })).toBe(e.source_url);
+  });
+
   it("makes deterministic custom_ids that fit the Batches rules", () => {
     const id = sourceIdForUrl("https://example.org/golf");
     expect(id).toBe(sourceIdForUrl("https://example.org/golf"));
