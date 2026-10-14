@@ -57,6 +57,8 @@ export function queryLocalD1(sql: string, target: WranglerTarget = {}): Record<s
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],
     env: { ...process.env, CI: "1", WRANGLER_SEND_METRICS: "false" },
+    // The default 1 MB overflows (ENOBUFS) once the courses table covers every state.
+    maxBuffer: 64 * 1024 * 1024,
   });
   const parsed: unknown = JSON.parse(out);
   if (!Array.isArray(parsed)) throw new Error("unexpected wrangler --json output");
