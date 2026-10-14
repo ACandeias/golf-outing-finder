@@ -1,13 +1,14 @@
 import { checkUrl, type GuardOptions } from "../net/ssrf.ts";
 import { RenderBlockedError, type Renderer } from "../render/renderer.ts";
 import { RobotsCache } from "../robots/robots.ts";
-import type {
-  BudgetCheck,
-  Clock,
-  FetchedPage,
-  FetchOutcome,
-  FetchPlanItem,
-  PageFetcher,
+import {
+  ROBOTS_UNAVAILABLE,
+  type BudgetCheck,
+  type Clock,
+  type FetchedPage,
+  type FetchOutcome,
+  type FetchPlanItem,
+  type PageFetcher,
 } from "../stages/types.ts";
 import { HostGate, type Sleep } from "./gate.ts";
 import { decodeBody, httpGet, type FetchFn, type HttpResult, type Validators } from "./http.ts";
@@ -56,6 +57,8 @@ export interface PageFetcherDeps {
   /** Minimum spacing per host; 5 s by default (SPEC.md 8.3). */
   hostSpacingMs?: number;
   timeoutMs?: number;
+  /** Told once per origin whose robots.txt could not be read; that host is skipped for the run. */
+  onRobotsUnavailable?: (origin: string, reason: string) => void;
 }
 
 export interface GuardedPageFetcher extends PageFetcher {
@@ -125,12 +128,15 @@ export function createPageFetcher(deps: PageFetcherDeps): GuardedPageFetcher {
 
   const robots: RobotsCache = new RobotsCache({
     clock: deps.clock,
+    ...(deps.onRobotsUnavailable ? { onUnavailable: deps.onRobotsUnavailable } : {}),
     fetchRobots: async (url) => {
       const r = await gatedGet(url, 0, false);
       if (r.kind === "response") return { status: r.status, body: decodeBody(r.body, r.contentType) };
       if (r.kind === "too_large") return { status: 200, body: "" };
-      if (r.kind === "ssrf_blocked") return { status: 403, body: "User-agent: *\nDisallow: /\n" };
-      throw new Error(`robots.txt unavailable: ${r.kind}`);
+      // A host the SSRF guard refuses is never fetched: a definite Disallow, not "unavailable".
+      if (r.kind === "ssrf_blocked") return { status: 200, body: "User-agent: *\nDisallow: /\n" };
+      // Network failures, timeouts and broken redirects: the cache disallows the host this run.
+      throw new Error("message" in r ? `${r.kind}: ${r.message}` : r.kind);
     },
   });
 
@@ -151,6 +157,14 @@ export function createPageFetcher(deps: PageFetcherDeps): GuardedPageFetcher {
     directory_host: item.directory_host,
     ...patch,
   });
+
+  /** The page for a URL robots.txt blocks; `error` says when that's because the file couldn't be read. */
+  const robotsBlocked = (item: FetchPlanItem, unavailable: string | undefined, url = item.url): FetchedPage =>
+    page(item, {
+      url,
+      outcome: "robots_blocked",
+      ...(unavailable !== undefined ? { error: `${ROBOTS_UNAVAILABLE} ${unavailable}`.slice(0, 500) } : {}),
+    });
 
   const fetchRaw = async (url: string, budget: BudgetCheck): Promise<HttpResult> => {
     const g = await checkUrl(url, deps.guard);
@@ -193,7 +207,7 @@ export function createPageFetcher(deps: PageFetcherDeps): GuardedPageFetcher {
     const g = await checkUrl(item.url, deps.guard);
     if (!g.ok) return page(item, { outcome: "ssrf_blocked", error: g.reason });
     const decision = await robots.check(item.url);
-    if (!decision.allowed) return page(item, { outcome: "robots_blocked" });
+    if (!decision.allowed) return robotsBlocked(item, decision.unavailable);
     if (!budget.check("MAX_FETCHES_PER_RUN", 1, "fetch")) throw new FetchBudgetExhausted();
 
     if (item.render && deps.renderer && budget.check("MAX_RENDERS_PER_RUN", 1, "fetch")) {
@@ -205,8 +219,11 @@ export function createPageFetcher(deps: PageFetcherDeps): GuardedPageFetcher {
     switch (r.kind) {
       case "ssrf_blocked":
         return page(item, { url: r.url, outcome: "ssrf_blocked", error: r.reason });
-      case "robots_blocked":
-        return page(item, { url: r.url, outcome: "robots_blocked" });
+      case "robots_blocked": {
+        // A redirect landed on another origin; say why if its robots.txt couldn't be read.
+        const after = await robots.check(r.url);
+        return robotsBlocked(item, after.unavailable, r.url);
+      }
       case "too_large":
         return page(item, { url: r.url, http_status: r.status, outcome: "too_large" });
       case "timeout":

@@ -11,6 +11,7 @@ import { normalize } from "../stages/normalize.ts";
 import { sourceKindSchema, type DiscoveryQueueRow } from "../stages/rows.ts";
 import {
   COUNTS_AS_FETCH_ERROR,
+  isRobotsUnavailable,
   recheckCandidateSchema,
   type Counters,
   type FetchedPage,
@@ -263,7 +264,18 @@ export async function fetchHandler(env: StageEnv): Promise<HandlerOutcome> {
       if (done % 100 === 0) ctx.log.info("fetch progress", { done, of: total });
     },
   });
-  state.fetched = fetched.pages;
+  // A page on a host whose robots.txt couldn't be read was never requested: it
+  // goes back to the queue for tomorrow (queueBookkeeping) and writes no
+  // `sources` row, whose fetched_at would hold it off for 7 days.
+  const robotsUnavailable = fetched.pages.filter(isRobotsUnavailable);
+  state.fetched = fetched.pages.filter((p) => !isRobotsUnavailable(p));
+  if (robotsUnavailable.length > 0) {
+    const hosts = [...new Set(robotsUnavailable.map((p) => new URL(p.requested_url).hostname))];
+    ctx.log.info("fetch: robots.txt unavailable; these hosts are skipped this run and retried tomorrow", {
+      hosts: hosts.slice(0, 20).join(","),
+      pages: robotsUnavailable.length,
+    });
+  }
   const deferred = [...plan.output.deferred, ...fetched.deferred.map(toQueueEntry)];
   const bookkeeping = queueBookkeeping(ctx.now, {
     deferred,

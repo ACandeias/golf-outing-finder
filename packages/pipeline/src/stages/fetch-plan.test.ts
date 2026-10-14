@@ -2,7 +2,7 @@ import { resolveBudget } from "@gof/shared/budget";
 import { describe, expect, it } from "vitest";
 import { emptyOverrides } from "../overrides/load.ts";
 import { MAX_QUEUE_ATTEMPTS, planFetch, queueBookkeeping } from "./fetch-plan.ts";
-import { parseUpsertPlan, type Context, type FetchedPage, type QueueEntry } from "./types.ts";
+import { parseUpsertPlan, ROBOTS_UNAVAILABLE, type Context, type FetchedPage, type QueueEntry } from "./types.ts";
 
 const ctx: Context = {
   now: new Date("2026-09-28T07:20:00Z"),
@@ -128,6 +128,28 @@ describe("queueBookkeeping", () => {
         op: "upsert",
         table: "discovery_queue",
         rows: [{ url: "https://flaky.example/", found_via: "search_place", found_at: "2026-09-28T07:20:00.000Z", priority: 5, next_attempt_at: "2026-09-29T07:20:00.000Z", attempts: 1 }],
+        update: ["next_attempt_at", "attempts"],
+      },
+    ]);
+  });
+
+  it("retries a page whose host's robots.txt was unavailable (403, 429, 5xx, challenge) like a transient failure", () => {
+    const blocked = { ...page("https://cf.example/e", "robots_blocked"), error: `${ROBOTS_UNAVAILABLE} HTTP 403` };
+    const disallowed = page("https://no.example/e", "robots_blocked");
+    const plan = queueBookkeeping(now, {
+      deferred: [],
+      fetched: [blocked, disallowed],
+      pending: [
+        { url: "https://no.example/e", found_via: "platform", found_at: "2026-09-27T07:00:00.000Z", priority: 5, next_attempt_at: null, attempts: 0 },
+      ],
+    });
+    expect(plan.ops).toEqual([
+      // A real Disallow leaves the queue; an unavailable robots.txt comes back tomorrow.
+      { op: "delete", table: "discovery_queue", where: { url: "https://no.example/e" } },
+      {
+        op: "upsert",
+        table: "discovery_queue",
+        rows: [{ url: "https://cf.example/e", found_via: "search_place", found_at: "2026-09-28T07:20:00.000Z", priority: 5, next_attempt_at: "2026-09-29T07:20:00.000Z", attempts: 1 }],
         update: ["next_attempt_at", "attempts"],
       },
     ]);

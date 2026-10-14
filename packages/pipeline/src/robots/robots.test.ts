@@ -78,25 +78,75 @@ describe("RobotsCache", () => {
     expect(calls).toHaveLength(2);
   });
 
-  it("treats 4xx as allow-all and 5xx or network failure as disallow-all", async () => {
+  it("allows everything for 404 and 410 (RFC 9309: no robots.txt) and for other plain 4xx", async () => {
     const { cache } = cacheWith({
       "https://gone.example/robots.txt": { status: 404, body: "" },
+      "https://gone2.example/robots.txt": { status: 410, body: "" },
+      "https://odd.example/robots.txt": { status: 400, body: "" },
+    });
+    for (const host of ["gone", "gone2", "odd"]) {
+      const d = await cache.check(`https://${host}.example/x`);
+      expect(d, host).toEqual({ allowed: true, crawlDelayMs: 0 });
+      expect(d.unavailable, host).toBeUndefined();
+    }
+  });
+
+  it("disallows the host for 401, 403, 429, 5xx and network failures, and says why", async () => {
+    const { cache } = cacheWith({
+      "https://auth.example/robots.txt": { status: 401, body: "" },
+      "https://forbidden.example/robots.txt": { status: 403, body: "<html>Forbidden</html>" },
+      "https://slow.example/robots.txt": { status: 429, body: "" },
       "https://down.example/robots.txt": { status: 503, body: "" },
       "https://err.example/robots.txt": new Error("ECONNRESET"),
     });
-    expect((await cache.check("https://gone.example/x")).allowed).toBe(true);
-    expect((await cache.check("https://down.example/x")).allowed).toBe(false);
-    expect((await cache.check("https://err.example/x")).allowed).toBe(false);
+    const reasons: Record<string, string | undefined> = {};
+    for (const host of ["auth", "forbidden", "slow", "down", "err"]) {
+      const d = await cache.check(`https://${host}.example/events/golf`);
+      expect(d.allowed, host).toBe(false);
+      reasons[host] = d.unavailable;
+    }
+    expect(reasons).toEqual({
+      auth: "HTTP 401",
+      forbidden: "HTTP 403",
+      slow: "HTTP 429",
+      down: "HTTP 503",
+      err: "ECONNRESET",
+    });
   });
 
-  it("retries an unreachable robots.txt after an hour instead of a day", async () => {
+  it("treats a bot-challenge page served as robots.txt as unavailable, not as an empty file", async () => {
+    const { cache } = cacheWith({
+      "https://cf.example/robots.txt": { status: 200, body: fx("challenge-cloudflare.html") },
+      "https://plain.example/robots.txt": { status: 200, body: "User-agent: *\nDisallow: /admin\n" },
+    });
+    expect(await cache.check("https://cf.example/events/golf")).toMatchObject({
+      allowed: false,
+      unavailable: "challenge page",
+    });
+    expect((await cache.check("https://plain.example/events/golf")).allowed).toBe(true);
+  });
+
+  it("keeps an unavailable robots.txt for the rest of the run instead of retrying it", async () => {
     const { cache, calls, advance } = cacheWith({
-      "https://down.example/robots.txt": { status: 503, body: "" },
+      "https://down.example/robots.txt": { status: 403, body: "" },
     });
     await cache.check("https://down.example/a");
-    advance(61 * 60_000);
+    advance(25 * 3600_000);
+    expect((await cache.check("https://down.example/b")).allowed).toBe(false);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("reports each unavailable origin once, through onUnavailable", async () => {
+    const seen: [string, string][] = [];
+    const cache = new RobotsCache({
+      fetchRobots: async (url) => (url.includes("down") ? { status: 429, body: "" } : { status: 404, body: "" }),
+      clock: { nowMs: () => 0 },
+      onUnavailable: (origin, reason) => seen.push([origin, reason]),
+    });
     await cache.check("https://down.example/a");
-    expect(calls).toHaveLength(2);
+    await cache.check("https://down.example/b");
+    await cache.check("https://fine.example/a");
+    expect(seen).toEqual([["https://down.example", "HTTP 429"]]);
   });
 
   it("keys the cache by origin (scheme, host and port)", async () => {

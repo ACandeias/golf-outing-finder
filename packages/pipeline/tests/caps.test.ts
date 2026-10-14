@@ -5,7 +5,7 @@ import { MemoryD1 } from "../src/d1/memory.ts";
 import type { FetchSidePorts } from "../src/fetch/ports.ts";
 import { fixtureExtractionClient } from "../src/run/fixture-world.ts";
 import { NIGHTLY_STAGES } from "../src/stages/registry.ts";
-import type { BatchClient, BatchState, FetchOutcome } from "../src/stages/types.ts";
+import { ROBOTS_UNAVAILABLE, type BatchClient, type BatchState, type FetchOutcome } from "../src/stages/types.ts";
 
 /**
  * Caps and failure rules on the wired dry run (SPEC.md 8.0, 8.10, 13 Phase 2,
@@ -142,6 +142,44 @@ describe("the 20% fetch-error rule (SPEC.md 8.10)", () => {
       expect(r.outcome!.state.counters.fetch_errors ?? 0).toBe(0);
       expect(r.exitCode).toBe(0);
     }
+  }, 60_000);
+
+  it("a host whose robots.txt was unavailable is skipped this run, not counted as an error, and retried tomorrow", async () => {
+    const decorateFetchSide = (ports: FetchSidePorts): FetchSidePorts => {
+      let p = ports;
+      for (const h of hosts) {
+        const prev = p;
+        p = {
+          ...prev,
+          fetcher: {
+            ...prev.fetcher,
+            fetchPage: async (item, budget) => {
+              const page = await prev.fetcher.fetchPage(item, budget);
+              if (new URL(item.url).hostname !== h) return page;
+              return { ...page, outcome: "robots_blocked", http_status: null, html: null, error: `${ROBOTS_UNAVAILABLE} HTTP 403` };
+            },
+          },
+        };
+      }
+      return p;
+    };
+    const r = await dryRun(["--dry-run", "--strict"], ENV, { edges: { decorateFetchSide } });
+    expect(r.exitCode).toBe(0);
+    const c = r.outcome!.state.counters;
+    expect(c.fetch_errors ?? 0).toBe(0);
+    expect(c.robots_blocked ?? 0).toBeGreaterThanOrEqual(hosts.length);
+    const onHosts = (u: string) => hosts.includes(new URL(u).hostname);
+    // Not fetched, so no sources row claims a fetch (the 7-day dedupe would skip the retry).
+    const fetched = z
+      .array(z.object({ url: z.string() }))
+      .parse(r.d1.db.prepare("SELECT url FROM sources WHERE fetched_at IS NOT NULL").all());
+    expect(fetched.filter((s) => onHosts(s.url))).toEqual([]);
+    const queued = z
+      .array(z.object({ url: z.string(), next_attempt_at: z.string().nullable(), attempts: z.number() }))
+      .parse(r.d1.db.prepare("SELECT url, next_attempt_at, attempts FROM discovery_queue").all())
+      .filter((q) => onHosts(q.url));
+    expect(queued.length).toBeGreaterThanOrEqual(hosts.length);
+    expect(queued.every((q) => q.attempts === 1 && q.next_attempt_at !== null)).toBe(true);
   }, 60_000);
 });
 

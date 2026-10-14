@@ -388,6 +388,18 @@ export const COUNTS_AS_FETCH_ERROR: ReadonlySet<FetchOutcome> = new Set([
   "server_error",
 ]);
 
+/**
+ * `error` prefix on a `robots_blocked` page whose host's robots.txt could not be
+ * read this run (401, 403, 429, 5xx, a network error or a bot-challenge page).
+ * Expected, not an error for the 20% rule, but unlike a real Disallow the page
+ * is retried on a later run (SPEC.md 8.3).
+ */
+export const ROBOTS_UNAVAILABLE = "robots.txt unavailable:";
+
+export function isRobotsUnavailable(page: { outcome: FetchOutcome; error: string | null }): boolean {
+  return page.outcome === "robots_blocked" && (page.error ?? "").startsWith(ROBOTS_UNAVAILABLE);
+}
+
 export const fetchedPageSchema = z.object({
   requested_url: httpUrl,
   /** After redirects. */
