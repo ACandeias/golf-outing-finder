@@ -15,10 +15,10 @@
     "typegen": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.3.3",
+    "@astrojs/cloudflare": "^14.3.4",
     "@gof/db": "workspace:*",
     "@gof/shared": "workspace:*",
-    "astro": "^7.3.5",
+    "astro": "^7.3.8",
     "drizzle-orm": "^0.45.3",
     "maplibre-gl": "6.11.2",
     "zod": "^3.23.8"
@@ -27,6 +27,6 @@
     "@astrojs/check": "^0.9.10",
     "@playwright/test": "^1.63.0",
     "typescript": "~5.6.3",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.151.0"
   }
 }
