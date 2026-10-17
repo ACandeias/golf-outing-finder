@@ -14,7 +14,7 @@
     "start:places-load": "node --experimental-strip-types --no-warnings src/places/load-cli.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.131.0",
+    "@anthropic-ai/sdk": "0.133.0",
     "@gof/db": "workspace:*",
     "@gof/shared": "workspace:*",
     "@mozilla/readability": "0.6.0",
