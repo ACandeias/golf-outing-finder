@@ -18,7 +18,7 @@
     "@gof/db": "workspace:*",
     "@gof/shared": "workspace:*",
     "@mozilla/readability": "0.6.0",
-    "linkedom": "0.18.13",
+    "linkedom": "0.18.14",
     "pdfjs-dist": "6.3.289",
     "tz-lookup": "6.1.25",
     "undici": "7.29.1",
