@@ -14,7 +14,7 @@ import { listToday, requestNow } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
 import { notFound, setCache } from "../../../lib/page.ts";
 import { clip, FORMAT_LABELS, stateName, verifiedDate } from "../../../lib/format.ts";
-import { outingTitle, outingView } from "../../../lib/outing-view.ts";
+import { offersRegistration, outingTitle, outingView } from "../../../lib/outing-view.ts";
 import { absoluteUrl, cityPath, coursePath, organizerPath, outingPath, statePath } from "../../../lib/urls.ts";
 import { guideLinks } from "../../../lib/guides.ts";
 import { bandPhotoFor } from "../../../lib/photos.ts";
@@ -38,7 +38,7 @@ const v = outingView(o);
 const path = outingPath(o.slug);
 const dated = o.status !== "expected" && o.startDate !== null;
 const passed = o.status === "past" || (dated && o.startDate !== null && isPast(o.startDate, o.endDate, now, o.course.timeZone));
-const canRegister = !passed && !v.isExpected && o.status !== "cancelled" && o.status !== "sold_out";
+const canRegister = !passed && offersRegistration(o.status);
 const [nearby, next, newcomerGuides] = await Promise.all([
   nearbyUpcomingOutings(db, {
     center: { lat: o.course.lat, lng: o.course.lng },

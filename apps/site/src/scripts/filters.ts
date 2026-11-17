@@ -67,7 +67,10 @@ function cardData(el: HTMLElement): FilterableOuting {
 
 function apply(form: HTMLFormElement): void {
   const filters = readForm(form);
-  const cards = Array.from(document.querySelectorAll<HTMLElement>("[data-outing]"));
+  // Only the list the form belongs to: other sheets on the page (the nearby
+  // outings under an empty city, the home page's near-you rows) are not part of
+  // the count and keep their rows whatever the filters say.
+  const cards = Array.from(document.querySelectorAll<HTMLElement>("[data-filter-group] [data-outing]"));
   let shown = 0;
   for (const card of cards) {
     const ok = matchesFilters(cardData(card), filters);

@@ -53,6 +53,7 @@ import {
   type StageResult,
   type TableOp,
 } from "../stages/types.ts";
+import type { DiscoveryQueueRow } from "../stages/rows.ts";
 import {
   concatListings,
   fixtureExtractionClient,
@@ -444,6 +445,7 @@ interface WireState {
 }
 
 export function wiredHandlers(edges: RunEdges): StageHandlers {
+  const courseTypes = courseTypesHandler();
   const wire: WireState = { pendingOnly: new Set(), collected: new Map() };
   const withSide =
     (h: (env: StageEnv) => Promise<HandlerOutcome>) =>
@@ -475,7 +477,29 @@ export function wiredHandlers(edges: RunEdges): StageHandlers {
         deferred: out.output.deferred.length,
         est_input_tokens: out.output.requests.reduce((n, r) => n + r.est_input_tokens, 0),
       });
-      return { result: out.result };
+      // A page past the extraction caps was fetched, so the fetch stage took it
+      // out of discovery_queue. Put it back: otherwise it returns only if search
+      // or a listing happens to find it again.
+      const deferred = new Set(out.output.deferred);
+      if (deferred.size === 0) return { result: out.result };
+      const priority = new Map(state.queue.map((q) => [q.url, q.priority] as const));
+      const nowIso = ctx.now.toISOString().replace(/\.\d{3}Z$/, ".000Z");
+      const rows = new Map<string, DiscoveryQueueRow>();
+      for (const f of state.fetched) {
+        if (!deferred.has(f.url) || rows.has(f.requested_url)) continue;
+        rows.set(f.requested_url, {
+          url: f.requested_url,
+          found_via: f.found_via,
+          found_at: nowIso,
+          priority: priority.get(f.requested_url) ?? 5,
+          next_attempt_at: null,
+          attempts: 0,
+        });
+      }
+      return {
+        result: out.result,
+        plan: { ops: [{ op: "upsert", table: "discovery_queue", rows: [...rows.values()], update: ["priority"] }] },
+      };
     },
 
     "extract-collect": async ({ ctx, guard, state, snapshot, runId }) => {
@@ -702,6 +726,11 @@ export function wiredHandlers(edges: RunEdges): StageHandlers {
     // and B's fetcher through env.ports.
     courses: coursesHandler(),
     irs: irsHandler(),
-    "course-types": courseTypesHandler(),
+    "course-types": async (env) => {
+      // As for extraction: the guard is charged the estimate, and the claude-cli
+      // client also stops on actual usage (its per-call overhead isn't in the estimate).
+      edges.claudeCli()?.setInputTokenLimit(env.guard.remaining("MAX_LLM_INPUT_TOKENS_PER_RUN"));
+      return courseTypes(env);
+    },
   };
 }
