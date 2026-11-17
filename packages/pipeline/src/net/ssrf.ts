@@ -31,6 +31,7 @@ export type GuardReason =
   | "port"
   | "credentials"
   | "excluded"
+  | "platform_not_allowed"
   | "metadata_host"
   | "dns"
   | "private_address";
@@ -42,6 +43,13 @@ export type GuardResult =
 export interface GuardOptions {
   resolver: Resolver;
   exclusions: Exclusions;
+  /**
+   * platforms.yaml on every hop: the name of the platform or directory with
+   * `allowed: false` that `url` is on, else null. Discovery already skips such
+   * URLs, but a redirect from an allowed page, or a fetch that never went
+   * through discovery (course websites), reaches the guard and nothing else.
+   */
+  deniedPlatform?: (url: string) => string | null;
 }
 
 /** Cloud metadata endpoints reachable by name. */
@@ -186,6 +194,8 @@ export async function checkUrl(url: string, opts: GuardOptions): Promise<GuardRe
   const host = u.hostname.toLowerCase().replace(/\.+$/, "");
   if (host === "") return { ok: false, url, reason: "invalid" };
   if (isExcludedUrl(url, opts.exclusions)) return { ok: false, url, reason: "excluded" };
+  const denied = opts.deniedPlatform?.(url) ?? null;
+  if (denied !== null) return { ok: false, url, reason: "platform_not_allowed", detail: denied };
   if (METADATA_HOSTS.has(host) || host.endsWith(".internal")) {
     return { ok: false, url, reason: "metadata_host" };
   }

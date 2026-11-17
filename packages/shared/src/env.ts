@@ -113,7 +113,7 @@ export type LlmProvider = z.infer<typeof llmProviderSchema>;
 export const serpProviderSchema = z.enum(["dataforseo", "claude-search", "fixture"]);
 export type SerpProvider = z.infer<typeof serpProviderSchema>;
 
-const optionalEnum = <T extends z.ZodTypeAny>(schema: T) =>
+const optionalEnum = <O>(schema: z.ZodType<O, string>) =>
   z
     .string()
     .optional()

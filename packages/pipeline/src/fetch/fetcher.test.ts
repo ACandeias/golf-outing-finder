@@ -333,6 +333,25 @@ describe("createPageFetcher", () => {
     expect(p).toMatchObject({ outcome: "robots_blocked", url: "https://other.example/blocked" });
   });
 
+  it("never requests a platform platforms.yaml doesn't allow, even when an allowed page redirects there", async () => {
+    const { fn, calls } = fakeFetch({
+      "https://example.org/register": () =>
+        new Response(null, { status: 302, headers: { location: "https://other.example/e/golf-1" } }),
+      "https://other.example/e/golf-1": () => html("<p>Golf outing</p>"),
+    });
+    const denied = {
+      ...guard,
+      deniedPlatform: (url: string) => (new URL(url).hostname === "other.example" ? "otherplatform" : null),
+    };
+    const f = createPageFetcher(deps(fn, { guard: denied }));
+    const redirected = await f.fetchPage(item("https://example.org/register"), guardFor());
+    expect(redirected).toMatchObject({ outcome: "ssrf_blocked", error: "platform_not_allowed" });
+    const direct = await f.fetchPage(item("https://other.example/e/golf-1"), guardFor());
+    expect(direct).toMatchObject({ outcome: "ssrf_blocked", error: "platform_not_allowed" });
+    // Not the page, and not its robots.txt either.
+    expect(calls.filter((c) => new URL(c.url).hostname === "other.example")).toEqual([]);
+  });
+
   it("a same-host redirect from https to http fetches the http origin's robots.txt inside the held gate", async () => {
     // Seen live (2026-10-03): the http origin's robots.txt went through the host
     // gate the page request already held, the promise never settled and the run ended.

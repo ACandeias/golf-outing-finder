@@ -98,7 +98,7 @@ export function loadFixtureDocs(root = FIXTURES): Map<string, FixtureDoc> {
   }
   const indexFile = join(root, "discovery", "index.json");
   if (existsSync(indexFile)) {
-    const index = z.record(z.string()).parse(JSON.parse(readFileSync(indexFile, "utf8")));
+    const index = z.record(z.string(), z.string()).parse(JSON.parse(readFileSync(indexFile, "utf8")));
     for (const [url, file] of Object.entries(index)) {
       if (!/^https?:\/\//.test(url)) continue;
       docs.set(url, {

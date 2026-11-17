@@ -300,6 +300,7 @@ pnpm run pipeline --dry-run --d1=local            # the local wrangler D1 instea
 | `--serp=dataforseo\|claude-search\|fixture` | SERP provider (`SERP_PROVIDER`; default `dataforseo` live). `claude-search` needs no `SERP_API_KEY`. Live only. |
 | `--prioritize-states=NY,NJ,CT` | Search those states' metros and courses tonight, first. |
 | `--recheck-all` | Recheck every published open or waitlist outing tonight, due or not, within the 40% recheck share (oldest `last_verified` first). Useful after an extractor version bump. |
+| `--backfill=<page>` | Search page N of the metros in `data/places/metros.yaml` instead of tonight's rotation. A page holds as many metros as fit `MAX_SERP_QUERIES_PER_RUN` (90 at five queries a metro), largest first; runs with pages 1 to 6 cover all 500 once. For rebuilding a database out of season, when the rotation reaches each metro once a month. Can't be combined with `--prioritize-states`. |
 | `--weekly-report` | Create or update the weekly report issue tonight even if it isn't Monday (live nightly on the remote D1 only); a dry run renders it into the summary. |
 
 Exit codes: 0 OK; 1 when a stage throws, `--fail-stage` fired, more than 20% of fetches errored

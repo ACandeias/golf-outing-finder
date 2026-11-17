@@ -63,7 +63,7 @@ function isoMinus(now: Date, ms: number): string {
 }
 
 /** Rows that fail validation are dropped with a warning instead of failing the stage. */
-function valid<T>(env: StageEnv, what: string, rows: unknown[], schema: z.ZodType<T, z.ZodTypeDef, unknown>): T[] {
+function valid<T>(env: StageEnv, what: string, rows: unknown[], schema: z.ZodType<T>): T[] {
   const out: T[] = [];
   let bad = 0;
   for (const r of rows) {
@@ -75,7 +75,7 @@ function valid<T>(env: StageEnv, what: string, rows: unknown[], schema: z.ZodTyp
   return out;
 }
 
-const looseRow = z.record(z.unknown());
+const looseRow = z.record(z.string(), z.unknown());
 
 /** Normalizes SQLite timestamps (`2026-09-20 10:00:00`, no zone) to ISO UTC. */
 function isoTs(v: unknown): unknown {
@@ -177,7 +177,14 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     courses,
     allowance: guard.allowance(),
     ...(ports.prioritizeStates?.length ? { prioritize_states: [...ports.prioritizeStates] } : {}),
+    ...(ports.backfillPage !== undefined ? { backfill_page: ports.backfillPage } : {}),
   });
+  if (ports.backfillPage !== undefined)
+    ctx.log.info("search: backfill page", {
+      page: ports.backfillPage,
+      place_queries: search.output.queries.filter((q) => q.kind === "place").length,
+      metros: new Set(search.output.queries.filter((q) => q.kind === "place").map((q) => q.subject)).size,
+    });
   if (ports.prioritizeStates?.length)
     ctx.log.info("search: prioritized states first", {
       states: ports.prioritizeStates.join(","),

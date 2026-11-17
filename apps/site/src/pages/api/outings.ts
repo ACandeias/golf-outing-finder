@@ -15,11 +15,16 @@ export const prerender = false;
 const num = (min: number, max: number) => z.coerce.number().finite().min(min).max(max);
 
 /** bbox=minLng,minLat,maxLng,maxLat (the GeoJSON order MapLibre's getBounds gives). */
+const bboxTuple = z.tuple([num(-180, 180), num(-90, 90), num(-180, 180), num(-90, 90)]);
 const bboxParam = z
   .string()
   .max(200)
-  .transform((s) => s.split(",").map((p) => Number(p.trim())))
-  .pipe(z.tuple([num(-180, 180), num(-90, 90), num(-180, 180), num(-90, 90)]))
+  .transform((s, ctx) => {
+    const r = bboxTuple.safeParse(s.split(",").map((p) => Number(p.trim())));
+    if (r.success) return r.data;
+    ctx.addIssue({ code: "custom", message: "bbox must be four numbers: minLng,minLat,maxLng,maxLat" });
+    return z.NEVER;
+  })
   .refine(([minLng, minLat, maxLng, maxLat]) => minLng <= maxLng && minLat <= maxLat, {
     message: "bbox must be minLng,minLat,maxLng,maxLat",
   })

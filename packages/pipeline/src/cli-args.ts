@@ -30,6 +30,8 @@ export interface CliOptions {
   prioritizeStates: string[];
   /** `--recheck-all`: recheck every published open or waitlist outing tonight (within the 40% share). */
   recheckAll: boolean;
+  /** `--backfill=<page>`: search page N of the metros (as many as fit the query cap) instead of tonight's rotation. */
+  backfillPage: number | null;
   /** `--weekly-report`: post the weekly report issue on any day (a dry run renders it instead). */
   weeklyReport: boolean;
 }
@@ -45,6 +47,7 @@ export const USAGE = `pnpm run pipeline [--dry-run | --live] [--budget=nightly|m
                   [--fail-stage=<stage>] [--now=<ISO date>] [--strict] [--d1=local|remote|memory]
                   [--persist-to=<dir>] [--llm=api|claude-cli]
                   [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT] [--recheck-all]
+                  [--backfill=<page>]
                   [--weekly-report]`;
 
 /**
@@ -78,6 +81,7 @@ export function parseCliArgs(
         serp: { type: "string" },
         "prioritize-states": { type: "string" },
         "recheck-all": { type: "boolean", default: false },
+        backfill: { type: "string" },
         "weekly-report": { type: "boolean", default: false },
       },
       strict: true,
@@ -169,6 +173,17 @@ export function parseCliArgs(
     if (!prioritizeStates.includes(s)) prioritizeStates.push(s);
   }
 
+  let backfillPage: number | null = null;
+  if (values.backfill !== undefined) {
+    if (!/^[1-9]\d{0,3}$/.test(values.backfill.trim())) {
+      throw new CliUsageError(`--backfill takes a page number starting at 1, got "${values.backfill}"`);
+    }
+    if (prioritizeStates.length > 0) {
+      throw new CliUsageError("--backfill and --prioritize-states can't be combined; a backfill page covers every state");
+    }
+    backfillPage = Number(values.backfill.trim());
+  }
+
   return {
     mode,
     budget: budget.data,
@@ -183,6 +198,7 @@ export function parseCliArgs(
     serp,
     prioritizeStates,
     recheckAll: values["recheck-all"],
+    backfillPage,
     weeklyReport: values["weekly-report"],
   };
 }

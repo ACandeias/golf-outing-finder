@@ -4,7 +4,7 @@ import type { UpsertPlan } from "../stages/types.ts";
 /** Read access to the run's database snapshot (node:sqlite over the export). */
 export interface Snapshot {
   /** Every row, each validated with `schema`. */
-  all<T>(sql: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T[];
+  all<T>(sql: string, schema: z.ZodType<T>): T[];
   close(): void;
 }
 
@@ -24,5 +24,5 @@ export interface D1Port {
   snapshot(): Promise<Snapshot>;
   apply(plan: UpsertPlan): Promise<ApplyReport>;
   /** A live read after writes (run report hold counts); rows validated with `schema`. */
-  query<T>(sql: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): Promise<T[]>;
+  query<T>(sql: string, schema: z.ZodType<T>): Promise<T[]>;
 }

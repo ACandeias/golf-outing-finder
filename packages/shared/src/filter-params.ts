@@ -70,7 +70,7 @@ export function parseFilterParams(params: URLSearchParams): ParsedFilters {
     } else invalid.push("course_type");
   }
 
-  const pick = <T>(name: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T | null => {
+  const pick = <T>(name: string, schema: z.ZodType<T>): T | null => {
     const raw = one(params, name);
     if (raw === null) return null;
     const r = schema.safeParse(raw.toLowerCase());

@@ -84,6 +84,7 @@ function daysInMonthUtc(d: Date): number {
  * where dayNumber % 7 == i % 7), monthly otherwise (on day-of-month
  * i % daysInMonth + 1). Course queries: monthly the same way, for courses with
  * outings or flagged notable, ordered by id so each keeps its night.
+ * `backfill_page` swaps the place rotation for one fixed page of metros.
  */
 export const planSearch: SearchPlanStage = (ctx, input) => {
   const result = emptyResult();
@@ -108,9 +109,18 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   // a state), then tonight's regular schedule. The cap below cuts from the end.
   const planned: { rank: number; seq: number; queries: SerpQuery[] }[] = [];
   let seq = 0;
+  // --backfill=<page>: the metros are cut into pages that each fit the query
+  // cap, in file order (largest first), and this run searches one page instead
+  // of tonight's rotation. Repeating the run with pages 1..n covers every metro
+  // once, which the off-season rotation takes a month to do.
+  const cap = input.allowance.MAX_SERP_QUERIES_PER_RUN ?? ctx.caps.MAX_SERP_QUERIES_PER_RUN;
+  const perMetro = 2 * years.length + 1;
+  const pageSize = Math.max(1, Math.floor(cap / perMetro));
+  const page = input.backfill_page ?? null;
+  const inPage = (i: number): boolean => page !== null && Math.floor(i / pageSize) === page - 1;
   input.metros.forEach((m, i) => {
-    const r = rank(m.state);
-    const tonight = weekly ? i % 7 === dayNumber % 7 : i % days === dom;
+    const r = page !== null ? (inPage(i) ? -1 : priority.length) : rank(m.state);
+    const tonight = page !== null ? inPage(i) : weekly ? i % 7 === dayNumber % 7 : i % days === dom;
     if (!tonight && r === priority.length) return;
     const city = `${m.name} ${m.state}`;
     const subject = `${m.name}, ${m.state}`;
@@ -143,7 +153,6 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   planned.sort((a, b) => a.rank - b.rank || a.seq - b.seq);
   const queries: SerpQuery[] = planned.flatMap((p) => p.queries);
 
-  const cap = input.allowance.MAX_SERP_QUERIES_PER_RUN ?? ctx.caps.MAX_SERP_QUERIES_PER_RUN;
   if (queries.length > cap) {
     result.budgetHits.push(
       hit("MAX_SERP_QUERIES_PER_RUN", cap, now, `${queries.length - cap} queries left for later`),

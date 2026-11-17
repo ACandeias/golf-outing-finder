@@ -111,6 +111,18 @@ export function platformVerdict(url: string, rules: readonly PlatformRule[]): Pl
   return { platform: rule.name, allowed: rule.allowed, listing, directory };
 }
 
+/**
+ * For the URL guard (net/ssrf.ts `deniedPlatform`): the platform or directory
+ * with `allowed: false` that `url` is on, else null. Listing pages on an
+ * allowed site are not refused here; the adapters fetch those.
+ */
+export function deniedPlatformCheck(rules: readonly PlatformRule[]): (url: string) => string | null {
+  return (url) => {
+    const v = platformVerdict(url, rules);
+    return v && !v.allowed ? v.platform : null;
+  };
+}
+
 /** True when a page from `url` may not stand for an outing: a disallowed platform, or any platform's listing page. */
 export function blockedAsSource(url: string, rules: readonly PlatformRule[]): PlatformVerdict | null {
   const v = platformVerdict(url, rules);

@@ -109,7 +109,7 @@ const wranglerJson = z.array(z.object({ results: z.array(z.unknown()) }).passthr
 /** `wrangler d1 execute --json` writes `[{ results: [...] }]`. */
 export function parseQueryOutput<T>(
   stdout: string,
-  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+  schema: z.ZodType<T>,
 ): T[] {
   const parsed = wranglerJson.parse(JSON.parse(stdout));
   return (parsed[0]?.results ?? []).map((r) => schema.parse(r));
@@ -177,7 +177,7 @@ export class WranglerD1 implements D1Port {
     return stdout;
   }
 
-  async query<T>(sql: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): Promise<T[]> {
+  async query<T>(sql: string, schema: z.ZodType<T>): Promise<T[]> {
     return parseQueryOutput(await this.wrangler(queryArgs(this.o, sql)), schema);
   }
 

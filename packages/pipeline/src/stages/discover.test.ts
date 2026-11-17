@@ -173,6 +173,50 @@ describe("planSearch", () => {
     expect(out.result.budgetHits[0]).toMatchObject({ cap: "MAX_SERP_QUERIES_PER_RUN", limit: 5, stage: "discover" });
   });
 
+  it("--backfill: the pages together cover every metro once, each page within the query cap", () => {
+    // November: monthly cadence, two years per template, so five queries a metro and 90 metros a page.
+    const at = ctxAt("2026-11-16T19:00:00Z");
+    const seen = new Map<string, number>();
+    let pages = 0;
+    for (let page = 1; page <= 10; page++) {
+      const out = planSearch(at, { metros, courses: [], allowance: { MAX_SERP_QUERIES_PER_RUN: 450 }, backfill_page: page });
+      const subjects = new Set(out.output.queries.map((x) => x.subject));
+      if (subjects.size === 0) break;
+      pages++;
+      expect(out.output.queries.length).toBeLessThanOrEqual(450);
+      expect(out.result.budgetHits).toEqual([]);
+      for (const s of subjects) seen.set(s, (seen.get(s) ?? 0) + 1);
+      for (const s of subjects) expect(out.output.queries.filter((x) => x.subject === s)).toHaveLength(5);
+    }
+    expect(pages).toBe(6);
+    expect(seen.size).toBe(500);
+    expect([...seen.values()].every((n) => n === 1)).toBe(true);
+  });
+
+  it("--backfill: a page takes the largest metros first and replaces the nightly rotation", () => {
+    const at = ctxAt("2026-11-16T19:00:00Z");
+    const first = planSearch(at, { metros, courses: [], allowance: { MAX_SERP_QUERIES_PER_RUN: 450 }, backfill_page: 1 });
+    expect([...new Set(first.output.queries.map((x) => x.subject))]).toEqual(
+      metros.slice(0, 90).map((m) => `${m.name}, ${m.state}`),
+    );
+    const second = planSearch(at, { metros, courses: [], allowance: { MAX_SERP_QUERIES_PER_RUN: 450 }, backfill_page: 2 });
+    expect(second.output.queries[0]?.subject).toBe("City90, AZ");
+    // Courses keep their own night and come after the page's metros.
+    const withCourses = planSearch(at, {
+      metros,
+      courses: Array.from({ length: 30 }, (_, i) => ({
+        id: `crs_${String(i).padStart(2, "0")}`,
+        name: `Course ${i}`,
+        outing_count: 1,
+        notable: false,
+      })),
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+      backfill_page: 1,
+    }).output.queries;
+    expect(withCourses.filter((x) => x.kind === "place")).toHaveLength(450);
+    expect(withCourses.filter((x) => x.kind === "course")).toHaveLength(0);
+  });
+
   it("--prioritize-states: those states' metros and courses run tonight, first, in the order given", () => {
     const mixed = [
       { name: "Phoenix", state: "AZ", population: 5 },

@@ -25,8 +25,18 @@ count=$($WRANGLER d1 execute gof --local --persist-to "$PERSIST" --json \
   | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s)[0].results[0].n)}catch{console.log("unknown")}})')
 log "outings in local D1: $count"
 
+# The seed SQL starts by deleting every course, city and ZIP, so it only runs
+# on a database that has none of them yet. A host database with imported
+# courses and no outings (a rebuild in progress) is left alone.
+courses=$($WRANGLER d1 execute gof --local --persist-to "$PERSIST" --json \
+  --command "SELECT count(*) AS n FROM courses" 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s)[0].results[0].n)}catch{console.log("unknown")}})')
+log "courses in local D1: $courses"
+
 SEED_SQL="${SEED_SQL_DIR:-$APP_DIR/seed-sql}"
-if [ "$count" = "0" ]; then
+if [ "$count" = "0" ] && [ "$courses" != "0" ]; then
+  log "courses are loaded but there are no outings; not seeding over them"
+elif [ "$count" = "0" ]; then
   if ls "$SEED_SQL"/*.sql >/dev/null 2>&1; then
     log "loading the seed from $SEED_SQL"
     for f in "$SEED_SQL"/*.sql; do

@@ -25,7 +25,7 @@ export class MemoryD1 implements D1Port {
     return snapshotOver(this.db, () => {});
   }
 
-  async query<T>(sql: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): Promise<T[]> {
+  async query<T>(sql: string, schema: z.ZodType<T>): Promise<T[]> {
     return snapshotOver(this.db, () => {}).all(sql, schema);
   }
 

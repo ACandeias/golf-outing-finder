@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PATHS } from "../lib/paths.ts";
 import { loadPlatforms, parsePlatformsYaml } from "./sources.ts";
-import { blockedAsSource, platformRulesFrom, platformVerdict } from "./platform-policy.ts";
+import { blockedAsSource, deniedPlatformCheck, platformRulesFrom, platformVerdict } from "./platform-policy.ts";
 
 const YAML = `
 platforms:
@@ -168,5 +168,33 @@ describe("the committed platforms.yaml", () => {
     const committed = platformRulesFrom(await loadPlatforms(PATHS.overrides));
     expect(blockedAsSource("https://www.fordham.edu/golf", committed)).toBeNull();
     expect(blockedAsSource("https://azgolf.org/charity-club-sanctioned-events", committed)).toBeNull();
+  });
+
+  it("the URL guard's check names every platform and directory the committed file doesn't allow", async () => {
+    const config = await loadPlatforms(PATHS.overrides);
+    const denied = deniedPlatformCheck(platformRulesFrom(config));
+    // One URL per `allowed: false` entry, on a host its event pages use.
+    const samples: Record<string, string> = {
+      golfstatus: "https://events.golfstatus.com/event/some-classic",
+      tourneylinks: "https://www.tourneylinks.com/tournaments/some-classic",
+      golfgenius: "https://www.golfgenius.com/pages/123",
+      birdease: "https://someclub.birdease.com/outing",
+      givesmart: "https://e.givesmart.com/events/abc/",
+      onecause: "https://www.onecause.com/event/x",
+      "gofundme-pro": "https://pro.gofundme.com/event/charity-golf",
+      networkforgood: "https://someorg.networkforgood.com/events/1-golf",
+      eventbrite: "https://www.eventbrite.ca/e/golf-1",
+      "Scramble Hunter": "https://scramblehunter.com/event/some-scramble/",
+      "charitygolfevent.com": "https://www.charitygolfevent.com/en-US/charity-golf-events/x",
+      "golfsync.io": "https://golfsync.io/tournament-center/tournaments/x",
+    };
+    const off = [...config.platforms, ...config.directories].filter((e) => !e.allowed).map((e) => e.name);
+    // A new `allowed: false` entry needs a sample here, so it can't go unchecked.
+    expect(Object.keys(samples).sort()).toEqual([...off].sort());
+    for (const [name, url] of Object.entries(samples)) expect(denied(url), url).toBe(name);
+    expect(denied("https://www.classy.org/event/charity-golf")).toBe("gofundme-pro");
+    expect(denied("https://www.playprivategolf.com/states")).toBeNull();
+    expect(denied("https://www.fordham.edu/golf")).toBeNull();
+    expect(denied("https://azgolf.org/charity-club-sanctioned-events")).toBeNull();
   });
 });

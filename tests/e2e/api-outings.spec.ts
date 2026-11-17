@@ -25,7 +25,7 @@ const FeatureModel = z.object({
     type: z.literal("Point"),
     coordinates: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
   }),
-  properties: z.record(z.unknown()),
+  properties: z.record(z.string(), z.unknown()),
 });
 const CollectionModel = z.object({
   type: z.literal("FeatureCollection"),

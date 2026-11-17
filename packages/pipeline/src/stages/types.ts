@@ -108,7 +108,7 @@ export const COUNTERS = [...RUN_COUNTERS, ...EXTRA_COUNTERS] as const;
 export type Counter = (typeof COUNTERS)[number];
 export const counterSchema = z.enum(COUNTERS);
 export type Counters = Partial<Record<Counter, number>>;
-export const countersSchema = z.record(counterSchema, z.number().int().min(0));
+export const countersSchema = z.partialRecord(counterSchema, z.number().int().min(0));
 
 export const budgetCapSchema = z.enum(BUDGET_CAPS);
 
@@ -177,7 +177,7 @@ export type Stage<I, O> = (ctx: Context, input: I) => StageOutput<O>;
  * runner from the BudgetGuard. A stage that would exceed one stops, returns a
  * BudgetHit, and lets the remaining stages run (SPEC.md 8.0).
  */
-export const allowanceSchema = z.record(budgetCapSchema, z.number().int().min(0));
+export const allowanceSchema = z.partialRecord(budgetCapSchema, z.number().int().min(0));
 export type Allowance = Partial<Record<BudgetCap, number>>;
 
 // ---------------------------------------------------------------------------
@@ -290,6 +290,12 @@ export const searchPlanInputSchema = z.object({
    * order. Empty or absent: the plain schedule.
    */
   prioritize_states: z.array(z.string().length(2)).optional(),
+  /**
+   * `--backfill=<page>` (1-based): search this page of metros instead of
+   * tonight's rotation. A page holds as many metros as fit the query cap, in
+   * file order; a page past the last one plans no place queries.
+   */
+  backfill_page: z.number().int().min(1).optional(),
 });
 export type SearchPlanInput = z.infer<typeof searchPlanInputSchema>;
 export const searchPlanOutputSchema = z.object({ queries: z.array(serpQuerySchema) });
@@ -756,7 +762,7 @@ export interface UpsertPlan {
 }
 
 function opSchemaFor(table: TableName) {
-  const object: z.AnyZodObject = TABLE_OBJECT_SCHEMAS[table];
+  const object: z.ZodObject = TABLE_OBJECT_SCHEMAS[table];
   const rows: z.ZodTypeAny = TABLE_ROW_SCHEMAS[table];
   const columns = Object.keys(object.shape) as [string, ...string[]];
   const col = z.enum(columns);
@@ -939,7 +945,7 @@ export const stageStatusSchema = z.object({
 });
 export type StageStatus = z.infer<typeof stageStatusSchema>;
 
-export const holdCountsSchema = z.record(holdReasonSchema, z.number().int().min(0));
+export const holdCountsSchema = z.partialRecord(holdReasonSchema, z.number().int().min(0));
 export type HoldCounts = Partial<Record<HoldReason, number>>;
 
 export interface ReportInput {

@@ -67,6 +67,9 @@ describe("output schema", () => {
       .events.items;
     expect(Object.keys(items.properties).sort()).toEqual(v3keys);
     expect(items.additionalProperties).toBe(false);
+    // One flat schema: zod 4.6 would otherwise hoist reused parts into $defs.
+    expect(json).not.toContain("$ref");
+    expect(json).not.toContain("$defs");
     expect(json).toContain('"enum":["open","waitlist","sold_out","cancelled","unknown"]');
     expect(json).not.toContain("{enum:");
   });

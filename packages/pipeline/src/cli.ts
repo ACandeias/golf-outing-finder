@@ -134,6 +134,7 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       strict: opts.strict,
       ...(opts.mode === "live" ? { llm: opts.llm, serp: opts.serp } : {}),
       ...(opts.prioritizeStates.length ? { prioritize_states: opts.prioritizeStates.join(",") } : {}),
+      ...(opts.backfillPage !== null ? { backfill_page: opts.backfillPage } : {}),
       ...(opts.failStage ? { fail_stage: opts.failStage } : {}),
     });
 
@@ -145,6 +146,7 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       serp: opts.serp,
       prioritizeStates: opts.prioritizeStates,
       forceRecheck: opts.recheckAll,
+      ...(opts.backfillPage !== null ? { backfillPage: opts.backfillPage } : {}),
       ...deps.edges,
     });
     closeEdges = () => edges.close();
