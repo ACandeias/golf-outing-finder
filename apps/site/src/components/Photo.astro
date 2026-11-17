@@ -3,7 +3,7 @@
  * A decorative stock photograph behind the home hero or a page band
  * (lib/photos.ts). AVIF first, WebP second, art-directed: the hero switches to a
  * 3:4 crop on portrait screens and a band to a 2:1 crop below 1024px. It is the
- * page's LCP element, so it loads eagerly at high priority.
+ * page's LCP element, so it loads eagerly at high priority unless `lazy` is set.
  */
 import {
   BAND_NARROW_WIDTHS,
@@ -18,9 +18,11 @@ import {
 interface Props {
   photo: PhotoKey;
   kind: "hero" | "band";
+  /** A band below the first screen: loaded lazily at normal priority. */
+  lazy?: boolean;
 }
 
-const { photo, kind } = Astro.props;
+const { photo, kind, lazy = false } = Astro.props;
 const hero = kind === "hero";
 const narrowMedia = hero ? "(orientation: portrait)" : "(max-width: 1023.98px)";
 const narrowCrop = hero ? "hero-m" : "band-m";
@@ -41,8 +43,8 @@ const narrowSizes = hero ? "100vw" : "140vw";
     width="1440"
     height={hero ? 810 : 360}
     alt=""
-    loading="eager"
+    loading={lazy ? "lazy" : "eager"}
     decoding="async"
-    fetchpriority="high"
+    fetchpriority={lazy ? "auto" : "high"}
   />
 </picture>

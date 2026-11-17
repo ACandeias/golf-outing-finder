@@ -65,7 +65,7 @@ function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElemen
   const d = dateBlock({ status: p.status, startDate: p.startDate ?? null }, { currentYear });
   const date = el("p", "tee-date");
   date.setAttribute("aria-hidden", "true");
-  add(date, el("span", "tee-date-top", d.top), el("span", "tee-date-big", d.big), el("span", "tee-date-bottom", d.bottom));
+  add(date, el("span", "tee-date-top", d.top), el("span", d.big.length > 3 ? "tee-date-big is-long" : "tee-date-big", d.big), el("span", "tee-date-bottom", d.bottom));
 
   const main = el("div", "tee-main");
   const h = el("h3", "tee-title");

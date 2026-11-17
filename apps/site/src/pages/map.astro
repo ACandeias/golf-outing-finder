@@ -16,6 +16,7 @@ Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=3600");
   heading="Map of upcoming outings"
 >
   <p class="map-count muted" aria-live="polite" data-map-count>Loading the map…</p>
+  <noscript><p class="map-count">The map needs JavaScript. The same outings are listed by state, below.</p></noscript>
   <div class="map" id="map" data-map role="region" aria-label="Map of upcoming golf outings"></div>
   <p class="wrap small muted attr">
     Map data: {OPENFREEMAP_ATTRIBUTION_TEXT}. {OSM_ATTRIBUTION_TEXT}. Prefer a list? <a href="/golf-outings">Browse outings by state</a>.
@@ -24,10 +25,9 @@ Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=3600");
 
 <style>
   .map-count {
-    margin: 0.75rem auto 1rem;
-    padding: 0 16px;
-    max-width: 60ch;
-    text-align: center;
+    margin: 0 auto 1.25rem;
+    padding: 0 var(--gutter);
+    max-width: calc(var(--wrap) + 2 * var(--gutter));
     font-style: italic;
   }
   .map {
@@ -46,10 +46,13 @@ Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=3600");
   const el = document.querySelector<HTMLElement>("[data-map]");
   const count = document.querySelector<HTMLElement>("[data-map-count]");
   if (el) {
-    void mountMap(el, {
+    mountMap(el, {
       onCount: (n) => {
         if (count) count.textContent = n === 0 ? "No upcoming outings in this area. Zoom out or move the map." : `${n} upcoming ${n === 1 ? "outing" : "outings"} in this area (up to 200 shown). Select a cluster to zoom in.`;
       },
+    }).catch(() => {
+      el.hidden = true;
+      if (count) count.textContent = "This browser can't draw the map. The same outings are listed by state, below.";
     });
   }
 </script>
