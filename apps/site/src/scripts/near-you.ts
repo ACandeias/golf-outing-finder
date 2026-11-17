@@ -95,7 +95,10 @@ function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElemen
   });
 
   const action = el("div", "tee-action");
-  const reg = safeHttpUrl(p.registrationUrl);
+  // Same rule as the tee sheet (lib/outing-view.ts offersRegistration): a
+  // cancelled or sold-out outing links to its own page, not to registration.
+  const takesEntries = p.status === "open" || p.status === "waitlist";
+  const reg = takesEntries ? safeHttpUrl(p.registrationUrl) : null;
   const btn = el("a", reg ? "button" : "button secondary", reg ? "Register" : "Details");
   btn.href = reg ?? p.url;
   if (reg) {

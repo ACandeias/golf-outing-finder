@@ -388,6 +388,10 @@ export const discover: DiscoverStage = (ctx, input) => {
       rawUrl: url,
       found_via: via.data,
       priority: p.priority,
+      // A queued row is still owed its fetch or its extraction (a page the
+      // extraction caps deferred was fetched minutes ago), so the 7-day rule
+      // doesn't apply to it.
+      bypass: true,
       recheck_outing_id: null,
       directory_host: null,
     });
@@ -453,6 +457,10 @@ export const discover: DiscoverStage = (ctx, input) => {
           directory_host: directoryHost ?? existing.directory_host,
           bypass_dedupe: existing.bypass_dedupe || c.bypass,
         });
+      } else if (c.bypass && !existing.bypass_dedupe) {
+        // The same URL from a route that bypasses the 7-day rule (a queued row,
+        // a recheck, a series page) keeps that right whichever came first.
+        byUrl.set(url, { ...existing, bypass_dedupe: true });
       }
       skipped.push({ url, reason: "duplicate" });
       continue;

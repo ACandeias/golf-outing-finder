@@ -4,7 +4,7 @@ import { haversineKm, KM_PER_MILE, type LatLng } from "@gof/shared/places";
 import Labels from "./Labels.astro";
 import { siteYear } from "../lib/clock.ts";
 import { dateBlock } from "../lib/date-block.ts";
-import { outingView } from "../lib/outing-view.ts";
+import { offersRegistration, outingView } from "../lib/outing-view.ts";
 import { verifiedDate } from "../lib/format.ts";
 import { outingPath } from "../lib/urls.ts";
 
@@ -59,7 +59,7 @@ const priceKnown = o.singlePriceCents !== null || o.foursomePriceCents !== null;
   </p>
   <div class="tee-action">
     {
-      !v.isExpected && !v.isPast && o.status !== "cancelled" ? (
+      offersRegistration(o.status) ? (
         <a class="button" href={registerHref} rel="nofollow noopener" target="_blank">
           {o.registrationUrl ? "Register" : "See site"}
           <span class="visually-hidden"> for {o.title} (opens the organizer's site)</span>

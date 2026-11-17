@@ -38,6 +38,9 @@ const charityLine: Record<string, string> = {
 };
 
 setCache(Astro, TTL.list);
+const lead = [charityLine[org.charityStatus] ?? "", courses.length > 1 ? `They run outings at ${courses.length} courses.` : ""]
+  .filter((t) => t !== "")
+  .join(" ");
 ---
 
 <Base
@@ -49,7 +52,7 @@ setCache(Astro, TTL.list);
   heading={`Golf outings by ${org.name}`}
   photo={bandPhotoFor(org.slug)}
 >
-  <p class="lead">{charityLine[org.charityStatus] ?? ""} {courses.length > 1 ? `They run outings at ${courses.length} courses.` : ""}</p>
+  {lead && <p class="lead">{lead}</p>}
 
   <section aria-labelledby="upcoming">
     <h2 id="upcoming">Upcoming outings</h2>

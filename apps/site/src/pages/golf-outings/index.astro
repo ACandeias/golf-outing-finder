@@ -45,7 +45,8 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="by-state">
     <h2 id="by-state">States with outings</h2>
-    <table class="states ruled">
+    {withOutings.length === 0 && <p>No outings are listed yet. New ones are added every night.</p>}
+    <table class="states ruled" hidden={withOutings.length === 0}>
       <thead>
         <tr><th scope="col">State</th><th scope="col">Upcoming</th><th scope="col">Expected</th></tr>
       </thead>
@@ -65,7 +66,13 @@ setCache(Astro, TTL.list);
 
   <section aria-labelledby="soonest">
     <h2 id="soonest">Soonest outings</h2>
-    <TeeSheet outings={soonest} adSlots={listAdsFor(soonest.length)} />
+    {
+      soonest.length === 0 ? (
+        <p>No dated outings are coming up right now.</p>
+      ) : (
+        <TeeSheet outings={soonest} adSlots={listAdsFor(soonest.length)} />
+      )
+    }
   </section>
 
   <section aria-labelledby="all-states">

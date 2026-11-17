@@ -7,6 +7,7 @@ import JsonLd from "../components/JsonLd.astro";
 import PageHead from "../components/PageHead.astro";
 import AdsRuntime from "../components/AdsRuntime.astro";
 import { siteAdsConfig } from "../lib/ads-env.ts";
+import { siteYear } from "../lib/clock.ts";
 import { absoluteUrl, canonicalPath } from "../lib/urls.ts";
 import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
 import type { PhotoKey } from "../lib/photos.ts";
@@ -50,7 +51,8 @@ const allCrumbs: CrumbLink[] = [{ name: "Home", path: "/" }, ...crumbs];
 const breadcrumbLd = buildBreadcrumbJsonLd(
   allCrumbs.map((c, i) => ({ name: c.name, url: absoluteUrl(i === allCrumbs.length - 1 ? path : (c.path ?? path), Astro) })),
 );
-const year = new Date().getUTCFullYear();
+// The site clock, so a pinned SITE_NOW and the footer agree (prerendered pages keep their build year).
+const year = siteYear();
 // Link to /guides only when this build renders a guide (never to drafts in production).
 const showGuides = await hasGuides();
 // Consent, analytics and ads run on server-rendered pages only: prerendered pages
@@ -87,6 +89,8 @@ const current = (match: string[]) => match.some((m) => path === m || path.starts
     <JsonLd data={breadcrumbLd} />
     {jsonLd.map((d) => <JsonLd data={d} />)}
     {ads?.runtime && <AdsRuntime config={ads} />}
+    <!-- Controls that only work with JavaScript (near-you, the city map toggle) are not shown without it. -->
+    <noscript><style>[data-needs-js] { display: none !important; }</style></noscript>
   </head>
   <body class:list={{ "is-home": home }}>
     <a class="skip" href="#main">Skip to main content</a>

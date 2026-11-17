@@ -9,7 +9,6 @@
     "preview": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "wrangler types && astro check",
-    "test:e2e": "playwright test",
     "db:migrate:local": "wrangler d1 migrations apply gof --local --config wrangler.toml",
     "db:migrate:remote": "wrangler d1 migrations apply gof --remote --config wrangler.toml",
     "typegen": "wrangler types"

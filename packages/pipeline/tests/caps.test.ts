@@ -54,6 +54,39 @@ function runs(d1: MemoryD1) {
   return z.array(runRow).parse(d1.db.prepare("SELECT * FROM runs ORDER BY started_at").all());
 }
 
+describe("MAX_EXTRACTIONS_PER_RUN=3", () => {
+  it("puts the pages it fetched but could not extract back in the queue, and the next run extracts them", async () => {
+    const first = await dryRun(["--dry-run", "--strict"], { ...ENV, MAX_EXTRACTIONS_PER_RUN: "3" });
+    expect(first.exitCode).toBe(0);
+    const [row] = runs(first.d1);
+    expect(row?.extractions).toBe(3);
+    expect(hitSchema.parse(JSON.parse(row?.budget_hits ?? "[]")).map((h) => h.cap)).toContain("MAX_EXTRACTIONS_PER_RUN");
+    const queued = z
+      .array(z.object({ url: z.string(), attempts: z.number() }))
+      .parse(first.d1.db.prepare("SELECT url, attempts FROM discovery_queue").all());
+    expect(queued.length).toBeGreaterThanOrEqual(5);
+    const outingsAfterFirst = z
+      .object({ n: z.number() })
+      .parse(first.d1.db.prepare("SELECT count(*) AS n FROM outings").get()).n;
+
+    // Same night, same database, no cap: the queued pages are fetched and extracted
+    // even though their sources were fetched minutes ago.
+    const second = await dryRun(["--dry-run", "--strict"], ENV, {}, first.d1);
+    expect(second.exitCode).toBe(0);
+    const outingsAfterSecond = z
+      .object({ n: z.number() })
+      .parse(second.d1.db.prepare("SELECT count(*) AS n FROM outings").get()).n;
+    expect(outingsAfterSecond).toBeGreaterThan(outingsAfterFirst);
+    // What is still queued is only the seed's pages on platforms that
+    // platforms.yaml doesn't allow: a queued row gets no pass on that rule.
+    const left = z
+      .array(z.object({ url: z.string() }))
+      .parse(second.d1.db.prepare("SELECT url FROM discovery_queue").all());
+    expect(left.length).toBeLessThan(queued.length);
+    for (const row of left) expect(row.url).toMatch(/networkforgood\.com|scramblehunter\.com/);
+  });
+});
+
 describe("MAX_SERP_QUERIES_PER_RUN=5", () => {
   it("stops search at 5 queries, records the budget hit, and every other stage still completes", async () => {
     const r = await dryRun(["--dry-run", "--strict"], { ...ENV, MAX_SERP_QUERIES_PER_RUN: "5" });

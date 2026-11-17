@@ -39,6 +39,15 @@ export function outingView(o: OutingListItem): OutingView {
   };
 }
 
+/**
+ * Whether a card or page offers the organizer's registration link. Expected,
+ * past, cancelled and sold-out outings link to their own page instead, in the
+ * tee sheet, on the outing page and in the rows the near-you script builds.
+ */
+export function offersRegistration(status: OutingListItem["status"]): boolean {
+  return status === "open" || status === "waitlist";
+}
+
 /** SPEC.md 9.4 outing title. */
 export function outingTitle(o: OutingListItem): string {
   // "{Title} at {Course}", without repeating the course when the title already names it.
