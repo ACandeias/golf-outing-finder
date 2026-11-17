@@ -67,12 +67,17 @@ export function completedStates(
       continue;
     }
     if (!Array.isArray(list)) continue;
+    // The stage is marked done even when a state failed (the run goes on), so a
+    // finished stage only vouches for the states it recorded. A row with the
+    // stage and no states predates per-state progress: everything was imported.
+    let states = 0;
     for (const entry of list) {
-      if (entry === "courses") return "all";
       if (typeof entry === "string" && entry.startsWith(PROGRESS_PREFIX)) {
         done.add(entry.slice(PROGRESS_PREFIX.length));
+        states++;
       }
     }
+    if (states === 0 && list.includes("courses")) return "all";
   }
   return done;
 }
@@ -151,6 +156,10 @@ export function coursesHandler(deps: CoursesHandlerDeps = {}): StageHandler {
     }
 
     const todo = states.filter((s) => !prior.has(s));
+    if (todo.length === 0) {
+      ctx.log.info("courses already imported by an earlier monthly run this month; skipping");
+      return { result };
+    }
     if (todo.length < states.length) {
       ctx.log.info("resuming the courses import", {
         done: states.length - todo.length,
