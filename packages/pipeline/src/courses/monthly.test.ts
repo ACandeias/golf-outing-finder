@@ -94,9 +94,9 @@ describe("completedStates", () => {
         "me",
       ),
     ).toEqual(new Set(["AZ", "CA"]));
-    expect(completedStates([{ id: "a", stages_done: '["courses:AZ","courses"]' }], "me")).toBe(
-      "all",
-    );
+    // A finished stage vouches only for the states it recorded (a failed state isn't one of them).
+    expect(completedStates([{ id: "a", stages_done: '["courses:AZ","courses"]' }], "me")).toEqual(new Set(["AZ"]));
+    expect(completedStates([{ id: "a", stages_done: '["courses"]' }], "me")).toBe("all");
   });
 });
 
@@ -187,6 +187,29 @@ describe("courses handler (SPEC.md 8.1 step 1)", () => {
     const asked: string[] = [];
     await runCourses({ featuresFor: async (s) => (asked.push(s), []) }, { d1 });
     expect(asked).toEqual([]);
+  });
+
+  it("retries only the state that failed in an earlier run this month", async () => {
+    const d1 = new MemoryD1();
+    await d1.apply(
+      runRowPlan({
+        ...newRunRow("run_one_failed", "monthly", new Date("2026-10-01T08:00:00.000Z")),
+        stages_done: '["courses:NY","courses","report"]',
+      }),
+    );
+    const asked: string[] = [];
+    const { stagesDone } = await runCourses(
+      {
+        states: async () => ["NJ", "NY"],
+        featuresFor: async (state) => {
+          asked.push(state);
+          return [feature("way/9003", "Retry Test Golf Club", 40.74, -74.17)];
+        },
+      },
+      { d1 },
+    );
+    expect(asked).toEqual(["NJ"]);
+    expect(stagesDone).toEqual(["courses:NJ", "courses", "report"]);
   });
 
   it("records a failed state, keeps going, and leaves it for the next run", async () => {
