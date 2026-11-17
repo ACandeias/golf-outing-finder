@@ -154,7 +154,7 @@ setCache(Astro, TTL.list);
               {o.course.street && <>, {o.course.street}</>}, {v.place}{o.course.zip && <> {o.course.zip}</>}
             </dd>
           </div>
-          <div><dt>Course type</dt><dd>{v.courseTypeLabel}</dd></div>
+          {v.courseTypeLabel && <div><dt>Course type</dt><dd>{v.courseTypeLabel}</dd></div>}
           <div>
             <dt>Outing type</dt>
             <dd>

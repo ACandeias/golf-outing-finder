@@ -49,7 +49,7 @@ function popupContent(p: Record<string, unknown>): HTMLElement {
   const lines = [
     `${str(p.course)}, ${str(p.place)}`,
     str(p.time) ? `${str(p.when)}, ${str(p.time)}` : str(p.when),
-    `${str(p.courseType)}, ${str(p.label).toLowerCase()}`,
+    str(p.courseType) ? `${str(p.courseType)}, ${str(p.label).toLowerCase()}` : str(p.label),
     str(p.price),
   ];
   add(box, strong);

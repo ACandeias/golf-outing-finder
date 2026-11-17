@@ -80,7 +80,8 @@ function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElemen
   add(courseType, el("span", "visually-hidden", "Course type: "), document.createTextNode(p.courseType));
   const outingType = el("span", "fact");
   add(outingType, el("span", "visually-hidden", "Outing type: "), document.createTextNode(p.label));
-  add(facts, courseType, outingType);
+  if (p.courseType) add(facts, courseType);
+  add(facts, outingType);
   if (p.status === "waitlist") add(facts, el("span", "fact", "Waitlist"));
   if (p.status === "sold_out") add(facts, el("span", "fact alert", "Sold out"));
   if (p.status === "cancelled") add(facts, el("span", "fact alert", "Cancelled"));
