@@ -95,6 +95,31 @@ describe("classify stage", () => {
     expect(result.counters.events_excluded).toBe(3);
   });
 
+  it("excludes leagues and tour events sold to spectators even when the model calls them outings", () => {
+    const titles = [
+      "2027 PGA Championship",
+      "U.S. Women's Open 2027 - Volunteer & Spectator Opportunities",
+      "2026 Skechers World Champions Cup",
+      "Los Prados 2026 Tuesday League",
+      "2027 Thursday Fall League",
+      "6th Annual Black Excellence Gala",
+    ];
+    const kept = [
+      "PGA Turkey Scramble 2026",
+      "Champions for Kids Golf Classic",
+      "Little League Boosters Golf Outing",
+      "State Open of Virginia",
+      "Gala Golf Classic",
+      "U.S. Open Watch Party Scramble",
+    ];
+    const { output } = classify(testCtx(), {
+      irs,
+      events: [...titles, ...kept].map((title) => extracted({ title })),
+    });
+    expect(output.outings.filter((o) => o.exclude_reason === "not_outing").map((o) => o.title)).toEqual(titles);
+    expect(output.outings.filter((o) => !o.excluded).map((o) => o.title)).toEqual(kept);
+  });
+
   it("sets charity status, org_type and organizer domain", () => {
     const { output } = classify(testCtx(), {
       irs,
