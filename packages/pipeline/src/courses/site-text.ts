@@ -91,10 +91,19 @@ export function findAboutLink(html: string, baseUrl: string): string | null {
     u.hash = "";
     if (u.toString() === new URL(base.toString().split("#")[0]!).toString()) continue;
     if (/\.(pdf|jpe?g|png|gif|zip|docx?)$/i.test(u.pathname)) continue;
-    const hay = `${label} ${decodeURIComponent(u.pathname).replace(/[/_-]+/g, " ")}`;
+    const hay = `${label} ${decodePath(u.pathname).replace(/[/_-]+/g, " ")}`;
     const rank = LINK_RULES.findIndex((r) => r.test(hay));
     if (rank >= 0) candidates.push({ url: u.toString(), rank, order });
   }
   candidates.sort((a, b) => a.rank - b.rank || a.order - b.order);
   return candidates[0]?.url ?? null;
+}
+
+/** A path with a broken percent escape ("/50%-off") is matched as written instead of throwing. */
+function decodePath(path: string): string {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
 }
