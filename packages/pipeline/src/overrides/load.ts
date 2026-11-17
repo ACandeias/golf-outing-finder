@@ -60,7 +60,7 @@ export const hostNameSchema = z
   );
 
 /** A YAML list that may be empty, null or missing. */
-function listOf<T extends z.ZodTypeAny>(item: T): z.ZodType<z.output<T>[], z.ZodTypeDef, unknown> {
+function listOf<T extends z.ZodTypeAny>(item: T): z.ZodType<z.output<T>[]> {
   return z
     .array(item)
     .nullable()

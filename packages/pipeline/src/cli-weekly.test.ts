@@ -43,7 +43,7 @@ class RemoteLike implements D1Port {
   apply(plan: UpsertPlan): Promise<ApplyReport> {
     return this.inner.apply(plan);
   }
-  query<T>(sql: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): Promise<T[]> {
+  query<T>(sql: string, schema: z.ZodType<T>): Promise<T[]> {
     return this.inner.query(sql, schema);
   }
 }

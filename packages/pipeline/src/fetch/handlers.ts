@@ -63,7 +63,7 @@ function isoMinus(now: Date, ms: number): string {
 }
 
 /** Rows that fail validation are dropped with a warning instead of failing the stage. */
-function valid<T>(env: StageEnv, what: string, rows: unknown[], schema: z.ZodType<T, z.ZodTypeDef, unknown>): T[] {
+function valid<T>(env: StageEnv, what: string, rows: unknown[], schema: z.ZodType<T>): T[] {
   const out: T[] = [];
   let bad = 0;
   for (const r of rows) {
@@ -75,7 +75,7 @@ function valid<T>(env: StageEnv, what: string, rows: unknown[], schema: z.ZodTyp
   return out;
 }
 
-const looseRow = z.record(z.unknown());
+const looseRow = z.record(z.string(), z.unknown());
 
 /** Normalizes SQLite timestamps (`2026-09-20 10:00:00`, no zone) to ISO UTC. */
 function isoTs(v: unknown): unknown {

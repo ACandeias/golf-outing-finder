@@ -83,7 +83,7 @@ export function createGitHubIssues(opts: GitHubIssuesOptions): GitHubIssues {
   async function call<T>(
     method: "GET" | "POST" | "PATCH",
     url: string,
-    schema: z.ZodType<T, z.ZodTypeDef, unknown>,
+    schema: z.ZodType<T>,
     body?: unknown,
   ): Promise<T> {
     const path = new URL(url).pathname;

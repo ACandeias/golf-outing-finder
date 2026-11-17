@@ -50,7 +50,7 @@ export interface ZipRow {
   state: string;
 }
 
-const num = z.coerce.number().finite();
+const num = z.coerce.number<string>().finite();
 const lat = num.min(-90).max(90);
 const lng = num.min(-180).max(180);
 

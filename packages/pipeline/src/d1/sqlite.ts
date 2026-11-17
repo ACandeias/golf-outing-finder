@@ -28,7 +28,7 @@ export function loadDump(db: Sqlite, dumpSql: string): void {
 /** A Snapshot over an open database; rows come back validated. */
 export function snapshotOver(db: Sqlite, onClose: () => void = () => db.close()): Snapshot {
   return {
-    all<T>(sql: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T[] {
+    all<T>(sql: string, schema: z.ZodType<T>): T[] {
       const rows = db.prepare(sql).all() as unknown[];
       return rows.map((r, i) => {
         const parsed = schema.safeParse({ ...(r as object) });
