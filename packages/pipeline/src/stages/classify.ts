@@ -1,6 +1,6 @@
 import { orgTypeForOutingType } from "@gof/shared/labels";
 import { matchIrs } from "../classify/irs-match.ts";
-import { charityStatusFor, outingTypeFor } from "../classify/rules.ts";
+import { charityStatusFor, isNotPlayableTitle, outingTypeFor } from "../classify/rules.ts";
 import { organizerDomainFor } from "../extract/canonical.ts";
 import {
   classifiedOutingSchema,
@@ -12,11 +12,12 @@ import {
 
 type ExcludeReason = ClassifiedOuting["exclude_reason"];
 
-/** SPEC.md 8.5: is_outing false, a reject_reason, or lodging required. */
+/** SPEC.md 8.5: is_outing false, a reject_reason, or lodging required; then the title backstop. */
 function exclusion(e: ExtractedEvent): ExcludeReason {
   if (e.reject_reason !== null) return e.reject_reason;
   if (!e.is_outing) return "not_outing";
   if (e.lodging_required) return "lodging_required";
+  if (isNotPlayableTitle(e.title)) return "not_outing";
   return null;
 }
 

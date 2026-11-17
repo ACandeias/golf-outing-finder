@@ -36,3 +36,29 @@ export function charityStatusFor(subsection: string | null): CharityStatus {
   if (subsection === null) return "unverified";
   return subsection === "03" ? "501c3" : "other_nonprofit";
 }
+
+const GOLF_PLAY = /\b(scramble|outing|classic|tournament|shamble|pro[- ]?am|fundraiser|benefit)\b/i;
+const NOT_PLAYABLE = [
+  // Tour events and majors: the public buys a ticket to watch, not a place in the field.
+  /\b(pga|senior pga) championship\b/i,
+  /\bu\.?s\.? (women's |senior |senior women's )?open\b/i,
+  /\b(ryder|presidents|solheim|walker|curtis|world champions) cup\b/i,
+  /\b(spectators?|volunteers?) (opportunit|tickets?|registration)/i,
+  /\bvolunteer (&|and) spectator\b/i,
+  // A season of weekly rounds is a league, not an outing.
+  /\bleague$/i,
+  /\b(mon|tues|wednes|thurs|fri|satur|sun)day (spring |summer |fall |winter )?league\b/i,
+  // A dinner or gala with "golf" somewhere on the page.
+  /\bgala$/i,
+];
+
+/**
+ * A backstop for events the extraction model sometimes calls outings: tour events sold to
+ * spectators, weekly leagues and galas. A title that also names a playable format ("U.S. Open
+ * Watch Party Scramble") is left alone.
+ */
+export function isNotPlayableTitle(title: string): boolean {
+  const t = title.trim();
+  if (GOLF_PLAY.test(t)) return false;
+  return NOT_PLAYABLE.some((r) => r.test(t));
+}

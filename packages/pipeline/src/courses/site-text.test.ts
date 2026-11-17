@@ -36,4 +36,10 @@ describe("findAboutLink", () => {
     expect(findAboutLink(`<a href="/events">Events</a>`, base)).toBeNull();
     expect(findAboutLink(`<a href="javascript:void(0)">About</a>`, base)).toBeNull();
   });
+
+  it("survives a link whose path has a broken percent escape", () => {
+    const html = `<a href="/specials/50%-off">Specials</a><a href="/about%zz">About</a><a href="/membership">Membership</a>`;
+    expect(findAboutLink(html, base)).toBe("https://www.example-golf.com/membership");
+    expect(findAboutLink(`<a href="/about-100%">About</a>`, base)).toBe("https://www.example-golf.com/about-100%");
+  });
 });
