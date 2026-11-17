@@ -27,6 +27,8 @@ What happens:
 
 `.env` settings: `PUBLIC_SITE_URL` (default `http://localhost:8787`), `SITE_NOW` (pins the clock, ignored when `NODE_ENV=production`), and `NODE_ENV` (default `development`).
 
+**Opening it from a phone on the same Wi-Fi.** Copy `.env.example` to `.env` and set `PUBLIC_SITE_URL=http://<this computer's LAN IP>:8787` (on a Mac, `ipconfig getifaddr en0`; on Windows, `ipconfig`). Then rebuild with `docker compose up --build -d site`: the build passes `PUBLIC_SITE_URL` in as a build arg, because prerendered pages (about, privacy, terms, guides) bake it into their canonical and JSON-LD at build time. Open `http://<LAN IP>:8787/` on the phone. The seed outings are dated October to December 2026; set `SITE_NOW=2026-09-28T12:00:00Z` in `.env` to see all of them. If the phone can't connect, allow incoming connections for Docker in the macOS or Windows firewall.
+
 Dev toolchain containers, which bind-mount the repo, sit behind the `dev` profile:
 
 ```bash
