@@ -13,6 +13,10 @@ services:
     build:
       context: .
       target: runner
+      args:
+        # Read from .env (or the shell). Prerendered pages use the build-time value,
+        # so change it here and rebuild: docker compose up --build -d site
+        PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:8787}
     image: gof-site:latest
     ports:
       - "8787:8787"
