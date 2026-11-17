@@ -41,7 +41,7 @@ const priceKnown = o.singlePriceCents !== null || o.foursomePriceCents !== null;
 >
   <p class="tee-date" aria-hidden="true">
     <span class="tee-date-top">{d.top}</span>
-    <span class="tee-date-big">{d.big}</span>
+    <span class:list={["tee-date-big", { "is-long": d.big.length > 3 }]}>{d.big}</span>
     <span class="tee-date-bottom">{d.bottom}</span>
   </p>
   <div class="tee-main">

@@ -1,13 +1,17 @@
 Fonts in this directory are self-hosted woff2 files, latin subset, as served by
 Google Fonts (fonts.gstatic.com) in October 2026:
 
-  marcellus-v14-400-latin.woff2               Marcellus Regular (display: wordmark,
-                                              nav, titles, headings, buttons)
+  marcellus-v14-400-latin.woff2               Marcellus Regular (tracked capitals:
+                                              wordmark, nav, buttons, small labels)
   libre-caslon-text-v5-400-latin.woff2        Libre Caslon Text Regular
   libre-caslon-text-v5-400italic-latin.woff2  Libre Caslon Text Italic
   libre-caslon-text-v5-700-latin.woff2        Libre Caslon Text Bold
+  cormorant-garamond-v21-latin.woff2          Cormorant Garamond (variable weight;
+                                              page titles and headings), added
+                                              November 2026
+  cormorant-garamond-v21-italic-latin.woff2   Cormorant Garamond Italic (variable)
 
-Both families are licensed under the SIL Open Font License, Version 1.1. The
+All three families are licensed under the SIL Open Font License, Version 1.1. The
 licence for each family follows.
 
 ================================================================================
@@ -206,3 +210,13 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+================================================================================
+Cormorant Garamond
+================================================================================
+
+Copyright 2015 The Cormorant Project Authors (github.com/CatharsisFonts/Cormorant)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+The license text is the same as the copies above, and is also available with a
+FAQ at: https://scripts.sil.org/OFL

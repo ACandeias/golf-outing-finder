@@ -5,7 +5,6 @@ import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
 import TeeSheet from "../components/TeeSheet.astro";
-import Crest from "../components/Crest.astro";
 import Photo from "../components/Photo.astro";
 import { HERO_PHOTO, HERO_TALL_WIDTHS, HERO_WIDE_WIDTHS, photoSrcset } from "../lib/photos.ts";
 import { getDb } from "../lib/db.ts";
@@ -14,6 +13,7 @@ import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../lib/urls.ts";
 import { siteEnv } from "../lib/env.ts";
+import { GUIDES_PATH, guideLinks } from "../lib/guides.ts";
 
 // Search Console and Bing verification (SPEC.md 13 Phase 3): the home page only,
 // and only when the Worker var is set.
@@ -53,7 +53,21 @@ if (Astro.url.searchParams.has("q")) {
 const soonest = await listUpcomingOutings(db, { today, limit: 12 });
 const counts = await countUpcomingByState(db, today);
 const countBy = new Map(counts.map((c) => [c.state, c.count]));
-const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
+// The four census regions, so the directory reads as a map of the country rather than an A to Z.
+const REGIONS: readonly { name: string; codes: readonly string[] }[] = [
+  { name: "Northeast", codes: ["CT", "ME", "MA", "NH", "NJ", "NY", "PA", "RI", "VT"] },
+  { name: "South", codes: ["AL", "AR", "DE", "DC", "FL", "GA", "KY", "LA", "MD", "MS", "NC", "OK", "SC", "TN", "TX", "VA", "WV"] },
+  { name: "Midwest", codes: ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"] },
+  { name: "West", codes: ["AK", "AZ", "CA", "CO", "HI", "ID", "MT", "NV", "NM", "OR", "UT", "WA", "WY"] },
+];
+const stateName = (code: string): string => (US_STATES as Record<string, string>)[code] ?? code;
+const regions = REGIONS.map((r) => ({
+  name: r.name,
+  states: r.codes.map((code) => ({ code, name: stateName(code), count: countBy.get(code) ?? 0 })).sort((a, b) => a.name.localeCompare(b.name)),
+}));
+const totalUpcoming = counts.reduce((n, c) => n + c.count, 0);
+// Three guides a first-timer reads before signing up, when this build renders them.
+const guides = await guideLinks(["how-charity-golf-outings-work", "what-is-a-golf-scramble", "what-an-entry-fee-includes"]);
 
 setCache(Astro, TTL.home);
 ---
@@ -92,13 +106,9 @@ setCache(Astro, TTL.home);
   <section class="hero" aria-labelledby="hero-title">
     <Photo photo={HERO_PHOTO} kind="hero" />
     <div class="scrim hero-scrim"></div>
-    <div class="frame hero-frame"></div>
     <div class="hero-inner">
-      <Crest size={76} class="hero-crest" />
-      <h1 id="hero-title" class="hero-title">
-        <span class="hero-kicker">Welcome to </span><span class="hero-wordmark">Golf Outing Finder</span>
-      </h1>
-      <p class="hero-tagline">Outings anyone can enter, from the muni down the road to the club across town.</p>
+      <h1 id="hero-title" class="hero-title">Golf outings anyone can enter</h1>
+      <p class="hero-tagline">Charity scrambles, school fundraisers and open days, from the muni down the road to the club across town.</p>
       <form class="search" method="get" action="/" role="search">
         <label for="q">Search by city or ZIP code</label>
         <div class="search-row">
@@ -109,7 +119,7 @@ setCache(Astro, TTL.home);
     </div>
   </section>
 
-  <div class="wrap home-body">
+  <div class="wrap">
     {
       searchMessage && (
         <div class="note search-note" role="status">
@@ -130,282 +140,389 @@ setCache(Astro, TTL.home);
     }
 
     <p class="intro">
-      Charity scrambles, school fundraisers, trade group days and open tournaments at municipal, public, semi-private, private
-      and resort courses. Every listing shows the date, the price and how to register.
+      Every listing shows the date, the course, the price and how to register, checked against the organizer's own page.
     </p>
-    <span class="ornament"></span>
 
-    <section aria-labelledby="soonest">
-      <h2 id="soonest" class="section-title">Coming up</h2>
+    <section aria-labelledby="soonest" class="home-section">
+      <div class="section-head">
+        <h2 id="soonest">Coming up</h2>
+        <p class="section-aside">
+          <a href="/golf-outings">
+            {totalUpcoming > soonest.length ? `All ${totalUpcoming} upcoming outings, by state` : "Outings by state"}
+          </a>
+        </p>
+      </div>
       {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : <TeeSheet outings={soonest} />}
-      <p class="more-link"><a href="/golf-outings">See outings in every state</a></p>
-    </section>
-
-    <section aria-labelledby="near" class="near" data-needs-js>
-      <h2 id="near" class="section-title">Outings near you</h2>
-      <p class="muted near-status" data-near-status aria-live="polite">
-        Share your location to see outings within 100 miles. We don't store it.
-      </p>
-      <p class="near-action"><button class="button secondary" type="button" data-near-button>Use my location</button></p>
-      <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
-    </section>
-
-    <section aria-labelledby="states">
-      <h2 id="states" class="section-title">Browse by state</h2>
-      <ul class="state-list">
-        {
-          states.map(([code, name]) => (
-            <li>
-              <a href={statePath(code)}>{name}</a>
-              {countBy.get(code) ? <span class="muted num"> {countBy.get(code)}</span> : null}
-            </li>
-          ))
-        }
-      </ul>
     </section>
   </div>
+
+  <section aria-labelledby="near" class="near" data-needs-js>
+    <Photo photo="flag-at-dusk" kind="band" lazy />
+    <div class="scrim near-scrim"></div>
+    <div class="wrap near-inner">
+      <h2 id="near">Outings near you</h2>
+      <p class="near-status" data-near-status aria-live="polite">
+        Share your location to see outings within 100 miles. We don't store it.
+      </p>
+      <p class="near-action"><button class="button" type="button" data-near-button>Use my location</button></p>
+    </div>
+  </section>
+  <div class="wrap near-results" data-needs-js>
+    <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
+  </div>
+
+  <section aria-labelledby="states" class="states-band">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="states">Browse by state</h2>
+        <p class="section-aside"><a href="/map">See them on a map</a></p>
+      </div>
+      <div class="regions">
+        {
+          regions.map((r) => (
+            <div class="region">
+              <h3 class="region-name">{r.name}</h3>
+              <ul class="state-list">
+                {r.states.map((st) => (
+                  <li>
+                    <a href={statePath(st.code)}>{st.name}</a>
+                    {st.count > 0 && <span class="state-count num"> {st.count}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {
+    guides.length > 0 && (
+      <section aria-labelledby="guides" class="wrap home-section guides-section">
+        <div class="section-head">
+          <h2 id="guides">New to outings?</h2>
+          <p class="section-aside">
+            <a href={GUIDES_PATH}>All guides</a>
+          </p>
+        </div>
+        <ul class="guide-cards">
+          {guides.map((g) => (
+            <li>
+              <a href={g.path}>{g.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 </Base>
 
 <style>
-  /* The first screen: one photograph, a hairline frame, the wordmark and the search. */
+  /* The first screen: one photograph, the promise set large at its foot, and the search. */
   .hero {
     --link: var(--band-fg);
     --focus: var(--band-fg);
     position: relative;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 70vh;
-    min-height: 70svh;
-    padding: 6.5rem 20px 3rem;
+    align-items: flex-end;
+    min-height: 78vh;
+    min-height: 78svh;
+    padding: 9rem 0 2.5rem;
     color: var(--band-fg);
     background: var(--band);
-    text-align: center;
     overflow: hidden;
     isolation: isolate;
   }
   @media (min-width: 720px) {
     .hero {
-      min-height: 88vh;
-      min-height: 88svh;
-      padding: 8rem 96px 5rem;
+      min-height: 92vh;
+      min-height: 92svh;
+      padding: 10rem 0 4.5rem;
     }
   }
-  /* Darker at the top (the nav) and behind the wordmark, lighter where the fairway shows. */
+  /* Darker at the top (the nav) and at the foot (the headline); the fairway shows between. */
   .hero-scrim {
-    background:
-      radial-gradient(ellipse 52% 46% at 50% 52%, rgb(20 41 31 / 0.38), rgb(20 41 31 / 0)),
-      linear-gradient(180deg, rgb(20 41 31 / 0.62), rgb(20 41 31 / 0.34) 30%, rgb(20 41 31 / 0.3) 62%, rgb(20 41 31 / 0.6));
-  }
-  @media (min-width: 720px) {
-    .hero-frame {
-      inset: 56px;
-      top: 72px;
-    }
+    background: linear-gradient(
+      180deg,
+      rgb(20 41 31 / 0.5),
+      rgb(20 41 31 / 0.16) 26%,
+      rgb(20 41 31 / 0.3) 52%,
+      rgb(20 41 31 / 0.8) 82%,
+      rgb(20 41 31 / 0.92)
+    );
   }
   .hero-inner {
     position: relative;
-    max-width: 46rem;
+    width: 100%;
+    max-width: calc(var(--wrap) + 2 * var(--gutter));
+    margin: 0 auto;
+    padding: 0 var(--gutter);
   }
   @media (prefers-reduced-motion: no-preference) {
-    .hero-inner {
+    /* The headline settles in; the search is there from the first frame. */
+    .hero-title,
+    .hero-tagline {
       animation: hero-in 900ms ease-out both;
     }
     @keyframes hero-in {
       from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(8px);
       }
     }
   }
-  .hero :global(.hero-crest) {
-    color: var(--band-fg);
-    margin: 0 auto 1.25rem;
-    display: block;
-  }
   .hero-title {
     margin: 0;
+    max-width: 15ch;
     color: var(--band-fg);
-    font-family: var(--display);
-    font-weight: 400;
-    text-transform: uppercase;
-    line-height: 1.15;
-    text-shadow: 0 1px 18px rgb(0 0 0 / 0.3);
-  }
-  .hero-kicker,
-  .hero-wordmark {
-    display: block;
-  }
-  .hero-kicker {
-    font-size: 1.125rem;
-    letter-spacing: 0.24em;
-  }
-  .hero-wordmark {
-    margin-top: 0.375rem;
-    font-size: 2.125rem;
-    letter-spacing: 0.14em;
-  }
-  @media (min-width: 720px) {
-    .hero-kicker {
-      font-size: 1.75rem;
-      letter-spacing: 0.2em;
-    }
-    .hero-wordmark {
-      font-size: 3.375rem;
-      letter-spacing: 0.12em;
-    }
+    font-size: clamp(3rem, 9vw, 6.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 24px rgb(0 0 0 / 0.3);
   }
   .hero-tagline {
-    margin: 1.25rem auto 0;
-    max-width: 34ch;
+    margin: 1.5rem 0 0;
+    max-width: 38ch;
+    font-family: var(--display);
     font-style: italic;
-    font-size: 1.125rem;
-    line-height: 1.5;
+    font-weight: 500;
+    font-size: clamp(1.3125rem, 2.6vw, 1.75rem);
+    line-height: 1.3;
     text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
   }
-  @media (min-width: 720px) {
-    .hero-tagline {
-      font-size: 1.375rem;
-    }
-  }
 
-  /* The search: an underlined ivory field and an outlined ivory button. */
+  /* The search: a paper panel at the foot of the photograph, like a booking bar. */
   .search {
-    margin: 2.25rem auto 0;
-    max-width: 30rem;
-    text-align: left;
+    margin: 2.5rem 0 0;
+    max-width: 40rem;
+    padding: 1rem 1rem 1rem 1.25rem;
+    background: var(--page);
+    color: var(--ink);
+    --focus: var(--fairway);
   }
   .search label {
     display: block;
-    font-size: 0.875rem;
-    font-style: italic;
-    color: var(--band-fg);
+    font-family: var(--label);
+    font-size: 0.75rem;
+    letter-spacing: var(--track);
+    text-transform: uppercase;
+    color: var(--ink-muted);
   }
   .search-row {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 1rem;
   }
   .search input {
     flex: 1;
     min-width: 0;
-    min-height: 44px;
-    padding: 0.25rem 0;
+    min-height: 46px;
+    padding: 0;
     border: 0;
-    border-bottom: 1px solid var(--band-fg);
     border-radius: 0;
     background: transparent;
-    color: var(--band-fg);
+    color: var(--ink);
     font: inherit;
-    font-size: 1.125rem;
+    font-size: 1.1875rem;
   }
   .search input::placeholder {
-    color: rgb(252 252 250 / 0.82);
+    color: var(--ink-muted);
     font-style: italic;
     opacity: 1;
   }
   .search input:focus-visible {
-    outline-offset: 4px;
+    outline: none;
+    box-shadow: 0 1px 0 var(--fairway);
   }
   .search .button {
-    --btn: var(--band-fg);
-    --btn-fg: #14291f;
     flex: none;
+    min-height: 52px;
   }
   @media (max-width: 479.98px) {
+    .search {
+      padding: 1rem;
+    }
     .search-row {
       flex-direction: column;
       align-items: stretch;
-      gap: 1.25rem;
+      gap: 0.75rem;
     }
   }
 
-  .home-body {
-    padding-top: 3.5rem;
-    padding-bottom: 4.5rem;
-  }
   .search-note {
-    margin: 0 auto 2.5rem;
+    margin: 2.5rem 0 0;
     max-width: 46rem;
   }
   .intro {
-    margin: 0 auto;
-    max-width: 40rem;
-    text-align: center;
-    font-size: 1.1875rem;
-    line-height: 1.65;
+    margin: var(--space-section) 0 0;
+    max-width: 24ch;
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(1.875rem, 4.4vw, 3.25rem);
+    line-height: 1.12;
+    color: var(--title);
+    text-wrap: balance;
   }
   @media (min-width: 720px) {
     .intro {
-      font-size: 1.3125rem;
+      max-width: 30ch;
     }
   }
-  .section-title {
-    margin-top: 4rem;
-    text-align: center;
+  .home-section h2,
+  .states-band h2 {
+    margin-top: 0;
+    margin-bottom: 0;
   }
-  @media (min-width: 720px) {
-    .section-title {
-      font-size: 1.875rem;
-    }
+  .home-section {
+    margin-top: var(--space-section);
   }
-  .more-link,
-  .near-status,
-  .near-action {
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
+  /* A section heading with one quiet link opposite it. */
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    margin-bottom: 1.25rem;
   }
-  .more-link a {
+  .section-aside {
+    margin: 0 0 0.375rem;
     font-style: italic;
-    font-size: 1.0625rem;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-color: var(--rule-strong);
+  }
+
+  /* Near you: a second photograph, full width, with the one action in it. */
+  .near {
+    --link: var(--band-fg);
+    --focus: var(--band-fg);
+    position: relative;
+    margin-top: var(--space-section);
+    padding: clamp(4rem, 10vw, 7.5rem) 0;
+    color: var(--band-fg);
+    background: var(--band);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .near-scrim {
+    background: linear-gradient(90deg, rgb(20 41 31 / 0.9), rgb(20 41 31 / 0.72) 55%, rgb(20 41 31 / 0.45));
+  }
+  .near-inner {
+    position: relative;
+  }
+  .near h2 {
+    margin: 0;
+    color: var(--band-fg);
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
   }
   .near-status {
-    margin-top: 0;
-    max-width: 44ch;
-    font-style: italic;
+    margin: 1rem 0 0;
+    max-width: 40ch;
+    font-size: 1.1875rem;
+  }
+  .near-action {
+    margin: 1.75rem 0 0;
+  }
+  .near .button {
+    --btn: var(--band-fg);
+    --btn-hover: #ffffff;
+    --btn-fg: #14291f;
+  }
+  .near-results .tee-sheet {
+    margin-top: 2.5rem;
   }
   .tee-sheet:empty {
     display: none;
   }
 
-  /* States: a calm directory in columns. */
-  .state-list {
-    list-style: none;
-    margin: 1.25rem 0 0;
-    padding: 1.25rem 0 0;
-    border-top: 1px solid var(--rule-strong);
-    columns: 2;
-    column-gap: 2rem;
+  /* States, by region, on linen. */
+  .states-band {
+    padding: var(--space-section) 0;
+    background: var(--surface);
   }
-  @media (min-width: 560px) {
-    .state-list {
-      columns: 3;
-    }
+  .near + .near-results + .states-band {
+    margin-top: 0;
+  }
+  .regions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 2rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--rule-strong);
   }
   @media (min-width: 860px) {
-    .state-list {
-      columns: 4;
-      column-rule: 1px solid var(--rule);
-      column-gap: 2.5rem;
+    .regions {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0 3rem;
     }
   }
+  .region-name {
+    margin: 0 0 0.75rem;
+    font-family: var(--label);
+    font-size: 0.75rem;
+    letter-spacing: var(--track);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .state-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
   .state-list li {
-    break-inside: avoid;
-    padding: 0.3rem 0;
+    padding: 0.3125rem 0;
   }
   .state-list a {
+    color: var(--title);
     text-decoration: none;
   }
   .state-list a:hover {
     text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
   }
-  .state-list .muted {
+  .state-count {
+    margin-left: 0.375rem;
     font-size: 0.875rem;
     font-style: italic;
+    color: var(--ink-muted);
+  }
+
+  /* Guides: three titles set as large links between rules. */
+  .guides-section {
+    margin-bottom: var(--space-section);
+  }
+  .guide-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  @media (min-width: 860px) {
+    .guide-cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0 3rem;
+    }
+  }
+  .guide-cards li {
+    max-width: none;
+    border-bottom: 1px solid var(--rule);
+  }
+  .guide-cards a {
+    display: block;
+    padding: 1.5rem 0 1.75rem;
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 1.625rem;
+    line-height: 1.2;
+    color: var(--title);
+    text-decoration: none;
+  }
+  .guide-cards a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
   }
 </style>
 
@@ -413,4 +530,3 @@ setCache(Astro, TTL.home);
   import { initNearYou } from "../scripts/near-you.ts";
   initNearYou();
 </script>
-

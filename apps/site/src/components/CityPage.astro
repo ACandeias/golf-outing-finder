@@ -162,7 +162,12 @@ const crumbs = [
         const lat = Number(box.dataset.lat);
         const lng = Number(box.dataset.lng);
         const { mountMap } = await import("../scripts/map.ts");
-        await mountMap(box, { center: Number.isFinite(lat) && Number.isFinite(lng) ? [lng, lat] : undefined, zoom: 9 });
+        try {
+          await mountMap(box, { center: Number.isFinite(lat) && Number.isFinite(lng) ? [lng, lat] : undefined, zoom: 9 });
+        } catch {
+          box.textContent = "This browser can't draw the map. The outings are listed below.";
+          box.classList.add("city-map-unavailable");
+        }
       }
     });
   }

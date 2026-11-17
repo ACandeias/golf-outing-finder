@@ -86,7 +86,7 @@ setCache(Astro, TTL.list);
     {course.courseType === "private" && " Members-only most days, but these outings are open to anyone who registers."}
   </p>
   <dl class="course-facts scorecard">
-    <div><dt>Course type</dt><dd>{typeLabel}</dd></div>
+    {course.courseType !== "unknown" && <div><dt>Course type</dt><dd>{typeLabel}</dd></div>}
     {course.street && <div><dt>Address</dt><dd>{course.street}, {place}{course.zip && <> {course.zip}</>}</dd></div>}
     {website && <div><dt>Website</dt><dd><a href={website} rel="nofollow noopener">{new URL(website).hostname.replace(/^www\./, "")}</a></dd></div>}
   </dl>

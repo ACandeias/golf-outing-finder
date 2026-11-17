@@ -31,7 +31,8 @@ export function outingView(o: OutingListItem): OutingView {
     when: whenText(o),
     time: o.shotgunTime && o.status !== "expected" ? `${clockTime(o.shotgunTime)} shotgun` : "",
     place: placeText(o.course.city, o.course.state),
-    courseTypeLabel: COURSE_TYPE_LABELS[o.course.courseType],
+    // Most courses have no known type yet; an empty label is left out rather than shown as "unknown".
+    courseTypeLabel: o.course.courseType === "unknown" ? "" : COURSE_TYPE_LABELS[o.course.courseType],
     price: priceText(o),
     includes: includesText(o.includes),
     isExpected: o.status === "expected",

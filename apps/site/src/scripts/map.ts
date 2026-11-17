@@ -49,7 +49,7 @@ function popupContent(p: Record<string, unknown>): HTMLElement {
   const lines = [
     `${str(p.course)}, ${str(p.place)}`,
     str(p.time) ? `${str(p.when)}, ${str(p.time)}` : str(p.when),
-    `${str(p.courseType)} · ${str(p.label)}`,
+    str(p.courseType) ? `${str(p.courseType)}, ${str(p.label).toLowerCase()}` : str(p.label),
     str(p.price),
   ];
   add(box, strong);
@@ -75,8 +75,14 @@ function loadCss(): Promise<void> {
   });
 }
 
+/**
+ * Mounts the map. Rejects when the browser can't draw it (no WebGL): callers
+ * show a line of text and the link to the lists instead of an empty box.
+ */
 export async function mountMap(container: HTMLElement, opts: MountOptions = {}): Promise<MlMap> {
   await loadCss();
+  const probe = document.createElement("canvas");
+  if (!probe.getContext("webgl2") && !probe.getContext("webgl")) throw new Error("WebGL is not available");
   const map = new MlMap({
     container,
     style: STYLE_URL,
@@ -130,10 +136,10 @@ export async function mountMap(container: HTMLElement, opts: MountOptions = {}):
     source: SOURCE,
     filter: ["has", "point_count"],
     paint: {
-      "circle-color": "#0d5c36",
+      "circle-color": "#14291f",
       "circle-radius": ["step", ["get", "point_count"], 16, 10, 22, 50, 28],
       "circle-stroke-width": 2,
-      "circle-stroke-color": "#ffffff",
+      "circle-stroke-color": "#fbfaf6",
     },
   });
   map.addLayer({
@@ -142,14 +148,14 @@ export async function mountMap(container: HTMLElement, opts: MountOptions = {}):
     source: SOURCE,
     filter: ["has", "point_count"],
     layout: { "text-field": "{point_count_abbreviated}", "text-size": 13, "text-font": ["Noto Sans Bold"] },
-    paint: { "text-color": "#ffffff" },
+    paint: { "text-color": "#fbfaf6" },
   });
   map.addLayer({
     id: "outing-point",
     type: "circle",
     source: SOURCE,
     filter: ["!", ["has", "point_count"]],
-    paint: { "circle-color": "#b35c00", "circle-radius": 8, "circle-stroke-width": 2, "circle-stroke-color": "#ffffff" },
+    paint: { "circle-color": "#2c5640", "circle-radius": 8, "circle-stroke-width": 2, "circle-stroke-color": "#fbfaf6" },
   });
 
   map.on("click", "clusters", async (e) => {

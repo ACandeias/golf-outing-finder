@@ -13,7 +13,7 @@ const { courseTypeLabel, label, status } = Astro.props;
 ---
 
 <p class="facts">
-  <span class="fact"><span class="visually-hidden">Course type: </span>{courseTypeLabel}</span>
+  {courseTypeLabel && <span class="fact"><span class="visually-hidden">Course type: </span>{courseTypeLabel}</span>}
   <span class="fact"><span class="visually-hidden">Outing type: </span>{label}</span>
   {status === "waitlist" && <span class="fact">Waitlist</span>}
   {status === "sold_out" && <span class="fact alert">Sold out</span>}

@@ -65,7 +65,7 @@ function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElemen
   const d = dateBlock({ status: p.status, startDate: p.startDate ?? null }, { currentYear });
   const date = el("p", "tee-date");
   date.setAttribute("aria-hidden", "true");
-  add(date, el("span", "tee-date-top", d.top), el("span", "tee-date-big", d.big), el("span", "tee-date-bottom", d.bottom));
+  add(date, el("span", "tee-date-top", d.top), el("span", d.big.length > 3 ? "tee-date-big is-long" : "tee-date-big", d.big), el("span", "tee-date-bottom", d.bottom));
 
   const main = el("div", "tee-main");
   const h = el("h3", "tee-title");
@@ -80,7 +80,8 @@ function row(p: OutingFeatureProps, currentYear: number | undefined): HTMLElemen
   add(courseType, el("span", "visually-hidden", "Course type: "), document.createTextNode(p.courseType));
   const outingType = el("span", "fact");
   add(outingType, el("span", "visually-hidden", "Outing type: "), document.createTextNode(p.label));
-  add(facts, courseType, outingType);
+  if (p.courseType) add(facts, courseType);
+  add(facts, outingType);
   if (p.status === "waitlist") add(facts, el("span", "fact", "Waitlist"));
   if (p.status === "sold_out") add(facts, el("span", "fact alert", "Sold out"));
   if (p.status === "cancelled") add(facts, el("span", "fact alert", "Cancelled"));
