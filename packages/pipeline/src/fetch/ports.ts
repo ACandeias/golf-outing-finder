@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import type { SerpProvider } from "@gof/shared/env";
 import { Agent, fetch as undiciFetch } from "undici";
 import { z } from "zod";
-import { platformRulesFrom, type PlatformRule } from "../discovery/platform-policy.ts";
+import { deniedPlatformCheck, platformRulesFrom, type PlatformRule } from "../discovery/platform-policy.ts";
 import { createListingSource, loadPlatforms } from "../discovery/sources.ts";
 import { PATHS } from "../lib/paths.ts";
 import { guardedLookup, systemResolver, type GuardOptions } from "../net/ssrf.ts";
@@ -48,6 +48,7 @@ export interface FetchSideOptions {
 
 const VALIDATORS_FILE = join(PATHS.cache, "http-validators.json");
 const validatorsSchema = z.record(
+  z.string(),
   z.object({ etag: z.string().nullable().optional(), lastModified: z.string().nullable().optional() }),
 );
 
@@ -122,12 +123,16 @@ export async function createFetchSidePorts(
     new Date(ctx.now.getTime() + Math.max(0, Math.round(ctx.clock.nowMs() - startMs))).toISOString();
   const userAgent = userAgentFor(siteUrl(env));
   const config = await loadPlatforms(PATHS.overrides);
+  const platformRules = platformRulesFrom(config);
   // SPEC.md 8.3: an expected outcome (not toward the 20% rule), but logged.
   const onRobotsUnavailable = (origin: string, reason: string): void =>
     ctx.log.info("robots.txt unavailable; host skipped for this run", { origin, reason });
 
   if (mode === "dry-run") {
     const docs = loadFixtureDocs();
+    // No deniedPlatform here: the fixture fetcher replays recorded pages and never
+    // opens a connection, and the seed fixtures include directory pages recorded
+    // before the 2026-10-14 terms check.
     const guard: GuardOptions = { resolver: fixtureResolver, exclusions: ctx.overrides.exclusions };
     const renderer = fixtureRenderer(docs);
     const validators = fileValidatorStore(null);
@@ -157,12 +162,19 @@ export async function createFetchSidePorts(
         log: ctx.log,
       }),
       serp: createFixtureSerpAdapter(),
-      platformRules: platformRulesFrom(config),
+      platformRules,
       close: async () => {},
     };
   }
 
-  const guard: GuardOptions = { resolver: systemResolver, exclusions: ctx.overrides.exclusions };
+  // platforms.yaml holds on every hop and every fetch, not only at discovery: a
+  // redirect from an allowed page, a render's subrequests and course-website
+  // fetches all pass this guard and nothing else.
+  const guard: GuardOptions = {
+    resolver: systemResolver,
+    exclusions: ctx.overrides.exclusions,
+    deniedPlatform: deniedPlatformCheck(platformRules),
+  };
   const renderer = createRenderer({ launch: launchChromium, guard, userAgent });
   const validators = fileValidatorStore(VALIDATORS_FILE);
   const fetcher = createPageFetcher({
@@ -210,7 +222,7 @@ export async function createFetchSidePorts(
       log: ctx.log,
     }),
     serp,
-    platformRules: platformRulesFrom(config),
+    platformRules,
     close: async () => {
       validators.save();
       await renderer.close();

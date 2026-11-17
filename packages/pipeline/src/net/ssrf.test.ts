@@ -152,6 +152,26 @@ describe("checkUrl", () => {
     });
   });
 
+  it("refuses a URL on a platform that platforms.yaml doesn't allow, before resolving it", async () => {
+    let resolved = false;
+    const o = {
+      ...opts,
+      resolver: (async () => {
+        resolved = true;
+        return ["93.184.216.34"];
+      }) satisfies Resolver,
+      deniedPlatform: (url: string) => (new URL(url).hostname.endsWith("eventbrite.com") ? "eventbrite" : null),
+    };
+    expect(await checkUrl("https://www.eventbrite.com/e/charity-golf-1", o)).toEqual({
+      ok: false,
+      url: "https://www.eventbrite.com/e/charity-golf-1",
+      reason: "platform_not_allowed",
+      detail: "eventbrite",
+    });
+    expect(resolved).toBe(false);
+    expect((await checkUrl("https://example.org/", o)).ok).toBe(true);
+  });
+
   it("allows public IPv6 hosts", async () => {
     expect((await checkUrl("https://v6.example.org/", opts)).ok).toBe(true);
   });
