@@ -139,6 +139,8 @@ export interface RunEdgesOptions {
   claudeSpawner?: ClaudeSpawner;
   /** `--recheck-all`: recheck every published open or waitlist outing tonight. */
   forceRecheck?: boolean;
+  /** `--backfill=<page>`, handed to the search plan. */
+  backfillPage?: number;
 }
 
 /** A BatchClient that constructs the real one on first use (no SDK client unless a batch is sent). */
@@ -202,6 +204,7 @@ export function createRunEdges(o: RunEdgesOptions): RunEdges {
         ...withSeed,
         ...(o.prioritizeStates && o.prioritizeStates.length > 0 ? { prioritizeStates: [...o.prioritizeStates] } : {}),
         ...(o.forceRecheck ? { forceRecheck: true } : {}),
+        ...(o.backfillPage !== undefined ? { backfillPage: o.backfillPage } : {}),
       };
       return o.decorateFetchSide ? o.decorateFetchSide(ports) : ports;
     })();

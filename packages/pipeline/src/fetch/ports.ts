@@ -37,6 +37,8 @@ export interface FetchSidePorts {
   platformRules?: readonly PlatformRule[];
   /** `--recheck-all`: every published open or waitlist outing is rechecked tonight. */
   forceRecheck?: boolean;
+  /** `--backfill=<page>`: this run searches one fixed page of metros (see planSearch). */
+  backfillPage?: number;
 }
 
 export interface FetchSideOptions {

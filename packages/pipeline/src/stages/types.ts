@@ -290,6 +290,12 @@ export const searchPlanInputSchema = z.object({
    * order. Empty or absent: the plain schedule.
    */
   prioritize_states: z.array(z.string().length(2)).optional(),
+  /**
+   * `--backfill=<page>` (1-based): search this page of metros instead of
+   * tonight's rotation. A page holds as many metros as fit the query cap, in
+   * file order; a page past the last one plans no place queries.
+   */
+  backfill_page: z.number().int().min(1).optional(),
 });
 export type SearchPlanInput = z.infer<typeof searchPlanInputSchema>;
 export const searchPlanOutputSchema = z.object({ queries: z.array(serpQuerySchema) });

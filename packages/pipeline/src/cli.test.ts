@@ -88,6 +88,11 @@ describe("parseCliArgs", () => {
     expect(() => parseCliArgs(["--prioritize-states=NY,XX"], ENV)).toThrow(/--prioritize-states/);
     expect(parseCliArgs([], ENV).recheckAll).toBe(false);
     expect(parseCliArgs(["--recheck-all"], ENV).recheckAll).toBe(true);
+    expect(parseCliArgs([], ENV).backfillPage).toBeNull();
+    expect(parseCliArgs(["--backfill=3"], ENV).backfillPage).toBe(3);
+    expect(() => parseCliArgs(["--backfill=0"], ENV)).toThrow(/page number/);
+    expect(() => parseCliArgs(["--backfill=all"], ENV)).toThrow(/page number/);
+    expect(() => parseCliArgs(["--backfill=1", "--prioritize-states=NY"], ENV)).toThrow(/can't be combined/);
   });
 
   it("--weekly-report posts (or, in a dry run, renders) the weekly issue on any day", () => {

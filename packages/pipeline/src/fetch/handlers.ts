@@ -177,7 +177,14 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     courses,
     allowance: guard.allowance(),
     ...(ports.prioritizeStates?.length ? { prioritize_states: [...ports.prioritizeStates] } : {}),
+    ...(ports.backfillPage !== undefined ? { backfill_page: ports.backfillPage } : {}),
   });
+  if (ports.backfillPage !== undefined)
+    ctx.log.info("search: backfill page", {
+      page: ports.backfillPage,
+      place_queries: search.output.queries.filter((q) => q.kind === "place").length,
+      metros: new Set(search.output.queries.filter((q) => q.kind === "place").map((q) => q.subject)).size,
+    });
   if (ports.prioritizeStates?.length)
     ctx.log.info("search: prioritized states first", {
       states: ports.prioritizeStates.join(","),
