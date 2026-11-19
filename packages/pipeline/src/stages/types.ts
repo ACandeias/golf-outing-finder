@@ -296,6 +296,13 @@ export const searchPlanInputSchema = z.object({
    * file order; a page past the last one plans no place queries.
    */
   backfill_page: z.number().int().min(1).optional(),
+  /**
+   * `--top-courses=<from>-<to>`: search only these courses from
+   * data/top-courses.json, with the top-course templates, instead of the metros
+   * and the monthly course rotation. `search_name` is the list name without a
+   * parenthetical course designation ("Pinehurst Resort", not "(No. 2)").
+   */
+  top_courses: z.array(z.object({ id: z.string(), search_name: z.string().min(1) })).optional(),
 });
 export type SearchPlanInput = z.infer<typeof searchPlanInputSchema>;
 export const searchPlanOutputSchema = z.object({ queries: z.array(serpQuerySchema) });

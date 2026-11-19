@@ -8,6 +8,7 @@ export const PATHS = {
   seed: join(REPO_ROOT, "seed/outings.json"),
   places: join(REPO_ROOT, "data/places"),
   overrides: join(REPO_ROOT, "data/overrides"),
+  topCourses: join(REPO_ROOT, "data/top-courses.json"),
   courseTypes: join(REPO_ROOT, "data/overrides/course-types.yaml"),
   removals: join(REPO_ROOT, "data/overrides/removals.yaml"),
   notable: join(REPO_ROOT, "data/overrides/notable-courses.yaml"),

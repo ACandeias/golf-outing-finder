@@ -32,6 +32,8 @@ export interface CliOptions {
   recheckAll: boolean;
   /** `--backfill=<page>`: search page N of the metros (as many as fit the query cap) instead of tonight's rotation. */
   backfillPage: number | null;
+  /** `--top-courses=<from>-<to>` (1-based, inclusive) or `=<n>` (1 to n): search only those data/top-courses.json entries. */
+  topCourses: { from: number; to: number } | null;
   /** `--weekly-report`: post the weekly report issue on any day (a dry run renders it instead). */
   weeklyReport: boolean;
 }
@@ -47,7 +49,7 @@ export const USAGE = `pnpm run pipeline [--dry-run | --live] [--budget=nightly|m
                   [--fail-stage=<stage>] [--now=<ISO date>] [--strict] [--d1=local|remote|memory]
                   [--persist-to=<dir>] [--llm=api|claude-cli]
                   [--serp=dataforseo|claude-search|fixture] [--prioritize-states=NY,NJ,CT] [--recheck-all]
-                  [--backfill=<page>]
+                  [--backfill=<page>] [--top-courses=<from>-<to>]
                   [--weekly-report]`;
 
 /**
@@ -82,6 +84,7 @@ export function parseCliArgs(
         "prioritize-states": { type: "string" },
         "recheck-all": { type: "boolean", default: false },
         backfill: { type: "string" },
+        "top-courses": { type: "string" },
         "weekly-report": { type: "boolean", default: false },
       },
       strict: true,
@@ -184,6 +187,21 @@ export function parseCliArgs(
     backfillPage = Number(values.backfill.trim());
   }
 
+  let topCourses: { from: number; to: number } | null = null;
+  const tc = values["top-courses"];
+  if (tc !== undefined) {
+    const m = /^(?:([1-9]\d{0,3})-)?([1-9]\d{0,3})$/.exec(tc.trim());
+    const from = m ? Number(m[1] ?? "1") : NaN;
+    const to = m ? Number(m[2]) : NaN;
+    if (!m || to < from) {
+      throw new CliUsageError(`--top-courses takes <from>-<to> or <n> (1-based list positions), got "${tc}"`);
+    }
+    if (prioritizeStates.length > 0 || backfillPage !== null) {
+      throw new CliUsageError("--top-courses can't be combined with --prioritize-states or --backfill");
+    }
+    topCourses = { from, to };
+  }
+
   return {
     mode,
     budget: budget.data,
@@ -199,6 +217,7 @@ export function parseCliArgs(
     prioritizeStates,
     recheckAll: values["recheck-all"],
     backfillPage,
+    topCourses,
     weeklyReport: values["weekly-report"],
   };
 }

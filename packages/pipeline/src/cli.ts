@@ -21,7 +21,9 @@ import { MemoryD1 } from "./d1/memory.ts";
 import type { D1Port } from "./d1/port.ts";
 import { WranglerD1 } from "./d1/wrangler.ts";
 import { createLogger, secretValues } from "./lib/logger.ts";
+import { readFile } from "node:fs/promises";
 import { fromInvocationDir, PATHS } from "./lib/paths.ts";
+import { parseTopCoursesFile, topCourseTargets, type TopCourseTarget } from "./topcourses/list.ts";
 import { installNetworkBlock, type NetworkBlock } from "./net/block.ts";
 import { loadOverrides, type Overrides } from "./overrides/load.ts";
 import { newRunId } from "./run/accounting.ts";
@@ -138,6 +140,19 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       ...(opts.failStage ? { fail_stage: opts.failStage } : {}),
     });
 
+    let topCourses: TopCourseTarget[] | undefined;
+    if (opts.topCourses !== null) {
+      const list = parseTopCoursesFile(await readFile(PATHS.topCourses, "utf8"));
+      const picked = topCourseTargets(list, opts.topCourses.from, opts.topCourses.to);
+      topCourses = picked.targets;
+      log.info("search: top courses", {
+        from: opts.topCourses.from,
+        to: opts.topCourses.to,
+        courses: picked.targets.length,
+        ...(picked.skipped.length ? { skipped_no_osm_ref: picked.skipped.join("; ") } : {}),
+      });
+    }
+
     const edges = createRunEdges({
       ctx,
       mode: opts.mode,
@@ -147,6 +162,7 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       prioritizeStates: opts.prioritizeStates,
       forceRecheck: opts.recheckAll,
       ...(opts.backfillPage !== null ? { backfillPage: opts.backfillPage } : {}),
+      ...(topCourses !== undefined ? { topCourses } : {}),
       ...deps.edges,
     });
     closeEdges = () => edges.close();

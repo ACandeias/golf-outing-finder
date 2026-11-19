@@ -24,10 +24,13 @@
     "places:build": "pnpm --filter @gof/pipeline start:places-build",
     "places:load": "pnpm --filter @gof/pipeline start:places-load",
     "pipeline": "pnpm --filter @gof/pipeline start",
+    "top-course-outings": "pnpm --filter @gof/pipeline start:top-course-outings",
+    "top-course-research": "pnpm --filter @gof/pipeline start:top-course-research",
     "test:live-extract": "pnpm --filter @gof/pipeline start:live-extract",
     "format": "prettier --write .",
     "docker:up": "docker compose up --build site",
-    "docker:up:local": "docker compose -f docker-compose.yml -f docker-compose.local.yml up --build site"
+    "docker:up:local": "docker compose -f docker-compose.yml -f docker-compose.local.yml up --build site",
+    "top-courses:match": "pnpm --filter @gof/pipeline start:top-courses-match"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

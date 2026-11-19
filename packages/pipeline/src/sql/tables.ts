@@ -1,6 +1,6 @@
 import type { CourseRecord } from "../courses/import.ts";
 import type { CityRow, ZipRow } from "../places/geonames.ts";
-import type { SeedPlan } from "../seed/plan.ts";
+import type { OrganizerRecord, OutingRecord, SeedPlan } from "../seed/plan.ts";
 import { insertStatements, type SqlScalar } from "./literal.ts";
 
 /** Row mappers from records to `snake_case` columns (SPEC.md 7.1) and their INSERTs. */
@@ -124,6 +124,58 @@ export function courseRow(c: CourseRecord): Row {
   };
 }
 
+export function organizerRow(o: OrganizerRecord): Row {
+  return {
+    id: o.id,
+    slug: o.slug,
+    name: o.name,
+    org_type: o.orgType,
+    ein: o.ein,
+    charity_status: o.charityStatus,
+    irs_subsection: o.irsSubsection,
+    website: o.website,
+    series_id: o.seriesId,
+    created_at: o.createdAt,
+    updated_at: o.updatedAt,
+  };
+}
+
+export function outingRow(o: OutingRecord): Row {
+  return {
+    id: o.id,
+    slug: o.slug,
+    course_id: o.courseId,
+    organizer_id: o.organizerId,
+    title: o.title,
+    summary: o.summary,
+    outing_type: o.outingType,
+    audience: o.audience,
+    audience_note: o.audienceNote,
+    start_date: o.startDate,
+    end_date: o.endDate,
+    shotgun_time: o.shotgunTime,
+    format: o.format,
+    single_price_cents: o.singlePriceCents,
+    foursome_price_cents: o.foursomePriceCents,
+    sponsor_only: o.sponsorOnly,
+    includes: o.includes,
+    handicap_required: o.handicapRequired,
+    status: o.status,
+    expected_month: o.expectedMonth,
+    registration_url: o.registrationUrl,
+    canonical_source_url: o.canonicalSourceUrl,
+    source_gone: o.sourceGone,
+    confidence: o.confidence,
+    published: o.published,
+    hold_reason: o.holdReason,
+    expected_misses: o.expectedMisses,
+    next_outing_id: o.nextOutingId,
+    first_seen: o.firstSeen,
+    last_verified: o.lastVerified,
+    updated_at: o.updatedAt,
+  };
+}
+
 /** Courses re-imported by osm_ref keep their id, slug, aliases and outing counts. */
 const COURSE_UPSERT =
   "ON CONFLICT(osm_ref) DO UPDATE SET name = excluded.name, street = excluded.street, city = excluded.city, " +
@@ -170,60 +222,8 @@ export function seedStatements(
     ...reset,
     ...placesStatements(places.cities, places.zips),
     ...courseStatements(plan.courses, "insert"),
-    ...insertStatements(
-      "organizers",
-      ORGANIZER_COLUMNS,
-      plan.organizers.map((o) => ({
-        id: o.id,
-        slug: o.slug,
-        name: o.name,
-        org_type: o.orgType,
-        ein: o.ein,
-        charity_status: o.charityStatus,
-        irs_subsection: o.irsSubsection,
-        website: o.website,
-        series_id: o.seriesId,
-        created_at: o.createdAt,
-        updated_at: o.updatedAt,
-      })),
-    ),
-    ...insertStatements(
-      "outings",
-      OUTING_COLUMNS,
-      plan.outings.map((o) => ({
-        id: o.id,
-        slug: o.slug,
-        course_id: o.courseId,
-        organizer_id: o.organizerId,
-        title: o.title,
-        summary: o.summary,
-        outing_type: o.outingType,
-        audience: o.audience,
-        audience_note: o.audienceNote,
-        start_date: o.startDate,
-        end_date: o.endDate,
-        shotgun_time: o.shotgunTime,
-        format: o.format,
-        single_price_cents: o.singlePriceCents,
-        foursome_price_cents: o.foursomePriceCents,
-        sponsor_only: o.sponsorOnly,
-        includes: o.includes,
-        handicap_required: o.handicapRequired,
-        status: o.status,
-        expected_month: o.expectedMonth,
-        registration_url: o.registrationUrl,
-        canonical_source_url: o.canonicalSourceUrl,
-        source_gone: o.sourceGone,
-        confidence: o.confidence,
-        published: o.published,
-        hold_reason: o.holdReason,
-        expected_misses: o.expectedMisses,
-        next_outing_id: o.nextOutingId,
-        first_seen: o.firstSeen,
-        last_verified: o.lastVerified,
-        updated_at: o.updatedAt,
-      })),
-    ),
+    ...insertStatements("organizers", ORGANIZER_COLUMNS, plan.organizers.map(organizerRow)),
+    ...insertStatements("outings", OUTING_COLUMNS, plan.outings.map(outingRow)),
     ...insertStatements(
       "sources",
       SOURCE_COLUMNS,

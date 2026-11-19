@@ -100,6 +100,33 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   const days = daysInMonthUtc(now);
   const weekly = month >= 3 && month <= 8;
 
+  const cap = input.allowance.MAX_SERP_QUERIES_PER_RUN ?? ctx.caps.MAX_SERP_QUERIES_PER_RUN;
+
+  // --top-courses: only the listed courses, with templates aimed at charity
+  // outings and fundraisers, and nothing from the metro or course rotations.
+  if (input.top_courses) {
+    const seen = new Set<string>();
+    const queries: SerpQuery[] = [];
+    for (const c of input.top_courses) {
+      const name = c.search_name.replace(/"/g, "");
+      for (const q of [
+        ...years.map((y) => `"${name}" charity golf outing ${y}`),
+        `"${name}" golf tournament fundraiser`,
+      ]) {
+        if (seen.has(q.toLowerCase())) continue;
+        seen.add(q.toLowerCase());
+        queries.push({ kind: "course", q, subject: c.id });
+      }
+    }
+    if (queries.length > cap) {
+      result.budgetHits.push(
+        hit("MAX_SERP_QUERIES_PER_RUN", cap, now, `${queries.length - cap} queries left for later`),
+      );
+      queries.length = cap;
+    }
+    return { output: { queries }, result };
+  }
+
   const priority = (input.prioritize_states ?? []).map((s) => s.toUpperCase());
   const rank = (state: string | null | undefined): number => {
     const i = state ? priority.indexOf(state.toUpperCase()) : -1;
@@ -113,7 +140,6 @@ export const planSearch: SearchPlanStage = (ctx, input) => {
   // cap, in file order (largest first), and this run searches one page instead
   // of tonight's rotation. Repeating the run with pages 1..n covers every metro
   // once, which the off-season rotation takes a month to do.
-  const cap = input.allowance.MAX_SERP_QUERIES_PER_RUN ?? ctx.caps.MAX_SERP_QUERIES_PER_RUN;
   const perMetro = 2 * years.length + 1;
   const pageSize = Math.max(1, Math.floor(cap / perMetro));
   const page = input.backfill_page ?? null;
