@@ -508,6 +508,29 @@ describe("publish", () => {
     expect(result.counters.indexnow_urls).toBe(4);
   });
 
+  it("unpublishes rows the classify title rule now refuses (leagues, spectator tour events), dated or expected", () => {
+    const { output } = publish(testCtx(), {
+      outings: [
+        entry(outingRow({ id: "lg", title: "Los Prados 2026 Tuesday League", published: 1 })),
+        entry(outingRow({ id: "pga", title: "2027 PGA Championship", published: 1 })),
+        entry(
+          outingRow({ id: "ex", title: "2027 Wednesday League", status: "expected", start_date: null, expected_month: "2027-04" }),
+        ),
+        entry(outingRow({ id: "ok", title: "U.S. Open Watch Party Scramble" })),
+      ],
+      heldSources: [],
+      changed: [],
+    });
+    const by = Object.fromEntries(output.decisions.map((d) => [d.outing_id, [d.publish, d.hold_reason]]));
+    expect(by).toEqual({ lg: [false, null], pga: [false, null], ex: [false, null], ok: [true, null] });
+    expect(output.plan.ops).toContainEqual({
+      op: "update",
+      table: "outings",
+      set: { published: 0, hold_reason: null },
+      where: { id: "lg" },
+    });
+  });
+
   const eventbriteRules = (allowed: boolean) => [
     { name: "eventbrite", allowed, domains: ["eventbrite.*"], listing_url_pattern: "^/(d|b|o|cc)/" },
   ];
