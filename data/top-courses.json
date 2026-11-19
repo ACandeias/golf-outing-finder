@@ -1,0 +1,3366 @@
+{
+  "version": "2026-11-19",
+  "notes": "Widely recognized top US golf courses, alphabetical. Facts only: no ranks and no ranking-list membership (SPEC.md 7.1). country is ISO 3166-1 alpha-2 so other countries can be added later; state is the subdivision code. osm_ref ties an entry to its courses row; website is the club or resort site. searched_for_outings is the last date the course was searched for outings, or null. Ranking-list tags live only in the gitignored data/private/top-course-lists.json.",
+  "courses": [
+    {
+      "name": "Aldarra Golf Club",
+      "city": "Sammamish",
+      "state": "WA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Allegheny Country Club",
+      "city": "Sewickley",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.alleghenycountryclub.com/",
+      "osm_ref": "way/252895503",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Applebrook Golf Club",
+      "city": "Malvern",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/690966995",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Arcadia Bluffs Golf Club (Bluffs)",
+      "city": "Arcadia",
+      "state": "MI",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://arcadiabluffs.com/",
+      "osm_ref": "way/293247442",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Aronimink Golf Club",
+      "city": "Newtown Square",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/9474270",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Atlanta Athletic Club (Highlands)",
+      "city": "Johns Creek",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.atlantaathleticclub.org/",
+      "osm_ref": "way/34768247",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Atlantic Golf Club",
+      "city": "Bridgehampton",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/207993750",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Augusta Country Club",
+      "city": "Augusta",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/871997938",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Augusta National Golf Club",
+      "city": "Augusta",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.masters.com/",
+      "osm_ref": "way/871993734",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Baker Hill Golf Club",
+      "city": "Newbury",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.bakerhill.org/",
+      "osm_ref": "way/1208922159",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Bald Peak Colony Club",
+      "city": "Melvin Village",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.baldpeak.org/golf",
+      "osm_ref": "relation/17179580",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Ballyneal",
+      "city": "Holyoke",
+      "state": "CO",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/854942104",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Baltimore Country Club (East)",
+      "city": "Lutherville",
+      "state": "MD",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/91989932",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Baltusrol Golf Club (Lower)",
+      "city": "Springfield",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/39835869",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Baltusrol Golf Club (Upper)",
+      "city": "Springfield",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/39835869",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Bandon Dunes",
+      "city": "Bandon",
+      "state": "OR",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "node/3668057526",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Bandon Trails",
+      "city": "Bandon",
+      "state": "OR",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/362513476",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Bayonne Golf Club",
+      "city": "Bayonne",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/34414788",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Bel-Air Country Club",
+      "city": "Los Angeles",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.bel-aircc.golf/",
+      "osm_ref": "relation/3569007",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Belgrade Lakes Golf Club",
+      "city": "Belgrade Lakes",
+      "state": "ME",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://belgradelakesgolf.com/",
+      "osm_ref": "way/380005343",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Belleair Country Club (West)",
+      "city": "Belleair",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.belleaircc.com/",
+      "osm_ref": "relation/5462433",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Bellerive Country Club",
+      "city": "St. Louis",
+      "state": "MO",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/617944761",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Bethpage State Park (Black)",
+      "city": "Farmingdale",
+      "state": "NY",
+      "country": "US",
+      "course_type": "municipal",
+      "website": null,
+      "osm_ref": "way/29468839",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Beverly Country Club",
+      "city": "Chicago",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.beverlycc.org/",
+      "osm_ref": "way/209994107",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Big Easy Ranch (The Covey)",
+      "city": "Columbus",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Black Desert Resort",
+      "city": "Ivins",
+      "state": "UT",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/1180990815",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Blackwolf Run (River)",
+      "city": "Kohler",
+      "state": "WI",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://www.americanclubresort.com/golf/blackwolf-run",
+      "osm_ref": "relation/12871002",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Blessings Golf Club",
+      "city": "Fayetteville",
+      "state": "AR",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/6677178",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Blind Brook Club",
+      "city": "Rye Brook",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.blindbrookclub.org/",
+      "osm_ref": "way/138546155",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Blue Mound Golf & Country Club",
+      "city": "Wauwatosa",
+      "state": "WI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.bluemoundgcc.com/",
+      "osm_ref": "way/107500346",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Bluejack National",
+      "city": "Montgomery",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Boothbay Harbor Country Club",
+      "city": "Boothbay",
+      "state": "ME",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": "way/1205589470",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Boston Golf Club",
+      "city": "Hingham",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://bostongolfclub.org/",
+      "osm_ref": "relation/13599753",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Brook Hollow Golf Club",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/27111495",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Brooklawn Country Club",
+      "city": "Fairfield",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.brooklawncc.com/",
+      "osm_ref": "relation/13055706",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Brookside Country Club",
+      "city": "Canton",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Broomsedge Golf Club",
+      "city": "Rembert",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.broomsedgegolf.com/",
+      "osm_ref": "way/1076170500",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Bull's Bridge Golf Club",
+      "city": "South Kent",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1167812787",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Burlington Country Club",
+      "city": "Burlington",
+      "state": "VT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/158485",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Butler National Golf Club",
+      "city": "Oak Brook",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/35567595",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "California Golf Club of San Francisco",
+      "city": "South San Francisco",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.calclub.org/",
+      "osm_ref": "way/24481574",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Calusa Pines Golf Club",
+      "city": "Naples",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://calusapinesgolfclub.com/",
+      "osm_ref": "way/1481660831",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Camargo Club",
+      "city": "Indian Hill",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://camargoclub.org/",
+      "osm_ref": "way/30678974",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Canterbury Golf Club",
+      "city": "Beachwood",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/137971260",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Canyata Golf Club",
+      "city": "Marshall",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/18542838",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Cape Arundel Golf Club",
+      "city": "Kennebunkport",
+      "state": "ME",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://www.capearundelgolfclub.com/",
+      "osm_ref": "way/290468835",
+      "searched_for_outings": null
+    },
+    {
+      "name": "CapRock Ranch",
+      "city": "Valentine",
+      "state": "NE",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.caprockranch.com/",
+      "osm_ref": "relation/14129821",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Castle Pines Golf Club",
+      "city": "Castle Rock",
+      "state": "CO",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1562088206",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Caves Valley Golf Club",
+      "city": "Owings Mills",
+      "state": "MD",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.cavesvalley.net/",
+      "osm_ref": "relation/9363443",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Cedar Rapids Country Club",
+      "city": "Cedar Rapids",
+      "state": "IA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/74271720",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Chambers Bay",
+      "city": "University Place",
+      "state": "WA",
+      "country": "US",
+      "course_type": "municipal",
+      "website": "https://chambersbaygolf.com/",
+      "osm_ref": "way/26787026",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Charles River Country Club",
+      "city": "Newton",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.charlesrivercc.org/",
+      "osm_ref": "relation/13087820",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Charlotte Country Club",
+      "city": "Charlotte",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.charlottecountryclub.org/",
+      "osm_ref": "way/120522552",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Cherry Hills Country Club",
+      "city": "Cherry Hills Village",
+      "state": "CO",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/51955172",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Chicago Golf Club",
+      "city": "Wheaton",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/281979769",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Clear Creek Tahoe",
+      "city": "Carson City",
+      "state": "NV",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Colonial Country Club",
+      "city": "Fort Worth",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/27865544",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Colorado Golf Club",
+      "city": "Parker",
+      "state": "CO",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.coloradogolfclub.com/",
+      "osm_ref": "relation/12760017",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Congaree Golf Club",
+      "city": "Ridgeland",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.congareegc.com/",
+      "osm_ref": "way/1454066262",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Congressional Country Club (Blue)",
+      "city": "Bethesda",
+      "state": "MD",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.ccclub.org/",
+      "osm_ref": "way/907803844",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Country Club of Barre",
+      "city": "Orange",
+      "state": "VT",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Country Club of Buffalo",
+      "city": "Williamsville",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/139666699",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Country Club of Fairfield",
+      "city": "Fairfield",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.ccfairfield.com/",
+      "osm_ref": "way/43398024",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Country Club of Scranton",
+      "city": "Clarks Summit",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://ccscranton.com/",
+      "osm_ref": "way/466355565",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Country Club of Vermont",
+      "city": "Waterbury Center",
+      "state": "VT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.countryclubvt.com/",
+      "osm_ref": "way/507684077",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Crooked Stick Golf Club",
+      "city": "Carmel",
+      "state": "IN",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.crookedstick.org/",
+      "osm_ref": "way/295549584",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Crystal Downs Country Club",
+      "city": "Frankfort",
+      "state": "MI",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/293247450",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Crystal Springs Resort (Ballyowen)",
+      "city": "Hamburg",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Culver Academies Golf Course",
+      "city": "Culver",
+      "state": "IN",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": "node/4490891388",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Cypress Point Club",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/36435651",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Dallas National Golf Club",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/28379443",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Davenport Country Club",
+      "city": "Pleasant Valley",
+      "state": "IA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://davenportcc.com/",
+      "osm_ref": "way/297465692",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Desert Forest Golf Club",
+      "city": "Carefree",
+      "state": "AZ",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.desertforestgolfclub.com/",
+      "osm_ref": "way/411884975",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Diamond Creek Golf Club",
+      "city": "Banner Elk",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/12326801",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Dorset Field Club",
+      "city": "Dorset",
+      "state": "VT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Double Eagle Club",
+      "city": "Galena",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1177959648",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Due Process Stable",
+      "city": "Colts Neck",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/227411",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Dunes Club",
+      "city": "New Buffalo",
+      "state": "MI",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Eagle Point Golf Club",
+      "city": "Wilmington",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "node/4812438960",
+      "searched_for_outings": null
+    },
+    {
+      "name": "East Lake Golf Club",
+      "city": "Atlanta",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.eastlakegolfclub.com/",
+      "osm_ref": "way/25587469",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Eastward Ho! Country Club",
+      "city": "Chatham",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.eastwardho.org/",
+      "osm_ref": "way/29848550",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Ekwanok Country Club",
+      "city": "Manchester",
+      "state": "VT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/424514357",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Erin Hills",
+      "city": "Erin",
+      "state": "WI",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://www.erinhills.com/",
+      "osm_ref": "way/172725497",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Essex County Club",
+      "city": "Manchester-by-the-Sea",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.essexcc.org/",
+      "osm_ref": "way/29689626",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Essex County Country Club",
+      "city": "West Orange",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.essexcountycc.com/",
+      "osm_ref": "way/40136692",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Fenway Golf Club",
+      "city": "Scarsdale",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/122734558",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Fishers Island Club",
+      "city": "Fishers Island",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.fishersislandclub.com/fw/main/golf-course-and-shop-50.html",
+      "osm_ref": "way/191740591",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Flint Hills National Golf Club",
+      "city": "Andover",
+      "state": "KS",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://flinthillsnational.com/",
+      "osm_ref": "relation/4849452",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Forest Highlands Golf Club (Canyon)",
+      "city": "Flagstaff",
+      "state": "AZ",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.fhgc.com/recreation/golf/",
+      "osm_ref": "relation/3559824",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Forsgate Country Club (Banks)",
+      "city": "Monroe Township",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/227881",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Fox Chapel Golf Club",
+      "city": "Pittsburgh",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/256927812",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Franklin Hills Country Club",
+      "city": "Franklin",
+      "state": "MI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.franklinhills.com/",
+      "osm_ref": "way/294269497",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Friar's Head",
+      "city": "Riverhead",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/970198429",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Galloway National Golf Club",
+      "city": "Galloway",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/29079387",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Gamble Sands",
+      "city": "Brewster",
+      "state": "WA",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/876550790",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Garden City Golf Club",
+      "city": "Garden City",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/60925271",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "George Wright Golf Course",
+      "city": "Boston",
+      "state": "MA",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://www.cityofbostongolf.com/course_georgewright/",
+      "osm_ref": "way/29830747",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Glens Falls Country Club",
+      "city": "Queensbury",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/94255374",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Glenwild Golf Club",
+      "city": "Park City",
+      "state": "UT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.glenwild.com/",
+      "osm_ref": "way/266954189",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Gozzer Ranch Golf & Lake Club",
+      "city": "Harrison",
+      "state": "ID",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/18000813",
+      "searched_for_outings": null
+    },
+    {
+      "name": "GrayBull Club",
+      "city": "Maxwell",
+      "state": "NE",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1576864104",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Great River Golf Club",
+      "city": "Milford",
+      "state": "CT",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://greatrivergolfclub.com/",
+      "osm_ref": "way/203507104",
+      "searched_for_outings": null
+    },
+    {
+      "name": "GreatHorse",
+      "city": "Hampden",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.hampdencc.com/",
+      "osm_ref": "relation/16868881",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Gulph Mills Golf Club",
+      "city": "King of Prussia",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/82573084",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hackensack Golf Club",
+      "city": "Emerson",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/39648762",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hamilton Farm Golf Club",
+      "city": "Gladstone",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/228299",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Harbour Town Golf Links",
+      "city": "Hilton Head Island",
+      "state": "SC",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://www.seapines.com/golf/courses/harbour-town-golf-links",
+      "osm_ref": "relation/4813858",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hazeltine National Golf Club",
+      "city": "Chaska",
+      "state": "MN",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/9892305",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hidden Creek Golf Club",
+      "city": "Egg Harbor Township",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hollywood Golf Club",
+      "city": "Deal",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/670131086",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hudson National Golf Club",
+      "city": "Croton-on-Hudson",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/136928707",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Huntingdon Valley Country Club (Toomey/Flynn)",
+      "city": "Huntingdon Valley",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.hvccpa.org/",
+      "osm_ref": "way/90945616",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Hyannisport Club",
+      "city": "Hyannis Port",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.hyannisportclub.com/",
+      "osm_ref": "way/29900378",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Interlachen Country Club",
+      "city": "Edina",
+      "state": "MN",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.interlachencc.org/",
+      "osm_ref": "way/45396323",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Inverness Club",
+      "city": "Toledo",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://invernessclub.com/",
+      "osm_ref": "way/91905528",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "John's Island Club (West)",
+      "city": "Vero Beach",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Jupiter Hills Club (Hills)",
+      "city": "Tequesta",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Kapalua (Plantation Course)",
+      "city": "Kapalua",
+      "state": "HI",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Karsten Creek Golf Club",
+      "city": "Stillwater",
+      "state": "OK",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1566837498",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Kebo Valley Club",
+      "city": "Bar Harbor",
+      "state": "ME",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://www.kebovalleyclub.com/",
+      "osm_ref": "way/297679957",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Kiawah Island Club (Cassique)",
+      "city": "Kiawah Island",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.kiawahisland.com/island-club/golf/cassique-golf/",
+      "osm_ref": "relation/21463088",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Kiawah Island Golf Resort (The Ocean Course)",
+      "city": "Kiawah Island",
+      "state": "SC",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://kiawahresort.com/golf/the-ocean-course/",
+      "osm_ref": "relation/17647608",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Kingsley Club",
+      "city": "Kingsley",
+      "state": "MI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.kingsleyclub.com/",
+      "osm_ref": "way/291034490",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Kinloch Golf Club",
+      "city": "Manakin-Sabot",
+      "state": "VA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://kinlochgolfclub.com/",
+      "osm_ref": "relation/3966641",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Ladera Golf Club",
+      "city": "Thermal",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Lake Merced Golf Club",
+      "city": "Daly City",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/16754218",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lake of Isles (South)",
+      "city": "North Stonington",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/20396642",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lake Sunapee Country Club",
+      "city": "New London",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.lakesunapeecc.com/",
+      "osm_ref": "way/272694277",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lake Winnipesaukee Golf Club",
+      "city": "New Durham",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lakeside Country Club",
+      "city": "Houston",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.lakesidecc.com/",
+      "osm_ref": "way/123746318",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lancaster Country Club",
+      "city": "Lancaster",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/3292974",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Landmand Golf Club",
+      "city": "Homer",
+      "state": "NE",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": "way/1550000596",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Laurel Valley Golf Club",
+      "city": "Ligonier",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lehigh Country Club",
+      "city": "Allentown",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/270271002",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Llanerch Country Club",
+      "city": "Havertown",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/78246217",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Long Cove Club",
+      "city": "Hilton Head Island",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "node/10263889820",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Longmeadow Country Club",
+      "city": "Longmeadow",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.longmeadowcc.net/",
+      "osm_ref": "way/29857939",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Longue Vue Club",
+      "city": "Verona",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.longuevue.org/",
+      "osm_ref": "way/218887164",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lost Dunes Golf Club",
+      "city": "Bridgman",
+      "state": "MI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.lostdunes.com/",
+      "osm_ref": "way/295089155",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Lost Rail Golf Club",
+      "city": "Gretna",
+      "state": "NE",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Maidstone Club",
+      "city": "East Hampton",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/967422877",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Mammoth Dunes",
+      "city": "Nekoosa",
+      "state": "WI",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Manchester Country Club",
+      "city": "Bedford",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/71365982",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Manele Golf Course",
+      "city": "Lanai City",
+      "state": "HI",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Manufacturers Golf & Country Club",
+      "city": "Fort Washington",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.mg-cc.org/",
+      "osm_ref": "way/141898549",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Martis Camp Club",
+      "city": "Truckee",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/7485605",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Mayacama Golf Club",
+      "city": "Santa Rosa",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "node/7830916648",
+      "searched_for_outings": null
+    },
+    {
+      "name": "McArthur Golf Club",
+      "city": "Hobe Sound",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.mcarthurgolf.com/",
+      "osm_ref": "way/304704002",
+      "searched_for_outings": null
+    },
+    {
+      "name": "McLemore (The Keep)",
+      "city": "Rising Fawn",
+      "state": "GA",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Meadow Club",
+      "city": "Fairfax",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.meadowclub.com/",
+      "osm_ref": "way/44421428",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Medalist Golf Club",
+      "city": "Hobe Sound",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://medalistvillage.com/",
+      "osm_ref": "way/304704003",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Medinah Country Club (No. 3)",
+      "city": "Medinah",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.medinahcc.org/club/scripts/section/section.asp?NS=HP",
+      "osm_ref": "way/143789356",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Merion Golf Club (East)",
+      "city": "Ardmore",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/225722010",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Milwaukee Country Club",
+      "city": "River Hills",
+      "state": "WI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://milwaukeecountryclub.org/",
+      "osm_ref": "relation/11363289",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Minikahda Club",
+      "city": "Minneapolis",
+      "state": "MN",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/13512118",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Misquamicut Club",
+      "city": "Westerly",
+      "state": "RI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://themisquamicutclub.com/Main",
+      "osm_ref": "way/1466373448",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Montclair Golf Club",
+      "city": "West Orange",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/222290",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Monterey Peninsula Country Club (Dunes)",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.mpccpb.org/",
+      "osm_ref": "way/238036734",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Monterey Peninsula Country Club (Shore)",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/397895551",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Moraine Country Club",
+      "city": "Dayton",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/674843366",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Morris County Golf Club",
+      "city": "Morristown",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/39830298",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Mountain Lake",
+      "city": "Lake Wales",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Mountain Ridge Country Club",
+      "city": "West Caldwell",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/39831264",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Mountaintop Golf & Lake Club",
+      "city": "Cashiers",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Muirfield Village Golf Club",
+      "city": "Dublin",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.mvgc.org/",
+      "osm_ref": "relation/337418",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Myopia Hunt Club",
+      "city": "South Hamilton",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/29689937",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Nanea Golf Club",
+      "city": "Kailua-Kona",
+      "state": "HI",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/192743163",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Nantucket Golf Club",
+      "city": "Siasconset",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://nantucketgolfclub.org/",
+      "osm_ref": "way/295320131",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Naples National Golf Club",
+      "city": "Naples",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.nngc.net/",
+      "osm_ref": "way/128281331",
+      "searched_for_outings": null
+    },
+    {
+      "name": "National Golf Links of America",
+      "city": "Southampton",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/28989103",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Nemacolin (Mystic Rock)",
+      "city": "Farmington",
+      "state": "PA",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://www.nemacolin.org/",
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Neshanic Valley Golf Course",
+      "city": "Neshanic Station",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": "way/698906445",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Newport Country Club",
+      "city": "Newport",
+      "state": "RI",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/13922079",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Newport National Golf Club (Orchard)",
+      "city": "Middletown",
+      "state": "RI",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": "way/895324526",
+      "searched_for_outings": null
+    },
+    {
+      "name": "North Jersey Country Club",
+      "city": "Wayne",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/223657",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Oak Hill Country Club (East)",
+      "city": "Rochester",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/3105637",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Oak Tree National",
+      "city": "Edmond",
+      "state": "OK",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.oaktreenational.com/",
+      "osm_ref": "relation/3947927",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Oakland Hills Country Club (South)",
+      "city": "Bloomfield Hills",
+      "state": "MI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.oaklandhillscc.com/",
+      "osm_ref": "relation/14059170",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Oakmont Country Club",
+      "city": "Oakmont",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/6174192",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Ocean Forest Golf Club",
+      "city": "Sea Island",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/12216276",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Ohoopee Match Club",
+      "city": "Cobbtown",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.ohoopeematchclub.com/",
+      "osm_ref": "relation/16066478",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Old Barnwell",
+      "city": "Aiken",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1546596624",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Old Elm Club",
+      "city": "Highland Park",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.oldelmclub.com/",
+      "osm_ref": "way/31824066",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Old Macdonald",
+      "city": "Bandon",
+      "state": "OR",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Old Sandwich Golf Club",
+      "city": "Plymouth",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.osgolfclub.com/",
+      "osm_ref": "way/295320132",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Old Town Club",
+      "city": "Winston-Salem",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/31274551",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Olympia Fields Country Club (North)",
+      "city": "Olympia Fields",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.ofcc.org/",
+      "osm_ref": "way/187782527",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Oyster Harbors Club",
+      "city": "Osterville",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.oysterharborsclub.org/",
+      "osm_ref": "relation/4175534",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pacific Dunes",
+      "city": "Bandon",
+      "state": "OR",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Panther National",
+      "city": "Palm Beach Gardens",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://panthernational.com/",
+      "osm_ref": "relation/17513998",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pasatiempo Golf Club",
+      "city": "Santa Cruz",
+      "state": "CA",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://www.pasatiempo.com/",
+      "osm_ref": "relation/13921737",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Peachtree Golf Club",
+      "city": "Atlanta",
+      "state": "GA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.peachtreeclub.com/",
+      "osm_ref": "way/34772911",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Pebble Beach Golf Links",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "relation/3741806",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Pete Dye Golf Club",
+      "city": "Bridgeport",
+      "state": "WV",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.pacificlinks.com/petedye",
+      "osm_ref": "relation/3977097",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Philadelphia Country Club (Spring Mill)",
+      "city": "Gladwyne",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/770036100",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Philadelphia Cricket Club (Wissahickon)",
+      "city": "Flourtown",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pikewood National Golf Club",
+      "city": "Morgantown",
+      "state": "WV",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.pikewoodgolfclub.com/",
+      "osm_ref": "way/299110573",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pine Valley Golf Club",
+      "city": "Pine Valley",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Pinehurst Resort (No. 10)",
+      "city": "Pinehurst",
+      "state": "NC",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "relation/13969631",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pinehurst Resort (No. 2)",
+      "city": "Pinehurst",
+      "state": "NC",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/1358696570",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pinehurst Resort (No. 4)",
+      "city": "Pinehurst",
+      "state": "NC",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/845405482",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Piping Rock Club",
+      "city": "Locust Valley",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1072066296",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Pittsburgh Field Club",
+      "city": "Pittsburgh",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/256928920",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Plainfield Country Club",
+      "city": "Plainfield",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.plainfieldcc.com/",
+      "osm_ref": "way/39847755",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Poppy Ridge Golf Course",
+      "city": "Livermore",
+      "state": "CA",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://poppyridgegolf.com/",
+      "osm_ref": "way/114224317",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Portland Country Club",
+      "city": "Falmouth",
+      "state": "ME",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.portlandcountryclub.org/",
+      "osm_ref": "relation/17022747",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Portsmouth Country Club",
+      "city": "Greenland",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/320123445",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Prairie Dunes Country Club",
+      "city": "Hutchinson",
+      "state": "KS",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/778336759",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Prouts Neck Country Club",
+      "city": "Scarborough",
+      "state": "ME",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/297826560",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Quail Hollow Club",
+      "city": "Charlotte",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.quailhollowclub.com/",
+      "osm_ref": "way/877659537",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Quaker Ridge Golf Club",
+      "city": "Scarsdale",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/122734578",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Rhode Island Country Club",
+      "city": "Barrington",
+      "state": "RI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.ricc.org/",
+      "osm_ref": "way/146265848",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Rich Harvest Farms",
+      "city": "Sugar Grove",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.richharvestfarms.com/",
+      "osm_ref": "way/689876596",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Ridgewood Country Club (East/West)",
+      "city": "Paramus",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.rcc1890.com/",
+      "osm_ref": "way/44108723",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Roaring Gap Club",
+      "city": "Roaring Gap",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.roaringgapclub.com/",
+      "osm_ref": "relation/12257076",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Robert Trent Jones Golf Club",
+      "city": "Gainesville",
+      "state": "VA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.rtjgc.com/",
+      "osm_ref": "relation/3971085",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Rock Creek Cattle Company",
+      "city": "Deer Lodge",
+      "state": "MT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Rolling Green Golf Club",
+      "city": "Springfield",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/29472936",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Round Hill Club",
+      "city": "Greenwich",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.rhclub.org/",
+      "osm_ref": "way/308622401",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Rutland Country Club",
+      "city": "Rutland",
+      "state": "VT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.rutlandcountryclub.com/",
+      "osm_ref": "way/316519380",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sage Valley Golf Club",
+      "city": "Graniteville",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.sagevalleygolf.com/",
+      "osm_ref": "relation/10736457",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sahalee Country Club",
+      "city": "Sammamish",
+      "state": "WA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.sahalee.com/",
+      "osm_ref": "way/1002185812",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sakonnet Golf Club",
+      "city": "Little Compton",
+      "state": "RI",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://sakonnetgc.com/",
+      "osm_ref": "way/182073615",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Salem Country Club",
+      "city": "Peabody",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.salemcountryclub.org/",
+      "osm_ref": "way/701973533",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Samoset Resort Golf Course",
+      "city": "Rockport",
+      "state": "ME",
+      "country": "US",
+      "course_type": "resort",
+      "website": "http://www.samosetresort.com/golf/",
+      "osm_ref": "way/297775555",
+      "searched_for_outings": null
+    },
+    {
+      "name": "San Francisco Golf Club",
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/16753994",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sand Hills Golf Club",
+      "city": "Mullen",
+      "state": "NE",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.golf.com/courses/us/nebraska/mullen/sand-hills-golf-club",
+      "osm_ref": "way/675110718",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Sand Valley",
+      "city": "Nekoosa",
+      "state": "WI",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sankaty Head Golf Club",
+      "city": "Siasconset",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.sankatyheadgc.com/",
+      "osm_ref": "way/295320135",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Saucon Valley Country Club (Old)",
+      "city": "Bethlehem",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/21460267",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Scioto Country Club",
+      "city": "Columbus",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.sciotocc.com/",
+      "osm_ref": "way/234844122",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Sea Island Golf Club (Seaside)",
+      "city": "St. Simons Island",
+      "state": "GA",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Seaview Golf Club (Bay)",
+      "city": "Galloway",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/1124871555",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sebonack Golf Club",
+      "city": "Southampton",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/28452574",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Secession Golf Club",
+      "city": "Beaufort",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.secessiongolf.com/",
+      "osm_ref": "relation/3973158",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sedge Valley",
+      "city": "Nekoosa",
+      "state": "WI",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Seminole Golf Club",
+      "city": "Juno Beach",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/125329140",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Shadow Creek",
+      "city": "North Las Vegas",
+      "state": "NV",
+      "country": "US",
+      "course_type": "resort",
+      "website": "http://www.shadowcreek.com/",
+      "osm_ref": "way/98834098",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Sheep Ranch",
+      "city": "Bandon",
+      "state": "OR",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Shelter Harbor Golf Club",
+      "city": "Charlestown",
+      "state": "RI",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sherwood Country Club",
+      "city": "Thousand Oaks",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "node/4022885165",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Shinnecock Hills Golf Club",
+      "city": "Southampton",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.shinnecockhillsgolfclub.org/",
+      "osm_ref": "way/689056680",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Shoal Creek Club",
+      "city": "Shoal Creek",
+      "state": "AL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.shoalcreekclub.com/",
+      "osm_ref": "way/300515849",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Shooting Star",
+      "city": "Teton Village",
+      "state": "WY",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.shootingstarjh.com/",
+      "osm_ref": "way/185769558",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Shoreacres",
+      "city": "Lake Bluff",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.shoreacres1916.com/",
+      "osm_ref": "way/190967170",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Shorehaven Golf Club",
+      "city": "Norwalk",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.shorehavengc.org/",
+      "osm_ref": "way/43399270",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Skokie Country Club",
+      "city": "Glencoe",
+      "state": "IL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/31823863",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sleepy Hollow Country Club",
+      "city": "Briarcliff Manor",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/786897140",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Somerset Hills Country Club",
+      "city": "Bernardsville",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/40376254",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Southampton Golf Club",
+      "city": "Southampton",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/599416777",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Southern Hills Country Club",
+      "city": "Tulsa",
+      "state": "OK",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.southernhillscc.com/",
+      "osm_ref": "relation/19140582",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Spring Hill Golf Club",
+      "city": "Wayzata",
+      "state": "MN",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://springhillgc.com/",
+      "osm_ref": "relation/17480009",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Spyglass Hill Golf Course",
+      "city": "Pebble Beach",
+      "state": "CA",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/281477606",
+      "searched_for_outings": null
+    },
+    {
+      "name": "St. George's Golf & Country Club",
+      "city": "East Setauket",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/32039352",
+      "searched_for_outings": null
+    },
+    {
+      "name": "St. Louis Country Club",
+      "city": "St. Louis",
+      "state": "MO",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/149385948",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Stock Farm Club",
+      "city": "Hamilton",
+      "state": "MT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/18222297",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Stone Eagle Golf Club",
+      "city": "Palm Desert",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.stoneeaglegolf.com/",
+      "osm_ref": "way/1374900671",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Stonewall (Old)",
+      "city": "Elverson",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/674514778",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Streamsong Resort (Black)",
+      "city": "Streamsong",
+      "state": "FL",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": "way/1351613366",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Streamsong Resort (Blue)",
+      "city": "Streamsong",
+      "state": "FL",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Streamsong Resort (Red)",
+      "city": "Streamsong",
+      "state": "FL",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sugarloaf Golf Club",
+      "city": "Carrabassett Valley",
+      "state": "ME",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://www.sugarloaf.com/",
+      "osm_ref": "relation/17549879",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sunday River Golf Club",
+      "city": "Newry",
+      "state": "ME",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://www.sundayriver.com/summer-and-fall-activities/sunday-river-golf-club",
+      "osm_ref": "relation/17607310",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sunnehanna Country Club",
+      "city": "Johnstown",
+      "state": "PA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/69962450",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sutton Bay",
+      "city": "Agar",
+      "state": "SD",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1347357290",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Sycamore Hills Golf Club",
+      "city": "Fort Wayne",
+      "state": "IN",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.sycamorehillsgolfclub.com/",
+      "osm_ref": "relation/4085209",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Taconic Golf Club",
+      "city": "Williamstown",
+      "state": "MA",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Tamarack Country Club",
+      "city": "Greenwich",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.tamarackcountryclub.com/",
+      "osm_ref": "way/43398961",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Alotian Club",
+      "city": "Roland",
+      "state": "AR",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1196068565",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Bear's Club",
+      "city": "Jupiter",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.thebearsclub.com/",
+      "osm_ref": "relation/4062340",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Club at Black Rock",
+      "city": "Coeur d'Alene",
+      "state": "ID",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/18094852",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Concession Golf Club",
+      "city": "Bradenton",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://theconcession.com/",
+      "osm_ref": "way/963441269",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Country Club (Main Course)",
+      "city": "Brookline",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.tcclub.org/",
+      "osm_ref": "way/29870415",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "The Country Club (Pepper Pike)",
+      "city": "Pepper Pike",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/125420042",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Country Club of Waterbury",
+      "city": "Waterbury",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.ccwaterbury.com/",
+      "osm_ref": "way/43440664",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Creek",
+      "city": "Locust Valley",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/955922341",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Dye Course at White Oak",
+      "city": "Yulee",
+      "state": "FL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Estancia Club",
+      "city": "Scottsdale",
+      "state": "AZ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1481662037",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "The Golf Club",
+      "city": "New Albany",
+      "state": "OH",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/763506276",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Golf Club of New England",
+      "city": "Stratham",
+      "state": "NH",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.golfclubne.com/",
+      "osm_ref": "way/320123446",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Golf Club of Tennessee",
+      "city": "Kingston Springs",
+      "state": "TN",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Golf Courses of Lawsonia (Links)",
+      "city": "Green Lake",
+      "state": "WI",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://www.lawsonia.com/",
+      "osm_ref": "relation/4554025",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Hartford Golf Club (Red/Blue)",
+      "city": "West Hartford",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/43439662",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Harvester Club",
+      "city": "Rhodes",
+      "state": "IA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/325314320",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Highland Course at Primland",
+      "city": "Meadows of Dan",
+      "state": "VA",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Honors Course",
+      "city": "Ooltewah",
+      "state": "TN",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.honorscourse.net/",
+      "osm_ref": "way/285129325",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Kittansett Club",
+      "city": "Marion",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.kittansett.org/",
+      "osm_ref": "way/29697009",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "The Lido (Sand Valley)",
+      "city": "Nekoosa",
+      "state": "WI",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "The Los Angeles Country Club (North)",
+      "city": "Los Angeles",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.thelacc.org/",
+      "osm_ref": "way/56135439",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "The Madison Club",
+      "city": "La Quinta",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://madisonclubca.com/",
+      "osm_ref": "relation/21023370",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Olde Farm",
+      "city": "Bristol",
+      "state": "VA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.theoldefarm.com/",
+      "osm_ref": "way/321390701",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Olympic Club (Lake)",
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.olyclub.com/",
+      "osm_ref": "relation/3573537",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Pete Dye Course at French Lick",
+      "city": "French Lick",
+      "state": "IN",
+      "country": "US",
+      "course_type": "resort",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Preserve Golf Club",
+      "city": "Carmel",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.santaluciapreserve.com/",
+      "osm_ref": "relation/3569443",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Quarry at La Quinta",
+      "city": "La Quinta",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/12615279",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "The Reserve at Moonlight Basin",
+      "city": "Big Sky",
+      "state": "MT",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/174857046",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Ridge at Back Brook",
+      "city": "Ringoes",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/687995959",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Riviera Country Club",
+      "city": "Pacific Palisades",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.therivieracountryclub.com/",
+      "osm_ref": "way/44652700",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "The Stanwich Club",
+      "city": "Greenwich",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.stanwich.com/",
+      "osm_ref": "way/826609240",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Tree Farm",
+      "city": "Batesburg",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1462368486",
+      "searched_for_outings": null
+    },
+    {
+      "name": "The Valley Club of Montecito",
+      "city": "Montecito",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.valleyclub.org/",
+      "osm_ref": "way/44581019",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "The Vintage Club (Mountain)",
+      "city": "Indian Wells",
+      "state": "CA",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/7508058",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Torrey Pines Golf Course (South)",
+      "city": "La Jolla",
+      "state": "CA",
+      "country": "US",
+      "course_type": "municipal",
+      "website": "https://www.torreypines.com/torrey-pines-south-course/",
+      "osm_ref": "way/35679036",
+      "searched_for_outings": null
+    },
+    {
+      "name": "TPC Boston",
+      "city": "Norton",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://tpc.com/boston",
+      "osm_ref": "way/311851822",
+      "searched_for_outings": null
+    },
+    {
+      "name": "TPC Harding Park",
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "US",
+      "course_type": "municipal",
+      "website": "https://tpc.com/tpc-harding-park-golf",
+      "osm_ref": "way/16753068",
+      "searched_for_outings": null
+    },
+    {
+      "name": "TPC River Highlands",
+      "city": "Cromwell",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://tpc.com/riverhighlands",
+      "osm_ref": "relation/4091841",
+      "searched_for_outings": null
+    },
+    {
+      "name": "TPC Sawgrass (THE PLAYERS Stadium Course)",
+      "city": "Ponte Vedra Beach",
+      "state": "FL",
+      "country": "US",
+      "course_type": "public",
+      "website": "https://tpc.com/tpc-sawgrass",
+      "osm_ref": "relation/1783123",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Tributary Golf Club",
+      "city": "Driggs",
+      "state": "ID",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://tributaryidaho.com/",
+      "osm_ref": "way/422455953",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Trinity Forest Golf Club",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.trinityforestgc.com/",
+      "osm_ref": "relation/13643297",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Trump National Golf Club Bedminster (Old)",
+      "city": "Bedminster",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.trumpnationalbedminster.com/",
+      "osm_ref": "way/40164869",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Union League National Golf Club",
+      "city": "Cape May Court House",
+      "state": "NJ",
+      "country": "US",
+      "course_type": "public",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Valhalla Golf Club",
+      "city": "Louisville",
+      "state": "KY",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.valhallagolfclub.com/",
+      "osm_ref": "way/59737644",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Vermont National Country Club",
+      "city": "South Burlington",
+      "state": "VT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.vermontnational.com/",
+      "osm_ref": "relation/959896",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Victoria National Golf Club",
+      "city": "Newburgh",
+      "state": "IN",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "relation/12189473",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Vineyard Golf Club",
+      "city": "Edgartown",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.vineyardgolf.com/",
+      "osm_ref": "way/350344095",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Wade Hampton Golf Club",
+      "city": "Cashiers",
+      "state": "NC",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.wadehamptongc.com/",
+      "osm_ref": "way/298827616",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Wannamoisett Country Club",
+      "city": "Rumford",
+      "state": "RI",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.wannamoisett.com/",
+      "osm_ref": "relation/12040815",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Wee Burn Country Club",
+      "city": "Darien",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.weeburn.org/",
+      "osm_ref": "way/43398547",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Westhampton Country Club",
+      "city": "Westhampton Beach",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/188542505",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Whippoorwill Club",
+      "city": "Armonk",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.whippoorwillclub.org/",
+      "osm_ref": "relation/4119812",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Whisper Rock Golf Club (Lower)",
+      "city": "Scottsdale",
+      "state": "AZ",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://whisperrockgolf.com/",
+      "osm_ref": "way/415450177",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Whisper Rock Golf Club (Upper)",
+      "city": "Scottsdale",
+      "state": "AZ",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://whisperrockgolf.com/",
+      "osm_ref": "way/415450177",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Whispering Pines Golf Club",
+      "city": "Trinity",
+      "state": "TX",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "Whistling Straits (Straits)",
+      "city": "Haven",
+      "state": "WI",
+      "country": "US",
+      "course_type": "resort",
+      "website": "https://www.americanclubresort.com/golf/whistling-straits",
+      "osm_ref": "way/205111637",
+      "searched_for_outings": "2026-11-18"
+    },
+    {
+      "name": "White Bear Yacht Club",
+      "city": "White Bear Lake",
+      "state": "MN",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/1110614812",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Whitinsville Golf Club",
+      "city": "Whitinsville",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "http://www.whitinsvillegolfclub.net/",
+      "osm_ref": "way/29776989",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Wicker Point Golf Club",
+      "city": "Alexander City",
+      "state": "AL",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": null,
+      "searched_for_outings": null
+    },
+    {
+      "name": "Winchester Country Club",
+      "city": "Winchester",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.winchestercc.org/",
+      "osm_ref": "way/29818882",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Winged Foot Golf Club (East)",
+      "city": "Mamaroneck",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/122734591",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Winged Foot Golf Club (West)",
+      "city": "Mamaroneck",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/122734591",
+      "searched_for_outings": "2026-11-17"
+    },
+    {
+      "name": "Woodway Country Club",
+      "city": "Darien",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.woodway.org/",
+      "osm_ref": "relation/306829",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Worcester Country Club",
+      "city": "Worcester",
+      "state": "MA",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.worcestercc.org/",
+      "osm_ref": "way/87279910",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Wykagyl Country Club",
+      "city": "New Rochelle",
+      "state": "NY",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/122734637",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Yale Golf Course",
+      "city": "New Haven",
+      "state": "CT",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://yalegolf.yale.edu/",
+      "osm_ref": "way/43437312",
+      "searched_for_outings": null
+    },
+    {
+      "name": "Yeamans Hall Club",
+      "city": "Hanahan",
+      "state": "SC",
+      "country": "US",
+      "course_type": "private",
+      "website": null,
+      "osm_ref": "way/440277605",
+      "searched_for_outings": null
+    },
+    {
+      "name": "York Golf & Tennis Club",
+      "city": "York",
+      "state": "ME",
+      "country": "US",
+      "course_type": "private",
+      "website": "https://www.yorkgolfandtennis.com/",
+      "osm_ref": "relation/10351658",
+      "searched_for_outings": null
+    }
+  ]
+}

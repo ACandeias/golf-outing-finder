@@ -95,6 +95,17 @@ describe("parseCliArgs", () => {
     expect(() => parseCliArgs(["--backfill=1", "--prioritize-states=NY"], ENV)).toThrow(/can't be combined/);
   });
 
+  it("--top-courses takes a 1-based range or a count", () => {
+    expect(parseCliArgs([], ENV).topCourses).toBeNull();
+    expect(parseCliArgs(["--top-courses=20"], ENV).topCourses).toEqual({ from: 1, to: 20 });
+    expect(parseCliArgs(["--top-courses=21-60"], ENV).topCourses).toEqual({ from: 21, to: 60 });
+    for (const bad of ["0", "5-2", "all", "1-", "-3"]) {
+      expect(() => parseCliArgs([`--top-courses=${bad}`], ENV)).toThrow(/--top-courses/);
+    }
+    expect(() => parseCliArgs(["--top-courses=10", "--backfill=1"], ENV)).toThrow(/can't be combined/);
+    expect(() => parseCliArgs(["--top-courses=10", "--prioritize-states=NY"], ENV)).toThrow(/can't be combined/);
+  });
+
   it("--weekly-report posts (or, in a dry run, renders) the weekly issue on any day", () => {
     expect(parseCliArgs([], ENV).weeklyReport).toBe(false);
     expect(parseCliArgs(["--weekly-report"], ENV).weeklyReport).toBe(true);

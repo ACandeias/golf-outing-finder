@@ -19,3 +19,6 @@ playwright-report/
 test-results/
 .drizzle/
 worker-configuration.d.ts
+
+# Local-only data that must never reach the public repo (ranking-list tags).
+data/private/

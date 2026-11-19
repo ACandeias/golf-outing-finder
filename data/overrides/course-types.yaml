@@ -75,3 +75,36 @@ overrides:
   - osm_ref: relation/4062340
     course_type: private
     reason: "The Bears Club: expected_course_type of seed e17-buoniconti-bears-club (Phase 1 one-time import)"
+  - osm_ref: way/225722010
+    course_type: private
+    reason: "Merion Golf Club East: private club, data/top_courses.json research (2026-11-17), outing t01-haverford-athletics-merion"
+  - osm_ref: way/191740591
+    course_type: private
+    reason: "Fishers Island Club: private club, data/top_courses.json research (2026-11-17), outing t02-next-step-fishers-island"
+  - osm_ref: relation/3741806
+    course_type: resort
+    reason: "Pebble Beach Golf Links: Pebble Beach Resorts, data/top_courses.json research (2026-11-17), outings t03-t05"
+  - osm_ref: relation/14059170
+    course_type: private
+    reason: "Oakland Hills Country Club: private club, data/top_courses.json research (2026-11-17), outing t08-ymca-legacy-oakland-hills"
+  - osm_ref: way/823626858
+    course_type: resort
+    reason: "Bandon Sheep Ranch: Bandon Dunes Golf Resort course, top-course research (2026-11-18)"
+  - osm_ref: relation/1783123
+    course_type: public
+    reason: "TPC Sawgrass: daily-fee resort-affiliated, top-course research (2026-11-18)"
+  - osm_ref: way/907803844
+    course_type: private
+    reason: "Congressional Country Club: private club, top-course research (2026-11-18)"
+  - osm_ref: way/1304407129
+    course_type: resort
+    reason: "Sand Valley Golf Resort: resort, top-course research (2026-11-18)"
+  - osm_ref: way/29689626
+    course_type: private
+    reason: "Essex County Club (Manchester-by-the-Sea): private club, top-course research (2026-11-18)"
+  - osm_ref: way/136928707
+    course_type: private
+    reason: "Hudson National Golf Club: private club, top-course research (2026-11-18)"
+  - osm_ref: relation/3947927
+    course_type: private
+    reason: "Oak Tree National: private club, top-course research (2026-11-18)"

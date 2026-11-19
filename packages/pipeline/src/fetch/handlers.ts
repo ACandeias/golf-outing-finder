@@ -171,6 +171,24 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     }),
   );
 
+  // --top-courses: the listed courses' rows, found by osm_ref.
+  let topCourses: { id: string; search_name: string }[] | undefined;
+  if (ports.topCourses) {
+    const byRef = new Map(
+      snapshot
+        .all("SELECT id, osm_ref FROM courses WHERE osm_ref IS NOT NULL", looseRow)
+        .map((r) => [String(r.osm_ref), String(r.id)] as const),
+    );
+    topCourses = [];
+    const missing: string[] = [];
+    for (const t of ports.topCourses) {
+      const id = byRef.get(t.osm_ref);
+      if (id) topCourses.push({ id, search_name: t.search_name });
+      else missing.push(t.osm_ref);
+    }
+    if (missing.length) ctx.log.warn("search: top courses not in the courses table", { osm_refs: missing.join(",") });
+  }
+
   // Search: plan tonight's queries, then run them through the adapter and the guard.
   const search = planSearch(ctx, {
     metros: ctx.overrides.metros.map((m) => ({ name: m.name, state: m.state, population: m.population })),
@@ -178,6 +196,7 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
     allowance: guard.allowance(),
     ...(ports.prioritizeStates?.length ? { prioritize_states: [...ports.prioritizeStates] } : {}),
     ...(ports.backfillPage !== undefined ? { backfill_page: ports.backfillPage } : {}),
+    ...(topCourses ? { top_courses: topCourses } : {}),
   });
   if (ports.backfillPage !== undefined)
     ctx.log.info("search: backfill page", {
@@ -196,7 +215,8 @@ export async function discoverHandler(env: StageEnv): Promise<HandlerOutcome> {
 
   // Listing sources fetch through the guarded fetcher; the fetch timer starts here.
   guard.startFetchTimer();
-  const listings = await (env.ports.listings ?? ports.listings).links(guard);
+  // A --top-courses run reads search results only; listing sources keep their own schedule.
+  const listings = topCourses ? [] : await (env.ports.listings ?? ports.listings).links(guard);
 
   const out = discover(ctx, {
     recheck,

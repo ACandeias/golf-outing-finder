@@ -48,6 +48,12 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 ARG BUILD_VERSION=docker
 ENV BUILD_VERSION=${BUILD_VERSION}
+# Prerendered pages (about, privacy, terms, guides, ...) bake the site URL into
+# their canonical, og:url and JSON-LD at build time; server-rendered pages read it
+# at runtime. docker-compose.yml passes PUBLIC_SITE_URL from .env so both agree,
+# e.g. http://192.168.1.20:8787 to open the site from a phone on the same Wi-Fi.
+ARG PUBLIC_SITE_URL=http://localhost:8787
+ENV PUBLIC_SITE_URL=${PUBLIC_SITE_URL}
 # The Cloudflare adapter prerenders static pages through a local preview server
 # bound to "localhost". Inside a container, localhost resolves to ::1 first for
 # the server and 127.0.0.1 for the client, so the build dies with ECONNREFUSED.
@@ -62,12 +68,13 @@ RUN node --experimental-strip-types --no-warnings packages/pipeline/src/seed.ts 
 
 # ---------------------------------------------------------------- runner
 FROM ${NODE_IMAGE} AS runner
+ARG PUBLIC_SITE_URL=http://localhost:8787
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates tini \
     && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=development \
     WRANGLER_SEND_METRICS=false \
-    PUBLIC_SITE_URL=http://localhost:8787 \
+    PUBLIC_SITE_URL=${PUBLIC_SITE_URL} \
     D1_PERSIST_DIR=/data
 WORKDIR /app
 

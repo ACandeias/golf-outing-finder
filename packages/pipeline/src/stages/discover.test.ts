@@ -827,3 +827,66 @@ describe("isGolfOutingText", () => {
     expect(isGolfOutingText("Minigolf scramble")).toBe(false);
   });
 });
+
+describe("planSearch with top_courses (--top-courses)", () => {
+  const metros = [{ name: "Mamaroneck", state: "NY", population: 20000 }];
+  const courses = [{ id: "crs_x", name: "Rotation Course", outing_count: 3, notable: true, state: "NY" }];
+  const top = [
+    { id: "crs_wf", search_name: "Winged Foot Golf Club" },
+    { id: "crs_ph", search_name: "Pinehurst Resort" },
+  ];
+
+  it("plans only the listed courses' queries, with no metros or rotation", () => {
+    const out = planSearch(ctxAt("2026-11-19T07:15:00Z"), {
+      metros,
+      courses,
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+      top_courses: top,
+    });
+    const qs = out.output.queries;
+    expect(qs.every((q) => q.kind === "course")).toBe(true);
+    expect(new Set(qs.map((q) => q.subject))).toEqual(new Set(["crs_wf", "crs_ph"]));
+    expect(qs.map((q) => q.q)).toEqual([
+      '"Winged Foot Golf Club" charity golf outing 2026',
+      '"Winged Foot Golf Club" charity golf outing 2027',
+      '"Winged Foot Golf Club" golf tournament fundraiser',
+      '"Pinehurst Resort" charity golf outing 2026',
+      '"Pinehurst Resort" charity golf outing 2027',
+      '"Pinehurst Resort" golf tournament fundraiser',
+    ]);
+  });
+
+  it("follows the coming-season rule: from December 1 only next year", () => {
+    const out = planSearch(ctxAt("2026-12-02T07:15:00Z"), {
+      metros: [],
+      courses: [],
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+      top_courses: [top[0]!],
+    });
+    expect(out.output.queries.map((q) => q.q)).toEqual([
+      '"Winged Foot Golf Club" charity golf outing 2027',
+      '"Winged Foot Golf Club" golf tournament fundraiser',
+    ]);
+  });
+
+  it("drops a query two entries share (one facility, several listed courses)", () => {
+    const out = planSearch(ctxAt("2026-11-19T07:15:00Z"), {
+      metros: [],
+      courses: [],
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 450 },
+      top_courses: [top[1]!, { id: "crs_ph", search_name: "Pinehurst Resort" }],
+    });
+    expect(out.output.queries).toHaveLength(3);
+  });
+
+  it("still respects the query cap", () => {
+    const out = planSearch(ctxAt("2026-11-19T07:15:00Z"), {
+      metros: [],
+      courses: [],
+      allowance: { MAX_SERP_QUERIES_PER_RUN: 4 },
+      top_courses: top,
+    });
+    expect(out.output.queries).toHaveLength(4);
+    expect(out.result.budgetHits[0]?.cap).toBe("MAX_SERP_QUERIES_PER_RUN");
+  });
+});

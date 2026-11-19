@@ -61,6 +61,7 @@ import {
   seedListingSource,
 } from "./fixture-world.ts";
 import type { HandlerOutcome, StageEnv, StageHandlers } from "./handlers.ts";
+import type { TopCourseTarget } from "../topcourses/list.ts";
 
 /**
  * The nightly wiring (workstream E): every stage's input built from the
@@ -142,6 +143,8 @@ export interface RunEdgesOptions {
   forceRecheck?: boolean;
   /** `--backfill=<page>`, handed to the search plan. */
   backfillPage?: number;
+  /** `--top-courses`, resolved from data/top-courses.json by the CLI. */
+  topCourses?: readonly TopCourseTarget[];
 }
 
 /** A BatchClient that constructs the real one on first use (no SDK client unless a batch is sent). */
@@ -206,6 +209,7 @@ export function createRunEdges(o: RunEdgesOptions): RunEdges {
         ...(o.prioritizeStates && o.prioritizeStates.length > 0 ? { prioritizeStates: [...o.prioritizeStates] } : {}),
         ...(o.forceRecheck ? { forceRecheck: true } : {}),
         ...(o.backfillPage !== undefined ? { backfillPage: o.backfillPage } : {}),
+        ...(o.topCourses !== undefined ? { topCourses: [...o.topCourses] } : {}),
       };
       return o.decorateFetchSide ? o.decorateFetchSide(ports) : ports;
     })();

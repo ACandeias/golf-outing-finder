@@ -11,6 +11,7 @@ import { createRenderer, launchChromium, type Renderer } from "../render/rendere
 import { createDataForSeoAdapter, type BatchSerpAdapter, type HttpJson } from "../serp/dataforseo.ts";
 import { createFixtureSerpAdapter } from "../serp/fixture.ts";
 import type { Context, ListingSource, SerpAdapter } from "../stages/types.ts";
+import type { TopCourseTarget } from "../topcourses/list.ts";
 import { createPageFetcher, userAgentFor, type GuardedPageFetcher, type ValidatorStore } from "./fetcher.ts";
 import { fixtureFetch, fixtureResolver, loadFixtureDocs, type FixtureDoc } from "./fixture-fetch.ts";
 import type { FetchFn } from "./http.ts";
@@ -39,6 +40,8 @@ export interface FetchSidePorts {
   forceRecheck?: boolean;
   /** `--backfill=<page>`: this run searches one fixed page of metros (see planSearch). */
   backfillPage?: number;
+  /** `--top-courses`: the listed courses to search (by osm_ref), instead of the metros and rotation. */
+  topCourses?: readonly TopCourseTarget[];
 }
 
 export interface FetchSideOptions {

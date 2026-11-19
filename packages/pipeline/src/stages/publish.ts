@@ -1,5 +1,6 @@
 import { isPast } from "@gof/shared/dates";
 import type { HoldReason } from "@gof/shared/schemas";
+import { isNotPlayableTitle } from "../classify/rules.ts";
 import { blockedAsSource, platformVerdict, type PlatformRule } from "../discovery/platform-policy.ts";
 import { PUBLISH_CONFIDENCE } from "../extract/validate.ts";
 import { isRemoved, removedUrlSet } from "../overrides/load.ts";
@@ -105,7 +106,14 @@ export const publish: PublishStage = (ctx, input) => {
     const removed = isRemoved(o.id, [o.canonical_source_url, ...source_urls], removals, removedUrls);
     const base = decide(o, time_zone, nowMs, removed);
     const blocked = base.publish && input.platform_rules ? platformBlock(o.canonical_source_url, source_urls, input.platform_rules) : null;
-    const v: Verdict = blocked ? { publish: false, hold: base.hold, why: blocked } : base;
+    // classify's title rule, applied again here so rows stored before a rule was
+    // added (weekly leagues, spectator tour events) come off the site too.
+    const notPlayable = base.publish && isNotPlayableTitle(o.title);
+    const v: Verdict = blocked
+      ? { publish: false, hold: base.hold, why: blocked }
+      : notPlayable
+        ? { publish: false, hold: null, why: "not_playable_title" }
+        : base;
     const published = v.publish ? 1 : 0;
     const ping = v.publish && (o.published === 0 || changed.has(o.id)) && o.status !== "past";
     decisions.push({

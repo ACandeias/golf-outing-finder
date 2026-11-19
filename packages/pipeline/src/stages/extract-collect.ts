@@ -64,6 +64,26 @@ function preclean(raw: unknown): unknown {
   return e;
 }
 
+/** "46th Annual ...", "Annual ...", or the edition's own year in the title. */
+const RECURRING = /\b(\d{1,3}(st|nd|rd|th)|annual|yearly)\b/i;
+
+/**
+ * A past date the pipeline keeps instead of rejecting: within the last year,
+ * from a named organizer, and the title says the outing repeats. Roll-forward
+ * then expects the next edition 12 months on.
+ */
+export function isRecurringPastEdition(
+  title: string,
+  organizerName: string | null,
+  startDate: string,
+  today: string,
+): boolean {
+  if (organizerName === null || organizerName.trim() === "") return false;
+  const yearAgo = `${Number(today.slice(0, 4)) - 1}${today.slice(4)}`;
+  if (startDate < yearAgo) return false;
+  return RECURRING.test(title) || title.includes(startDate.slice(0, 4));
+}
+
 function looksLikeOuting(e: ExtractionEvent): boolean {
   return e.is_outing && e.reject_reason === null && !e.lodging_required;
 }
@@ -126,9 +146,18 @@ function validateEvent(
 
   // A new outing starts today or later, course-local; the course isn't known yet,
   // so use the state's westernmost zone (publish checks again with the course's).
+  // The exception is this year's edition of an annual outing: kept as a past
+  // edition so roll-forward can expect the next one.
+  let pastEdition = false;
   if (startDate !== null) {
     const today = localToday(ctx.now.getTime(), lenientZoneForState(e.venue_state));
-    if ((endDate ?? startDate) < today) return { ok: false, reason: `past: ${startDate} before ${today}` };
+    if ((endDate ?? startDate) < today) {
+      if (!isRecurringPastEdition(e.title, e.organizer_name, startDate, today)) {
+        return { ok: false, reason: `past: ${startDate} before ${today}` };
+      }
+      pastEdition = true;
+      if (e.status === "unknown") e.status = "open";
+    }
   }
 
   const evidence = {
@@ -158,7 +187,7 @@ function validateEvent(
   });
 
   let hold: HoldReason | null = null;
-  if (looksLikeOuting(e)) {
+  if (looksLikeOuting(e) && !pastEdition) {
     if (startDate === null) hold = "no_date";
     else if (e.status === "unknown") hold = "status_unknown";
     else if (confidence < PUBLISH_CONFIDENCE) hold = "low_confidence";
@@ -185,6 +214,7 @@ function validateEvent(
     jsonld_start_date: jl?.start_date ?? null,
     directory_host: m.directory_host,
     hold_reason: hold,
+    past_edition: pastEdition,
   });
   if (!event.success) return { ok: false, reason: `post: ${event.error.issues[0]?.message ?? "invalid"}` };
   return { ok: true, event: event.data };
