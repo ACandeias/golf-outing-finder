@@ -591,6 +591,12 @@ export const extractedEventSchema = extractionEventSchema.extend({
    * `course_unmatched` from match). Held events never create an outings row.
    */
   hold_reason: holdReasonSchema.nullable().default(null),
+  /**
+   * The page shows this year's edition of an annual outing, already played. It
+   * becomes an unpublished `past` row, so recheck-roll-forward expects the next
+   * edition in the same month next year (SPEC.md 8.9).
+   */
+  past_edition: z.boolean().default(false),
 });
 export type ExtractedEvent = z.infer<typeof extractedEventSchema>;
 

@@ -123,6 +123,32 @@ describe("extract-collect", () => {
     expect(p.rejected[0]!.reason).toMatch(/^past/);
   });
 
+  it("keeps the past edition of an annual outing, held from publishing, so roll-forward can expect the next one", () => {
+    // Clock: 2026-09-28. Roll-forward turns a past outing with an organizer into an
+    // expected row for the same month next year (SPEC.md 8.9).
+    const { output } = collect([
+      rawEvent({ title: "46th Annual Friends of Golf Tournament", start_date: "2026-05-04", status: "unknown" }),
+      rawEvent({ title: "Kettle Klassic 2026", start_date: "2026-02-23" }),
+      rawEvent({ title: "Spring Charity Scramble", start_date: "2026-05-04" }), // no sign it repeats
+      rawEvent({ title: "12th Annual Classic", start_date: "2025-08-01" }), // over a year ago
+      rawEvent({ title: "10th Annual Classic", start_date: "2026-06-01", organizer_name: null }), // nobody to expect it from
+    ]);
+    const p = output.pages[0]!;
+    expect(p.events.map((e) => e.event_index)).toEqual([0, 1]);
+    for (const e of p.events) {
+      expect(e.past_edition).toBe(true);
+      expect(e.status).toBe("open");
+      expect(e.hold_reason).toBeNull();
+    }
+    expect(p.rejected.map((r) => r.event_index)).toEqual([2, 3, 4]);
+    for (const r of p.rejected) expect(r.reason).toMatch(/^past/);
+  });
+
+  it("marks an upcoming event as not a past edition", () => {
+    const { output } = collect([rawEvent({ title: "46th Annual Friends of Golf Tournament" })]);
+    expect(output.pages[0]!.events[0]!.past_edition).toBe(false);
+  });
+
   it("keeps a multi-day event that is still running", () => {
     const { output } = collect([rawEvent({ start_date: "2026-09-26", end_date: "2026-09-29" })]);
     expect(output.pages[0]!.events).toHaveLength(1);
