@@ -19,7 +19,7 @@
     "@gof/shared": "workspace:*",
     "astro": "^7.3.5",
     "drizzle-orm": "^0.45.4",
-    "maplibre-gl": "6.11.2",
+    "maplibre-gl": "6.19.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
