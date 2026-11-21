@@ -108,3 +108,6 @@ overrides:
   - osm_ref: relation/3947927
     course_type: private
     reason: "Oak Tree National: private club, top-course research (2026-11-18)"
+  - osm_ref: way/976384744
+    course_type: private
+    reason: "The Grove XXIII (Hobe Sound): private club, top-course list and auction-lot research (2026-11-21)"
