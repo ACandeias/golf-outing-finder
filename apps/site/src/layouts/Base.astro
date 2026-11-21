@@ -31,6 +31,8 @@ interface Props {
   photo?: PhotoKey | null;
   /** The home page: the header floats over the hero and there is no page head. */
   home?: boolean;
+  /** A shorter photo band on phones, so a list page's filters and first results fit the first screen. */
+  slimHead?: boolean;
 }
 
 const {
@@ -44,6 +46,7 @@ const {
   tagline,
   photo = null,
   home = false,
+  slimHead = false,
 } = Astro.props;
 const path = canonicalPath(Astro.props.path ?? Astro.url.pathname);
 const canonical = absoluteUrl(path, Astro);
@@ -120,7 +123,7 @@ const current = (match: string[]) => match.some((m) => path === m || path.starts
       </div>
     </header>
     <main id="main" tabindex="-1" class:list={{ wide }}>
-      {heading && <PageHead title={heading} tagline={tagline} crumbs={allCrumbs} photo={photo} compact={wide} />}
+      {heading && <PageHead title={heading} tagline={tagline} crumbs={allCrumbs} photo={photo} compact={wide} slim={slimHead} />}
       {home ? <slot /> : <div class:list={["page-body", { wrap: !wide }]}><slot /></div>}
     </main>
     <footer class="site-footer">
@@ -548,6 +551,15 @@ const current = (match: string[]) => match.some((m) => path === m || path.starts
     .page-head-band {
       min-height: 340px;
       padding: 3.5rem 72px;
+    }
+  }
+  @media (max-width: 719.98px) {
+    .page-head-band.slim {
+      min-height: 0;
+      padding: 1.5rem 20px 1.75rem;
+    }
+    .page-head-band.slim + .page-body.wrap {
+      padding-top: 1.5rem;
     }
   }
   .photo,

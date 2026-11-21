@@ -57,3 +57,29 @@ export function listDescription(place: string, outings: readonly OutingListItem[
     300,
   );
 }
+
+export interface CityCount {
+  city: string;
+  count: number;
+}
+
+/** How many cities a state page shows as chips above the full list. */
+export const TOP_CITY_CHIPS = 6;
+
+/**
+ * A state page's cities (SPEC.md 9.1 "city links"): every city with an outing,
+ * alphabetical, and the ones with the most outings for the chips (ties by
+ * name). Counts take outings as given, upcoming and expected alike.
+ */
+export function stateCities(
+  outings: readonly { course: { city: string | null } }[],
+  top = TOP_CITY_CHIPS,
+): { all: CityCount[]; top: CityCount[] } {
+  const counts = new Map<string, number>();
+  for (const o of outings) {
+    if (o.course.city) counts.set(o.course.city, (counts.get(o.course.city) ?? 0) + 1);
+  }
+  const all = [...counts.entries()].map(([city, count]) => ({ city, count })).sort((a, b) => a.city.localeCompare(b.city));
+  const byCount = [...all].sort((a, b) => b.count - a.count || a.city.localeCompare(b.city));
+  return { all, top: byCount.slice(0, top) };
+}

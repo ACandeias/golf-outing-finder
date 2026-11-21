@@ -11,7 +11,7 @@ import { listToday } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
 import { notFound, setCache } from "../../../lib/page.ts";
 import { stateName } from "../../../lib/format.ts";
-import { filtersFromUrl, isVisible, listDescription } from "../../../lib/listing.ts";
+import { filtersFromUrl, isVisible, listDescription, stateCities, TOP_CITY_CHIPS } from "../../../lib/listing.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../../../lib/urls.ts";
 import { bandPhotoFor } from "../../../lib/photos.ts";
 
@@ -30,12 +30,10 @@ const [dated, expected] = await Promise.all([
 ]);
 const { filters, anyFilterParam } = filtersFromUrl(Astro.url);
 
-const cityCounts = new Map<string, number>();
-for (const o of [...dated, ...expected]) {
-  if (o.course.city) cityCounts.set(o.course.city, (cityCounts.get(o.course.city) ?? 0) + 1);
-}
-const cities = [...cityCounts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 const all = [...dated, ...expected];
+// The busiest cities as chips; the full alphabetical list folds away below them,
+// still in the HTML so every city page stays linked.
+const { all: cities, top: topCities } = stateCities(all);
 const path = statePath(st);
 
 setCache(Astro, TTL.list);
@@ -49,23 +47,43 @@ setCache(Astro, TTL.list);
   crumbs={[{ name: "Golf outings", path: "/golf-outings" }, { name, path }]}
   heading={`Golf outings in ${name}`}
   photo={bandPhotoFor(st)}
+  slimHead
   jsonLd={[buildItemListJsonLd(all.filter((o) => isVisible(o, filters, null)).map((o) => absoluteUrl(outingPath(o.slug))))]}
 >
-  <p class="lead">
+  <p class="lead state-lead">
     {`${dated.length} upcoming ${dated.length === 1 ? "outing" : "outings"}${expected.length > 0 ? ` and ${expected.length} expected to return` : ""} in ${name}, by month. Prices are per player unless noted.`}
   </p>
 
   {
     cities.length > 0 && (
-      <section aria-labelledby="cities">
-        <h2 id="cities">Cities</h2>
-        <ul class="grid-links">
-          {cities.map(([city, n]) => (
+      <section class="cities" aria-labelledby="cities">
+        <h2 id="cities" class="visually-hidden">Cities</h2>
+        <ul class="city-chips" aria-label={cities.length > TOP_CITY_CHIPS ? "Cities with the most outings" : undefined}>
+          {topCities.map(({ city, count }) => (
             <li>
-              <a href={cityPath(st, city)}>{city}</a> <span class="muted small">({n})</span>
+              <a href={cityPath(st, city)}>
+                {city} <span class="chip-count">{count}<span class="visually-hidden"> {count === 1 ? "outing" : "outings"}</span></span>
+              </a>
             </li>
           ))}
         </ul>
+        {cities.length > TOP_CITY_CHIPS && (
+          <details class="city-list">
+            <summary>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                <path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Browse by city ({cities.length})
+            </summary>
+            <ul class="grid-links">
+              {cities.map(({ city, count }) => (
+                <li>
+                  <a href={cityPath(st, city)}>{city}</a> <span class="muted small">({count})</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </section>
     )
   }
@@ -73,3 +91,133 @@ setCache(Astro, TTL.list);
   <FilterForm filters={filters} action={path} total={all.length} shown={all.filter((o) => isVisible(o, filters, null)).length} />
   <OutingList dated={dated} expected={expected} filters={filters} emptyText={`No outings in ${name} yet. We add new ones every night.`} />
 </Base>
+
+<style>
+  .cities {
+    margin: 1rem 0 0;
+  }
+  .city-chips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  /* On a phone the chips are one row that scrolls sideways, so the filters and
+     the first outings still fit the first screen. */
+  @media (max-width: 719.98px) {
+    .city-chips {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin: 0 -16px;
+      padding: 0.125rem 16px;
+      scrollbar-width: none;
+      scroll-padding-inline: 16px;
+    }
+    .city-chips::-webkit-scrollbar {
+      display: none;
+    }
+    .city-chips li {
+      flex: none;
+    }
+  }
+  .city-chips a {
+    /* Holds the visually hidden "outings" text, so the scrolling row clips it. */
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 36px;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    text-decoration: none;
+    color: var(--title);
+  }
+  .city-chips a:hover {
+    border-color: var(--fairway);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .chip-count {
+    font-size: 0.8125rem;
+    font-style: italic;
+    color: var(--ink-muted);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  /* The same quiet panel as the filter form (FilterForm.astro). */
+  .city-list {
+    background: var(--surface);
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 0 1.25rem;
+    margin: 0.875rem 0 0;
+  }
+  @supports (interpolate-size: allow-keywords) {
+    .city-list {
+      interpolate-size: allow-keywords;
+    }
+    .city-list::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 160ms ease,
+        content-visibility 160ms allow-discrete;
+    }
+    .city-list[open]::details-content {
+      block-size: auto;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .city-list::details-content,
+    .chevron {
+      transition: none !important;
+    }
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    list-style: none;
+    cursor: pointer;
+    font-family: var(--display);
+    font-size: 1.125rem;
+    letter-spacing: 0.02em;
+    color: var(--title);
+    padding: 0.75rem 0;
+    min-height: 48px;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  .chevron {
+    flex: none;
+    color: var(--gilt);
+    transition: transform 160ms ease;
+  }
+  .city-list[open] .chevron {
+    transform: rotate(90deg);
+  }
+  .city-list .grid-links {
+    padding-bottom: 1rem;
+  }
+  /* On a phone the lead is a size down and the first list heading sits close
+     to the filters, so the first outing shows on the first screen. */
+  @media (max-width: 719.98px) {
+    .state-lead {
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+    :global([data-filter-empty] + [data-filter-group] > h2) {
+      margin-top: 1rem;
+    }
+  }
+  /* Two panels in a row read as one stack: no extra gap before the filters. */
+  .cities:has(.city-list) + :global(.filters) {
+    margin-top: 0;
+    border-top: 0;
+  }
+</style>
