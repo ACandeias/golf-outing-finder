@@ -14,6 +14,8 @@ interface OutingFeatureProps {
   when: string;
   time: string;
   courseType: string;
+  /** The stored course type ("municipal", "private", ...). */
+  courseTypeCode?: string;
   label: string;
   price: string;
   status: string;
@@ -117,6 +119,7 @@ export function initNearYou(): void {
   const list = document.querySelector<HTMLElement>("[data-near-list]");
   const status = document.querySelector<HTMLElement>("[data-near-status]");
   if (!button || !list || !status) return;
+  const includeMunicipal = list.dataset.includeMunicipal === "1";
   if (!("geolocation" in navigator)) {
     button.hidden = true;
     return;
@@ -129,7 +132,8 @@ export function initNearYou(): void {
         const lng = pos.coords.longitude.toFixed(3);
         status.textContent = "Looking for outings within 100 miles…";
         try {
-          const res = await fetch(`/api/outings?lat=${lat}&lng=${lng}&radius=100&limit=12`, {
+          // Fetch extra rows: municipal courses are dropped here unless the page includes them.
+          const res = await fetch(`/api/outings?lat=${lat}&lng=${lng}&radius=100&limit=36`, {
             headers: { accept: "application/geo+json" },
           });
           if (!res.ok) throw new Error(String(res.status));
@@ -140,7 +144,9 @@ export function initNearYou(): void {
               : [];
           const items = features
             .map((f) => (typeof f === "object" && f !== null ? (f as { properties?: unknown }).properties : null))
-            .filter(isProps);
+            .filter(isProps)
+            .filter((p) => includeMunicipal || p.courseTypeCode !== "municipal")
+            .slice(0, 12);
           const year = Number(list.dataset.year);
           const currentYear = Number.isInteger(year) && year > 2000 ? year : undefined;
           list.replaceChildren(...items.map((p) => row(p, currentYear)));

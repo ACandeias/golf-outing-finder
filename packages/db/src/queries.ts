@@ -72,6 +72,7 @@ const listFields = {
     lng: courses.lng,
     timeZone: courses.timeZone,
     courseType: courses.courseType,
+    notable: courses.notable,
   },
   organizer: {
     id: organizers.id,
@@ -94,6 +95,8 @@ export interface OutingCourse {
   lng: number;
   timeZone: string;
   courseType: CourseType;
+  /** On the top-course list or notable-courses.yaml (SPEC.md 7.2). No ranks. */
+  notable: boolean;
 }
 
 export interface OutingOrganizer {
@@ -156,7 +159,7 @@ function toItem(r: SelectedRow): OutingListItem {
     sourceGone: r.sourceGone === 1,
     includes: parseIncludes(r.includes),
     label: outingLabel(r.outingType, organizer?.charityStatus ?? null),
-    course: r.course,
+    course: { ...r.course, notable: r.course.notable === 1 },
     organizer,
   };
 }
@@ -181,6 +184,8 @@ export interface OutingFilters {
   organizerId?: string;
   bbox?: BBox;
   courseTypes?: readonly CourseType[];
+  /** Only courses flagged notable (the top-course list). */
+  notableOnly?: boolean;
   charityOnly?: boolean;
   /** Price per player, cents; outings with no single price are kept out when set. */
   maxPriceCents?: number;
@@ -204,6 +209,7 @@ function filterClauses(f: OutingFilters): SQL[] {
     c.push(gte(courses.lng, f.bbox.minLng), lte(courses.lng, f.bbox.maxLng));
   }
   if (f.courseTypes && f.courseTypes.length > 0) c.push(inArray(courses.courseType, [...f.courseTypes]));
+  if (f.notableOnly) c.push(eq(courses.notable, 1));
   if (f.charityOnly) c.push(inArray(outings.outingType, [...CHARITY_TYPES]));
   if (f.maxPriceCents !== undefined) {
     c.push(isNotNull(outings.singlePriceCents), lte(outings.singlePriceCents, f.maxPriceCents));

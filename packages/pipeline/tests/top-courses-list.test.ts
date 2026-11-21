@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseTopCoursesFile,
   resolveTopCourses,
+  topCoursesAsNotable,
   type PoolCourse,
   type TopCourse,
 } from "../src/topcourses/list.ts";
@@ -162,5 +163,31 @@ describe("resolveTopCourses", () => {
       NOWHERE,
     );
     for (const r of rs) expect(r.entry.osm_ref).toBeNull();
+  });
+});
+
+describe("topCoursesAsNotable", () => {
+  it("flags every pinned entry by osm_ref, and never by name alone", () => {
+    const f = parseTopCoursesFile(
+      JSON.stringify({
+        version: "2026-11-21",
+        notes: "x",
+        courses: [
+          entry({ name: "Winged Foot Golf Club (West)", osm_ref: "way/122734591" }),
+          entry({ name: "Pine Valley Golf Club", city: "Pine Valley", state: "NJ", osm_ref: null }),
+          entry({ name: "Bethpage Black", city: "Farmingdale", course_type: "municipal", osm_ref: "way/29468839" }),
+        ],
+      }),
+    );
+    // A bare name would flag every same-named course in the country.
+    expect(topCoursesAsNotable(f)).toEqual({ names: [], osmRefs: ["way/122734591", "way/29468839"] });
+  });
+
+  it("the committed list pins most entries", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const { PATHS } = await import("../src/lib/paths.ts");
+    const n = topCoursesAsNotable(parseTopCoursesFile(await readFile(PATHS.topCourses, "utf8")));
+    expect(n.osmRefs.length).toBeGreaterThan(250);
+    expect(new Set(n.osmRefs).size).toBe(n.osmRefs.length);
   });
 });

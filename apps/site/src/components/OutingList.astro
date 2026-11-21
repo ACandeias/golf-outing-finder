@@ -30,7 +30,8 @@ const offsets = groups.map((_, i) => groups.slice(0, i).reduce((n, g) => n + g.o
 
 {total === 0 && <p>{emptyText}</p>}
 <p class="note" data-filter-empty hidden={!(total > 0 && shown === 0)}>
-  No outings match these filters. Try a wider date range or another course type.
+  No outings match these filters. Municipal courses are left out unless you include them, so try including them, a wider
+  date range or another course type.
 </p>
 {
   groups.map((g, gi) => {

@@ -20,6 +20,11 @@ import { visibleListAds } from "../lib/ads.ts";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** The "Include municipal courses" switch (MunicipalToggle.astro), outside the form. */
+function muniToggle(): HTMLElement | null {
+  return document.querySelector<HTMLElement>("[data-muni-toggle]");
+}
+
 function readForm(form: HTMLFormElement): ListingFilters {
   const data = new FormData(form);
   const str = (name: string): string => {
@@ -37,6 +42,7 @@ function readForm(form: HTMLFormElement): ListingFilters {
   if (from && to && from > to) [from, to] = [to, from];
   return {
     courseTypes,
+    includeMunicipal: muniToggle()?.getAttribute("aria-checked") === "true",
     charityOnly: data.has("charity"),
     maxPriceCents: Number.isFinite(price) && price >= 0 && price <= 25_000 ? price * 100 : null,
     from,
@@ -103,6 +109,14 @@ function apply(form: HTMLFormElement): void {
   if (empty) empty.hidden = shown > 0 || cards.length === 0;
   const qs = filtersToParams(filters).toString();
   history.replaceState(null, "", qs ? `${location.pathname}?${qs}` : location.pathname);
+  // A picked course type replaces the municipal default, so the switch steps aside.
+  const toggle = muniToggle();
+  const wrap = document.querySelector<HTMLElement>("[data-muni-wrap]");
+  if (wrap) wrap.hidden = filters.courseTypes.length > 0;
+  if (toggle) {
+    const next = filtersToParams({ ...filters, includeMunicipal: !filters.includeMunicipal }).toString();
+    toggle.setAttribute("href", next ? `${location.pathname}?${next}` : location.pathname);
+  }
 }
 
 export function initFilters(): void {
@@ -111,6 +125,12 @@ export function initFilters(): void {
   form.addEventListener("change", () => apply(form));
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    apply(form);
+  });
+  const toggle = muniToggle();
+  toggle?.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggle.setAttribute("aria-checked", toggle.getAttribute("aria-checked") === "true" ? "false" : "true");
     apply(form);
   });
 }

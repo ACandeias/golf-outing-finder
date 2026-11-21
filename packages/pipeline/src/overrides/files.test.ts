@@ -3,7 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { PATHS } from "../lib/paths.ts";
-import { readNotableCourses, readRegistrationHosts, readRemovals } from "./files.ts";
+import { readNotableCourses, readNotableWithTopCourses, readRegistrationHosts, readRemovals } from "./files.ts";
+import { mergeNotable } from "./load.ts";
 
 async function tmp(name: string, text: string): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "gof-ovr-"));
@@ -31,5 +32,21 @@ describe("override files", () => {
       await readNotableCourses(await tmp("n.yaml", "courses:\n  - Winged Foot Golf Club\n  - way/1\n  - { osm_ref: way/2 }\n")),
     ).toEqual({ names: ["Winged Foot Golf Club"], osmRefs: ["way/1", "way/2"] });
     await expect(readRegistrationHosts(await tmp("h.yaml", "hosts: ['https://bad/']\n"))).rejects.toThrow();
+  });
+});
+
+describe("notable courses from the top-course list", () => {
+  it("merges the yaml with the list's osm_refs, without repeats", () => {
+    expect(
+      mergeNotable({ names: ["Winged Foot Golf Club"], osmRefs: ["way/1"] }, { names: [], osmRefs: ["way/1", "way/2"] }),
+    ).toEqual({ names: ["Winged Foot Golf Club"], osmRefs: ["way/1", "way/2"] });
+  });
+
+  it("reads the committed yaml and top-course list together", async () => {
+    const n = await readNotableWithTopCourses(PATHS.notable, PATHS.topCourses);
+    expect(n.names).toEqual([]);
+    // Winged Foot (way/122734591) and Peachtree (way/34772911) are on the list.
+    expect(n.osmRefs).toContain("way/122734591");
+    expect(n.osmRefs).toContain("way/34772911");
   });
 });

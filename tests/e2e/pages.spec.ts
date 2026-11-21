@@ -11,6 +11,7 @@ import {
   sameUrl,
   test,
 } from "./support/fixtures.ts";
+import type { Page } from "@playwright/test";
 import { titleOf } from "./support/html.ts";
 import {
   AUTISM_SPEAKS_EXPECTED,
@@ -25,6 +26,27 @@ import {
 } from "./support/seed-facts.ts";
 
 test.describe("home /", () => {
+  /** Outing slugs in the "Coming up" list, in order. */
+  const comingUp = (page: Page) =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLAnchorElement>('section[aria-labelledby="soonest"] .tee-title a')].map((a) =>
+        new URL(a.href).pathname.slice("/outings/".length),
+      ),
+    );
+  const TOP_PRIVATE_IN_DATE_ORDER = [
+    "2026/nkf-golf-classic-at-philadelphia-country-club-philadelphia", // Oct 12
+    FORDHAM_WINGED_FOOT.slug, // Oct 13
+    NKF_WINGED_FOOT.slug, // Oct 19
+    "2026/george-d-yates-golf-outing-maidstone", // Oct 30
+    "2026/legends-on-the-links-riviera", // Nov 2
+  ];
+  const MUNICIPAL = [
+    ENCANTO.slug,
+    "2026/thrivers-and-survivors-charity-golf-tournament-tpc-harding-park",
+    "2026/grady-charity-golf-scramble-rocky-point",
+    "2026/amateurgolf-com-two-man-links-and-father-and-son-at-torrey-pines-torrey-pines-south",
+  ];
+
   test("links to states and lists upcoming outings nationally", async ({ page }) => {
     // 9.1 `/`: "upcoming outings near the visitor (browser location, falling back
     // to a national list), state links". No geolocation is granted here.
@@ -33,8 +55,48 @@ test.describe("home /", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const paths = await linkPaths(page);
     expect(paths).toContain("/golf-outings/ny");
-    // The soonest outing on 2026-09-28 is Encanto on 2026-10-03.
-    await expect.poll(() => outingLinkSlugs(page)).toContain(ENCANTO.slug);
+    expect(await comingUp(page)).toContain(BUILDERS_METROPOLIS.slug);
+  });
+
+  test("leaves out municipal courses and puts top private clubs first, then by date", async ({ page }) => {
+    await page.goto("/");
+    const slugs = await comingUp(page);
+    for (const m of MUNICIPAL) expect(slugs, m).not.toContain(m);
+    // Private clubs on the top-course list lead, soonest first; then the rest by
+    // date (Metropolis is private but not on the list, so it waits its turn).
+    expect(slugs.slice(0, TOP_PRIVATE_IN_DATE_ORDER.length)).toEqual(TOP_PRIVATE_IN_DATE_ORDER);
+    expect(slugs.slice(TOP_PRIVATE_IN_DATE_ORDER.length)).toEqual([
+      BUILDERS_METROPOLIS.slug, // Oct 7
+      "2026/scramble-for-charity-golf-tournament-whitmoor-north", // Oct 19
+      "2026/hyslop-drive-fore-a-cure-arizona-biltmore", // Oct 30
+      "2026/12th-annual-brian-ong-memorial-charity-golf-tournament-mccormick-ranch", // Oct 31, public
+    ]);
+    const toggle = page.getByRole("switch", { name: "Include municipal courses" });
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
+    await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
+  });
+
+  test("the toggle brings municipal courses back, noindexed", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("switch", { name: "Include municipal courses" }).click();
+    await expect(page).toHaveURL(/[?&]include_municipal=1/);
+    await expect(page.getByRole("switch", { name: "Include municipal courses" })).toHaveAttribute("aria-checked", "true");
+    const slugs = await comingUp(page);
+    expect(slugs).toContain(ENCANTO.slug);
+    // Top private clubs still come first.
+    expect(slugs.slice(0, TOP_PRIVATE_IN_DATE_ORDER.length)).toEqual(TOP_PRIVATE_IN_DATE_ORDER);
+    expect(slugs.at(TOP_PRIVATE_IN_DATE_ORDER.length)).toBe(ENCANTO.slug); // Oct 3
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/$/);
+  });
+
+  test("a picked course type replaces the default", async ({ page }) => {
+    await page.goto("/?course_type=municipal_public");
+    const slugs = await comingUp(page);
+    expect(slugs).toContain(ENCANTO.slug);
+    expect(slugs).not.toContain(NKF_WINGED_FOOT.slug);
+    await expect(page.getByRole("switch", { name: "Include municipal courses" })).toBeHidden();
   });
 
   test("has a city or zip search field with a label", async ({ page }) => {
@@ -284,5 +346,31 @@ test.describe("map and about", () => {
     await expect(body).toContainText("OpenFreeMap");
     await expect(body).toContainText("GeoNames");
     await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
+  });
+});
+
+test.describe("municipal courses on list pages", () => {
+  const PHOENIX = `/golf-outings/az/${ENCANTO.citySlug}`;
+  const encantoRow = (page: Page) => page.locator(`[data-outing]:has(a[href="/outings/${ENCANTO.slug}"])`);
+
+  test("a city page keeps municipal outings in the HTML but hidden, and the toggle shows them", async ({ page }) => {
+    await page.goto(PHOENIX);
+    // Still in the page for crawlers, just not shown.
+    await expect(encantoRow(page)).toHaveCount(1);
+    await expect(encantoRow(page)).toBeHidden();
+    await expect(page.locator("[data-filter-count]")).toHaveText(/Showing \d+ of \d+ outings/);
+    const toggle = page.getByRole("switch", { name: "Include municipal courses" });
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
+    await expect(page).toHaveURL(/[?&]include_municipal=1/);
+    await expect(encantoRow(page)).toBeVisible();
+  });
+
+  test("a picked course type overrides the default, and the outing page stays up", async ({ page, request }) => {
+    await page.goto(`${PHOENIX}?course_type=municipal_public`);
+    await expect(encantoRow(page)).toBeVisible();
+    await expect(page.getByRole("switch", { name: "Include municipal courses" })).toBeHidden();
+    expect((await request.get(`/outings/${ENCANTO.slug}`)).status()).toBe(200);
+    expect((await request.get(`/courses/${ENCANTO.courseSlug}`)).status()).toBe(200);
   });
 });

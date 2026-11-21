@@ -10,7 +10,7 @@ import {
   type CityInfo,
   type OutingListItem,
 } from "@gof/db/queries";
-import type { ListingFilters } from "@gof/shared/filters";
+import { listedCourseTypes, type ListingFilters } from "@gof/shared/filters";
 import { isUsStateCode, type LatLng } from "@gof/shared/places";
 import { getDb } from "./db.ts";
 import { listToday } from "./clock.ts";
@@ -59,7 +59,7 @@ export async function loadCityPage(astro: AstroGlobal, charity: boolean): Promis
   const [nearby, nearCities] = center
     ? await Promise.all([
         dated.length + expected.length === 0
-          ? nearbyUpcomingOutings(db, { center, radiusKm: 80, today, limit: 6, charityOnly })
+          ? nearbyUpcomingOutings(db, { center, radiusKm: 80, today, limit: 6, charityOnly, courseTypes: listedCourseTypes(filters) })
           : Promise.resolve([]),
         nearbyCitiesWithOutings(db, { center, today, excludeCity: city.name, limit: 10 }),
       ])

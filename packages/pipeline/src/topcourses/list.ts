@@ -52,6 +52,16 @@ export function parseTopCoursesFile(text: string): TopCoursesFile {
   return topCoursesFileSchema.parse(JSON.parse(text));
 }
 
+/**
+ * The list as notable flags (courses.notable, SPEC.md 7.2): every pinned entry by
+ * osm_ref. Unpinned entries are skipped, since a bare name would also flag every
+ * other course with that name.
+ */
+export function topCoursesAsNotable(file: TopCoursesFile): { names: string[]; osmRefs: string[] } {
+  const osmRefs = file.courses.flatMap((c) => (c.osm_ref ? [c.osm_ref] : []));
+  return { names: [], osmRefs: [...new Set(osmRefs)] };
+}
+
 /** A `courses` row, as much as resolving needs. */
 export interface PoolCourse extends MatchableCourse {
   osm_ref: string | null;

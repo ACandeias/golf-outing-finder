@@ -7,6 +7,7 @@ import {
   type ListingFilters,
 } from "@gof/shared/filters";
 import { FORMAT_LABELS } from "../lib/format.ts";
+import MunicipalToggle from "./MunicipalToggle.astro";
 
 interface Props {
   filters: ListingFilters;
@@ -20,7 +21,8 @@ interface Props {
 }
 
 const { filters: f, action, showDistance = false, distanceFrom = "", total, shown } = Astro.props;
-// Collapsed until a filter is in use, so the tee sheet comes first.
+// Collapsed until a filter is in use, so the tee sheet comes first. The
+// municipal switch sits outside the panel, so it doesn't open it.
 const active =
   f.courseTypes.length > 0 ||
   f.charityOnly ||
@@ -117,6 +119,7 @@ const active =
     </div>
   </form>
 </details>
+<MunicipalToggle filters={f} action={action} />
 <p class="count small muted" aria-live="polite" data-filter-count>
   {shown === total ? `${total} ${total === 1 ? "outing" : "outings"}` : `Showing ${shown} of ${total} outings`}
 </p>
