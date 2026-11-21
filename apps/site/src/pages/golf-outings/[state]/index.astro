@@ -50,7 +50,7 @@ setCache(Astro, TTL.list);
   slimHead
   jsonLd={[buildItemListJsonLd(all.filter((o) => isVisible(o, filters, null)).map((o) => absoluteUrl(outingPath(o.slug))))]}
 >
-  <p class="lead">
+  <p class="lead state-lead">
     {`${dated.length} upcoming ${dated.length === 1 ? "outing" : "outings"}${expected.length > 0 ? ` and ${expected.length} expected to return` : ""} in ${name}, by month. Prices are per player unless noted.`}
   </p>
 
@@ -204,10 +204,15 @@ setCache(Astro, TTL.list);
   .city-list .grid-links {
     padding-bottom: 1rem;
   }
-  /* The first month heading sits close to the filters on a phone. */
+  /* On a phone the lead is a size down and the first list heading sits close
+     to the filters, so the first outing shows on the first screen. */
   @media (max-width: 719.98px) {
+    .state-lead {
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
     :global([data-filter-empty] + [data-filter-group] > h2) {
-      margin-top: 1.25rem;
+      margin-top: 1rem;
     }
   }
   /* Two panels in a row read as one stack: no extra gap before the filters. */
