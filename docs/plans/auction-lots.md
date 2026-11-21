@@ -122,3 +122,23 @@ robots.txt mostly allows lot pages. The terms are what block us.
 | School and hospital gala catalogs | the organizer's own site, often PDFs | **Per host** | Each site's robots.txt and terms decide. Many embed or link into the platforms above and inherit their verdict | Check per host; organizer submissions |
 
 The realistic routes are written permission (32auctions first, then Charitybuzz and GiveSmart), eBay's official APIs, and letting organizers submit their own lots.
+
+Not checked yet, but the manual search found lots there: Member For a Day (memberforaday.com), Givebutter, BetterWorld and winningbidder.com.
+
+## What a manual search found (2026-11-21, claude-search, no paid APIs)
+
+The search covered The Grove XXIII and 20 top private clubs.
+
+- **Open today: none.** About 30 lots from mid-2025 on, at 15 of the 21 clubs, all closed.
+- **The Grove XXIII:** a foursome in First Tee Greater Washington DC's 2026 auction on 32auctions sold for $14,000 (12 bids), closed 2026-09-28. Older lots: ForeBatten 2025 on GiveSmart, Member For a Day, and Shake It For Shea on Givebutter.
+- **Nothing found:** Pine Valley, Augusta National, Cypress Point, LACC.
+- **The usual lot** is a threesome hosted by a member, booked by mutual agreement, expiring 12 to 18 months out. Winning bids often run 5 to 10 times the stated value.
+- **The lots come from a handful of recurring annual auctions:**
+  - Feb to Mar: ForeBatten (GiveSmart)
+  - May: First Tee Metro NY and MGA Foundation
+  - September: First Tee DC (32auctions) and First Tee Metro NY Fall
+  - October: First Tee Charleston (32auctions)
+  - Late Oct to Nov: AJGA, MacKenzie Benefit (32auctions), HV3 Foundation (Network for Good) and Youth on Course
+  - Late Nov to Dec 1: Coaches vs. Cancer
+
+  Following those organizers' own pages, with permission, may find more than per-club searches.
