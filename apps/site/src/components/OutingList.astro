@@ -1,9 +1,9 @@
 ---
 import type { OutingListItem } from "@gof/db/queries";
-import type { ListingFilters } from "@gof/shared/filters";
+import { DEFAULT_SORT, type ListingFilters, type SortOrder } from "@gof/shared/filters";
 import type { LatLng } from "@gof/shared/places";
 import TeeSheet from "./TeeSheet.astro";
-import { groupByMonth, isVisible } from "../lib/listing.ts";
+import { isVisible, listGroups } from "../lib/listing.ts";
 import { adsForGroup, listAdSlots } from "../lib/ads.ts";
 
 interface Props {
@@ -14,11 +14,21 @@ interface Props {
   /** Month headings (state and city pages). */
   byMonth?: boolean;
   emptyText?: string;
+  /** By ranking (top-course list first) or by date. */
+  sort?: SortOrder;
 }
 
-const { dated, expected = [], filters, center = null, byMonth = true, emptyText = "No outings listed here yet." } = Astro.props;
+const {
+  dated,
+  expected = [],
+  filters,
+  center = null,
+  byMonth = true,
+  emptyText = "No outings listed here yet.",
+  sort = DEFAULT_SORT,
+} = Astro.props;
 const groups = byMonth
-  ? groupByMonth(dated, expected)
+  ? listGroups(dated, expected, sort)
   : [{ key: "all", heading: "", outings: [...dated, ...expected] }];
 const total = dated.length + expected.length;
 const shown = [...dated, ...expected].filter((o) => isVisible(o, filters, center)).length;
@@ -30,7 +40,8 @@ const offsets = groups.map((_, i) => groups.slice(0, i).reduce((n, g) => n + g.o
 
 {total === 0 && <p>{emptyText}</p>}
 <p class="note" data-filter-empty hidden={!(total > 0 && shown === 0)}>
-  No outings match these filters. Try a wider date range or another course type.
+  No outings match these filters. Municipal courses are left out unless you include them, so try including them, a wider
+  date range or another course type.
 </p>
 {
   groups.map((g, gi) => {

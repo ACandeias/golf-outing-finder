@@ -10,7 +10,7 @@ import {
   type CityInfo,
   type OutingListItem,
 } from "@gof/db/queries";
-import type { ListingFilters } from "@gof/shared/filters";
+import { listedCourseTypes, type ListingFilters, type SortOrder } from "@gof/shared/filters";
 import { isUsStateCode, type LatLng } from "@gof/shared/places";
 import { getDb } from "./db.ts";
 import { listToday } from "./clock.ts";
@@ -25,6 +25,7 @@ export interface CityPageData {
   expected: OutingListItem[];
   indexable: boolean;
   filters: ListingFilters;
+  sort: SortOrder;
   anyFilterParam: boolean;
   nearby: OutingListItem[];
   nearCities: { city: string; state: string; distanceKm: number }[];
@@ -55,14 +56,14 @@ export async function loadCityPage(astro: AstroGlobal, charity: boolean): Promis
     isCityIndexable(db, st, city.name, today, charity),
   ]);
   const center = city.lat !== null && city.lng !== null ? { lat: city.lat, lng: city.lng } : null;
-  const { filters, anyFilterParam } = filtersFromUrl(astro.url);
+  const { filters, sort, anyFilterParam } = filtersFromUrl(astro.url);
   const [nearby, nearCities] = center
     ? await Promise.all([
         dated.length + expected.length === 0
-          ? nearbyUpcomingOutings(db, { center, radiusKm: 80, today, limit: 6, charityOnly })
+          ? nearbyUpcomingOutings(db, { center, radiusKm: 80, today, limit: 6, charityOnly, courseTypes: listedCourseTypes(filters) })
           : Promise.resolve([]),
         nearbyCitiesWithOutings(db, { center, today, excludeCity: city.name, limit: 10 }),
       ])
     : [[], []];
-  return { charity, st, city, center, dated, expected, indexable, filters, anyFilterParam, nearby, nearCities };
+  return { charity, st, city, center, dated, expected, indexable, filters, sort, anyFilterParam, nearby, nearCities };
 }

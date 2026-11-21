@@ -1,0 +1,109 @@
+---
+/**
+ * "Include municipal courses": list pages leave municipal courses out by
+ * default. The switch is a link that toggles `include_municipal=1`, so it works
+ * without JavaScript; on city and state pages the filter script takes the click
+ * and re-filters in place. A course type picked in the filter replaces the
+ * default, so the switch hides while one is picked.
+ */
+import { DEFAULT_SORT, INCLUDE_MUNICIPAL_PARAM, listParams, type ListingFilters, type SortOrder } from "@gof/shared/filters";
+
+interface Props {
+  filters: ListingFilters;
+  /** The unfiltered page path. */
+  action: string;
+  /** A fragment to land on after a no-JS reload ("soonest"). */
+  hash?: string;
+  /** The list's order, kept in the link. */
+  sort?: SortOrder;
+}
+
+const { filters: f, action, hash, sort = DEFAULT_SORT } = Astro.props;
+const on = f.includeMunicipal;
+const params = listParams({ ...f, includeMunicipal: !on }, sort).toString();
+const href = `${params ? `${action}?${params}` : action}${hash ? `#${hash}` : ""}`;
+---
+
+<p class="muni-toggle" data-muni-wrap hidden={f.courseTypes.length > 0}>
+  <a
+    href={href}
+    role="switch"
+    aria-checked={on ? "true" : "false"}
+    data-muni-toggle
+    data-param={INCLUDE_MUNICIPAL_PARAM}
+    rel="nofollow"
+  >
+    <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+    <span>Include municipal courses</span>
+  </a>
+</p>
+
+<style>
+  .muni-toggle {
+    margin: 0;
+  }
+  .muni-toggle[hidden] {
+    display: none;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 44px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.9375rem;
+  }
+  a:hover span:last-child {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule-strong);
+  }
+  .track {
+    position: relative;
+    flex: none;
+    width: 2.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--ink-muted);
+    background: transparent;
+    transition: background-color 160ms ease;
+  }
+  .thumb {
+    position: absolute;
+    top: 50%;
+    left: 0.1875rem;
+    width: 0.8125rem;
+    height: 0.8125rem;
+    border-radius: 50%;
+    background: var(--ink-muted);
+    transform: translateY(-50%);
+    transition: transform 160ms ease;
+  }
+  a[aria-checked="true"] .track {
+    background: var(--fairway);
+    border-color: var(--fairway);
+  }
+  a[aria-checked="true"] .thumb {
+    background: var(--page);
+    transform: translate(1rem, -50%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .track,
+    .thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // A switch toggles with Space as well as Enter.
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-muni-toggle]"))) {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === " ") {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  }
+</script>

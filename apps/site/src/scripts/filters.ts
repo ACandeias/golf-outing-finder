@@ -8,17 +8,31 @@ import {
   COURSE_TYPE_FILTERS,
   DISTANCE_MILES,
   FORMAT_FILTERS,
-  filtersToParams,
+  DEFAULT_SORT,
+  listParams,
   matchesFilters,
+  SORT_ORDERS,
   type CourseTypeFilter,
   type DistanceMiles,
   type FilterableOuting,
   type FormatFilter,
   type ListingFilters,
+  type SortOrder,
 } from "@gof/shared/filters";
 import { visibleListAds } from "../lib/ads.ts";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The "Include municipal courses" switch (MunicipalToggle.astro), outside the form. */
+function muniToggle(): HTMLElement | null {
+  return document.querySelector<HTMLElement>("[data-muni-toggle]");
+}
+
+/** The page's order, from the sort switch (SortToggle.astro). */
+function currentSort(): SortOrder {
+  const v = document.querySelector<HTMLElement>("[data-sort-toggle]")?.dataset.sort ?? "";
+  return (SORT_ORDERS as readonly string[]).includes(v) ? (v as SortOrder) : DEFAULT_SORT;
+}
 
 function readForm(form: HTMLFormElement): ListingFilters {
   const data = new FormData(form);
@@ -37,6 +51,7 @@ function readForm(form: HTMLFormElement): ListingFilters {
   if (from && to && from > to) [from, to] = [to, from];
   return {
     courseTypes,
+    includeMunicipal: muniToggle()?.getAttribute("aria-checked") === "true",
     charityOnly: data.has("charity"),
     maxPriceCents: Number.isFinite(price) && price >= 0 && price <= 25_000 ? price * 100 : null,
     from,
@@ -101,8 +116,21 @@ function apply(form: HTMLFormElement): void {
   }
   const empty = document.querySelector<HTMLElement>("[data-filter-empty]");
   if (empty) empty.hidden = shown > 0 || cards.length === 0;
-  const qs = filtersToParams(filters).toString();
-  history.replaceState(null, "", qs ? `${location.pathname}?${qs}` : location.pathname);
+  const sort = currentSort();
+  const at = (qs: string) => (qs ? `${location.pathname}?${qs}` : location.pathname);
+  history.replaceState(null, "", at(listParams(filters, sort).toString()));
+  // The sort links reload the page, so they carry the filters as they are now.
+  for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-sort-link]"))) {
+    const order = (SORT_ORDERS as readonly string[]).includes(link.dataset.sortLink ?? "") ? (link.dataset.sortLink as SortOrder) : DEFAULT_SORT;
+    link.setAttribute("href", at(listParams(filters, order).toString()));
+  }
+  // A picked course type replaces the municipal default, so the switch steps aside.
+  const toggle = muniToggle();
+  const wrap = document.querySelector<HTMLElement>("[data-muni-wrap]");
+  if (wrap) wrap.hidden = filters.courseTypes.length > 0;
+  if (toggle) {
+    toggle.setAttribute("href", at(listParams({ ...filters, includeMunicipal: !filters.includeMunicipal }, sort).toString()));
+  }
 }
 
 export function initFilters(): void {
@@ -111,6 +139,12 @@ export function initFilters(): void {
   form.addEventListener("change", () => apply(form));
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    apply(form);
+  });
+  const toggle = muniToggle();
+  toggle?.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggle.setAttribute("aria-checked", toggle.getAttribute("aria-checked") === "true" ? "false" : "true");
     apply(form);
   });
 }
