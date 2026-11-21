@@ -96,3 +96,29 @@ A separate weekly run, like the top-course run: `pnpm run pipeline --auctions=<f
 3. Index lot pages, or `noindex` as recommended?
 4. Private clubs only, or resort and public top courses too (Pebble Beach, Pinehurst, Bandon)?
 5. Add the auction kind to `SPEC.md` (routes, data model, golden cases) as an amendment.
+
+## Sources (terms and robots.txt read 2026-11-21; nothing set to `allowed: true`)
+
+robots.txt mostly allows lot pages. The terms are what block us.
+
+| Site | Lot pages | Verdict | Why | Allowed route |
+| --- | --- | --- | --- | --- |
+| Charitybuzz | charitybuzz.com/product/… | **DENY** | Terms (06/29/2026) ban scraping or "systematically extract data" and framing without written permission | Written permission; no API or feed |
+| Handbid | events.handbid.com/auctions/…/item/… | **DENY** | Acceptable Use Policy §14 bans scraping with "spiders, robots, crawlers"; framing banned | Express written consent |
+| BiddingOwl | new.biddingowl.com/… | **DENY** | Bans robots, commercial use of site information, deep-linking and framing | Prior written approval |
+| ClickBid (cbo.io) | cbo.io events | **DENY** | AUP bans scraping "through use of manual or automated means" | Customer API only, with ClickBid's or the organizer's authorization |
+| Qtego | qtego.us bidder sites | **DENY** | Bans "any robot, spider, or other automatic device" | Written consent |
+| Givergy / momoGood | givergy.us event sites | **DENY** | Bans links to anything but the home page, and framing | Licence |
+| eBay for Charity | ebay.com/itm/… | **DENY** | User Agreement bans robots and scrapers | eBay Developers Program APIs plus eBay Partner Network |
+| Network for Good (Bonterra) | <org>.auctions.networkforgood.com/… | **DENY** | Bonterra terms ban robots and scraping, and framing or linking to materials | Bonterra permission |
+| PledgeIt | charity.pledgeit.org/c/…/auction/… | **DENY** | Bans bots, scraping and deep-linking without consent | Consent |
+| GiveSmart | e.givesmart.com/events/…/i/… | **UNCLEAR** (leans DENY) | Access limited to "viewing the linked pages"; reuse needs permission. Same as the 2026-10-14 verdict | Written permission (Momentive); the Gmail draft from October still applies |
+| OneCause | my.onecause.com/event/… (JS app) | **UNCLEAR** (leans DENY) | No reprinting or republishing, no commercial use | Written permission; the October Gmail draft still applies |
+| 32auctions | 32auctions.com/organizations/…/auctions/… | **UNCLEAR** | robots.txt explicitly invites crawlers to auction pages, but showing content needs written permission | **Best first permission request** |
+| Greater Giving | ggo.bid (JS) | **UNCLEAR** (leans DENY) | Bans commercial or public use of site information | marketing@greatergiving.com |
+| BiddingForGood (FrontStream) | auction.biddingforgood.com (JS) | **UNCLEAR** (leans DENY) | No copying, publishing or displaying content | FrontStream permission |
+| GalaBid | app.galabid.com (JS) | **UNCLEAR** (leans ALLOW) | Visitor terms are thin; no copying of their IP without permission | Permission |
+| Auctria | app.auctria.com event sites | **ALLOW, provisional** | Terms are silent on robots, scraping and reuse, and robots allows event pages. Silent isn't a licence, and public lot rendering isn't confirmed | A courtesy notice |
+| School and hospital gala catalogs | the organizer's own site, often PDFs | **Per host** | Each site's robots.txt and terms decide. Many embed or link into the platforms above and inherit their verdict | Check per host; organizer submissions |
+
+The realistic routes are written permission (32auctions first, then Charitybuzz and GiveSmart), eBay's official APIs, and letting organizers submit their own lots.
