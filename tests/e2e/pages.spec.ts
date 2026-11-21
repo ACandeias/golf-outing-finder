@@ -82,6 +82,47 @@ test.describe("state /golf-outings/ny", () => {
       expect(paths).toContain(`/golf-outings/ny/${city}`);
   });
 
+  test("shows the busiest cities as chips, most outings first, and no city list when there are six or fewer", async ({
+    page,
+  }) => {
+    await page.goto("/golf-outings/ny");
+    const chips = page.locator(".city-chips a");
+    // Seed: Mamaroneck 4, White Plains 3, Lake Success 2, then three cities with one.
+    await expect(chips).toHaveCount(6);
+    const first = await chips.evaluateAll((as) => as.slice(0, 3).map((a) => new URL((a as HTMLAnchorElement).href).pathname));
+    expect(first).toEqual(["/golf-outings/ny/mamaroneck", "/golf-outings/ny/white-plains", "/golf-outings/ny/lake-success"]);
+    await expect(chips.first()).toContainText(/Mamaroneck\s*4/);
+    // Six cities: chips only, no folded list (a state with more gets a closed
+    // <details> "Browse by city (N)" holding every city alphabetically).
+    await expect(page.locator("details.city-list")).toHaveCount(0);
+    const linked = await page.evaluate(() =>
+      [...new Set([...document.querySelectorAll<HTMLAnchorElement>(".cities a")].map((a) => a.pathname))].sort(),
+    );
+    expect(linked).toEqual([
+      "/golf-outings/ny/east-hampton",
+      "/golf-outings/ny/farmingdale",
+      "/golf-outings/ny/lake-success",
+      "/golf-outings/ny/locust-valley",
+      "/golf-outings/ny/mamaroneck",
+      "/golf-outings/ny/white-plains",
+    ]);
+  });
+
+  test("on a phone, the filters and the first outing show without scrolling", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    for (const st of ["ny", "nj"]) {
+      await page.goto(`/golf-outings/${st}`);
+      const fold = await page.evaluate(() => {
+        const filters = document.querySelector("details.filters")?.getBoundingClientRect();
+        const row = [...document.querySelectorAll<HTMLElement>("[data-filter-group] [data-outing]")].find((r) => !r.hidden);
+        const title = row?.querySelector(".tee-title")?.getBoundingClientRect();
+        return { vh: innerHeight, filtersBottom: filters?.bottom ?? Infinity, titleBottom: title?.bottom ?? Infinity };
+      });
+      expect(fold.filtersBottom, `${st} filters`).toBeLessThanOrEqual(fold.vh);
+      expect(fold.titleBottom, `${st} first outing`).toBeLessThanOrEqual(fold.vh);
+    }
+  });
+
   test("every state with a published outing has a page", async ({ request }) => {
     // 9.1: the state route exists for each state with outings (sitemapped in 9.4).
     for (const st of STATES_WITH_OUTINGS) {

@@ -15,12 +15,14 @@ interface Props {
   crumbs: CrumbLink[];
   photo?: PhotoKey | null;
   compact?: boolean;
+  /** A shorter photo band on phones (Base.astro `slimHead`). */
+  slim?: boolean;
 }
 
-const { title, tagline, crumbs, photo = null, compact = false } = Astro.props;
+const { title, tagline, crumbs, photo = null, compact = false, slim = false } = Astro.props;
 ---
 
-<div class:list={["page-head", photo ? "page-head-band" : "page-head-plain", { compact }]}>
+<div class:list={["page-head", photo ? "page-head-band" : "page-head-plain", { compact, slim }]}>
   {
     photo && (
       <>
