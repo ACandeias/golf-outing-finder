@@ -7,7 +7,7 @@ import OutingList from "./OutingList.astro";
 import TeeSheet from "./TeeSheet.astro";
 import type { CityPageData } from "../lib/city-page.ts";
 import { stateName } from "../lib/format.ts";
-import { isVisible, listDescription } from "../lib/listing.ts";
+import { isVisible, listDescription, orderedForList } from "../lib/listing.ts";
 import { absoluteUrl, charityCityPath, cityPath, outingPath, statePath } from "../lib/urls.ts";
 import { GUIDES_PATH, hasGuides } from "../lib/guides.ts";
 import { bandPhotoFor } from "../lib/photos.ts";
@@ -15,7 +15,7 @@ import { bandPhotoFor } from "../lib/photos.ts";
 interface Props {
   data: CityPageData;
 }
-const { charity, st, city, center, dated, expected, indexable, filters, anyFilterParam, nearby, nearCities } = Astro.props.data;
+const { charity, st, city, center, dated, expected, indexable, filters, sort, anyFilterParam, nearby, nearCities } = Astro.props.data;
 const all = [...dated, ...expected];
 const showGuides = await hasGuides();
 
@@ -24,7 +24,9 @@ const path = charity ? charityCityPath(st, city.name) : cityPath(st, city.name);
 const title = charity
   ? `Charity Golf Tournaments in ${place}`
   : `Golf Outings and Charity Tournaments in ${place}`;
-const visibleUrls = all.filter((o) => isVisible(o, filters, center)).map((o) => absoluteUrl(outingPath(o.slug)));
+const visibleUrls = orderedForList(dated, expected, sort)
+  .filter((o) => isVisible(o, filters, center))
+  .map((o) => absoluteUrl(outingPath(o.slug)));
 const crumbs = [
   { name: "Golf outings", path: "/golf-outings" },
   { name: stateName(st), path: statePath(st) },
@@ -68,6 +70,7 @@ const crumbs = [
     distanceFrom={`from ${city.name}`}
     total={all.length}
     shown={all.filter((o) => isVisible(o, filters, center)).length}
+    sort={sort}
   />
 
   {
@@ -91,6 +94,7 @@ const crumbs = [
     expected={expected}
     filters={filters}
     center={center}
+    sort={sort}
     emptyText={charity ? `No charity outings listed in ${city.name} yet.` : `No outings listed in ${city.name} yet.`}
   />
 

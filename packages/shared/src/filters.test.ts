@@ -2,15 +2,18 @@ import { describe, expect, it } from "vitest";
 import { parseFilterParams } from "./filter-params.ts";
 import {
   courseTypesForFilters,
-  featuredFirst,
   filtersToParams,
   hasActiveFilters,
-  isFeaturedCourse,
+  isTopCourse,
   listedCourseTypes,
+  listParams,
   matchesFilters,
   NO_FILTERS,
-  type FeaturableOuting,
+  orderOutings,
+  parseSort,
+  SORT_LABELS,
   type FilterableOuting,
+  type RankableOuting,
 } from "./filters.ts";
 
 const p = (q: string) => parseFilterParams(new URLSearchParams(q));
@@ -169,48 +172,73 @@ describe("listedCourseTypes", () => {
   });
 });
 
-describe("featuredFirst", () => {
-  const o = (id: string, startDate: string | null, courseType: string, notable: boolean): FeaturableOuting => ({
+describe("sort", () => {
+  it("defaults to ranking and flags any sort parameter", () => {
+    expect(parseSort(new URLSearchParams(""))).toEqual({ sort: "ranking", present: false });
+    expect(parseSort(new URLSearchParams("sort=date"))).toEqual({ sort: "date", present: true });
+    expect(parseSort(new URLSearchParams("sort=DATE"))).toEqual({ sort: "date", present: true });
+    expect(parseSort(new URLSearchParams("sort=price"))).toEqual({ sort: "ranking", present: true });
+    expect(SORT_LABELS).toEqual({ ranking: "By ranking", date: "By date" });
+  });
+
+  it("keeps filters and a non-default sort in links", () => {
+    expect(listParams({ ...NO_FILTERS, includeMunicipal: true }, "date").toString()).toBe("include_municipal=1&sort=date");
+    expect(listParams(NO_FILTERS, "ranking").toString()).toBe("");
+  });
+});
+
+describe("orderOutings", () => {
+  const o = (id: string, startDate: string | null, notable: boolean): RankableOuting => ({
     id,
     startDate,
-    course: { courseType, notable },
+    course: { notable },
+  });
+  const list = [
+    o("a", "2026-10-01", false),
+    o("b", "2026-10-02", false),
+    o("top-late", "2026-11-20", true),
+    o("c", "2026-10-04", false),
+    o("top-early", "2026-10-10", true),
+    o("top-expected", null, true),
+    o("expected", null, false),
+  ];
+
+  it("ranking: courses on the top-course list first, each part by date, undated last", () => {
+    expect(isTopCourse({ notable: true })).toBe(true);
+    expect(orderOutings([list], "ranking").map((x) => x.id)).toEqual([
+      "top-early",
+      "top-late",
+      "top-expected",
+      "a",
+      "b",
+      "c",
+      "expected",
+    ]);
   });
 
-  it("features private and resort courses on the top-course list only", () => {
-    expect(isFeaturedCourse({ courseType: "private", notable: true })).toBe(true);
-    expect(isFeaturedCourse({ courseType: "resort", notable: true })).toBe(true);
-    expect(isFeaturedCourse({ courseType: "private", notable: false })).toBe(false);
-    expect(isFeaturedCourse({ courseType: "public", notable: true })).toBe(false);
-    expect(isFeaturedCourse({ courseType: "municipal", notable: true })).toBe(false);
-  });
-
-  it("puts featured outings first, then the rest, each by date", () => {
-    const soon = [
-      o("muni-pub", "2026-10-01", "public", false),
-      o("semi", "2026-10-02", "semi_private", false),
-      o("top-priv-late", "2026-11-20", "private", true),
-      o("top-public", "2026-10-03", "public", true),
-      o("priv", "2026-10-04", "private", false),
-      o("top-resort", "2026-10-10", "resort", true),
-    ];
-    expect(featuredFirst([soon], 12).map((x) => x.id)).toEqual([
-      "top-resort",
-      "top-priv-late",
-      "muni-pub",
-      "semi",
-      "top-public",
-      "priv",
+  it("date: soonest first whatever the course", () => {
+    expect(orderOutings([list], "date").map((x) => x.id)).toEqual([
+      "a",
+      "b",
+      "c",
+      "top-early",
+      "top-late",
+      "top-expected",
+      "expected",
     ]);
   });
 
   it("merges overlapping lists, drops repeats and keeps the limit", () => {
-    const featured = [o("a", "2026-12-01", "private", true), o("b", "2026-12-05", "resort", true)];
-    const soon = [o("c", "2026-10-01", "public", false), o("a", "2026-12-01", "private", true), o("d", "2026-10-02", "unknown", false)];
-    expect(featuredFirst([featured, soon], 3).map((x) => x.id)).toEqual(["a", "b", "c"]);
+    const top = [o("t1", "2026-12-01", true), o("t2", "2026-12-05", true)];
+    const soon = [o("s1", "2026-10-01", false), o("t1", "2026-12-01", true), o("s2", "2026-10-02", false)];
+    expect(orderOutings([top, soon], "ranking", 3).map((x) => x.id)).toEqual(["t1", "t2", "s1"]);
+    expect(orderOutings([top, soon], "date", 3).map((x) => x.id)).toEqual(["s1", "s2", "t1"]);
   });
 
   it("keeps the incoming order on a tie", () => {
-    const soon = [o("x", "2026-10-01", "private", true), o("y", "2026-10-01", "private", true)];
-    expect(featuredFirst([soon], 12).map((x) => x.id)).toEqual(["x", "y"]);
+    expect(orderOutings([[o("x", "2026-10-01", true), o("y", "2026-10-01", true)]], "ranking").map((x) => x.id)).toEqual([
+      "x",
+      "y",
+    ]);
   });
 });

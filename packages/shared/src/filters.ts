@@ -156,25 +156,60 @@ export function filtersToParams(f: ListingFilters): URLSearchParams {
   return p;
 }
 
-/** What the home page's soonest list needs to know to put featured outings first. */
-export interface FeaturableOuting {
-  id: string;
-  startDate: string | null;
-  course: { courseType: string; notable: boolean };
+/**
+ * List order. `ranking` (the default) puts outings at courses on the top-course
+ * list (courses.notable) first, then the rest; each part keeps date order. The
+ * repo stores no rank numbers (SPEC.md 7.1), so within the top courses the
+ * order is by date too. `date` is plain date order.
+ */
+export const SORT_ORDERS = ["ranking", "date"] as const;
+export type SortOrder = (typeof SORT_ORDERS)[number];
+export const DEFAULT_SORT: SortOrder = "ranking";
+export const SORT_PARAM = "sort";
+
+export const SORT_LABELS: Readonly<Record<SortOrder, string>> = {
+  ranking: "By ranking",
+  date: "By date",
+};
+
+/** `?sort=` on a list URL. Any `sort` parameter means a re-ordered copy of the page (noindex). */
+export function parseSort(params: URLSearchParams): { sort: SortOrder; present: boolean } {
+  const raw = params.get(SORT_PARAM)?.trim().toLowerCase() ?? "";
+  const sort = (SORT_ORDERS as readonly string[]).includes(raw) ? (raw as SortOrder) : DEFAULT_SORT;
+  return { sort, present: params.has(SORT_PARAM) };
 }
 
-/** A private or resort course on the top-course list (courses.notable). */
-export function isFeaturedCourse(c: FeaturableOuting["course"]): boolean {
-  return c.notable && (c.courseType === "private" || c.courseType === "resort");
+/** Filter parameters plus the sort, for links that keep both. The default sort sets no parameter. */
+export function listParams(f: ListingFilters, sort: SortOrder): URLSearchParams {
+  const p = filtersToParams(f);
+  if (sort !== DEFAULT_SORT) p.set(SORT_PARAM, sort);
+  return p;
+}
+
+/** What ordering needs to know about an outing. */
+export interface RankableOuting {
+  id: string;
+  startDate: string | null;
+  course: { notable: boolean };
+}
+
+/** A course on the top-course list (courses.notable). */
+export function isTopCourse(c: RankableOuting["course"]): boolean {
+  return c.notable;
 }
 
 /**
- * The home page's "soonest" order: outings at featured courses first, then the
- * rest, each soonest first. Takes any number of lists (a featured query and a
- * date query can overlap), drops repeats by id and keeps at most `limit`.
- * Ties keep their incoming order, so the database's tiebreakers survive.
+ * Orders outings for a list: merges any number of lists (a top-course query
+ * and a date query can overlap), drops repeats by id, then sorts. `ranking`:
+ * top courses first, then the rest, each soonest first; `date`: soonest first.
+ * Outings without a date go last. Ties keep their incoming order, so the
+ * database's tiebreakers survive. Keeps at most `limit`.
  */
-export function featuredFirst<T extends FeaturableOuting>(lists: readonly (readonly T[])[], limit: number): T[] {
+export function orderOutings<T extends RankableOuting>(
+  lists: readonly (readonly T[])[],
+  sort: SortOrder,
+  limit = Number.POSITIVE_INFINITY,
+): T[] {
   const seen = new Set<string>();
   const all: T[] = [];
   for (const list of lists) {
@@ -185,7 +220,7 @@ export function featuredFirst<T extends FeaturableOuting>(lists: readonly (reado
     }
   }
   const date = (o: T) => o.startDate ?? "9999-12-31";
-  const tier = (o: T) => (isFeaturedCourse(o.course) ? 0 : 1);
+  const tier = (o: T) => (sort === "ranking" && isTopCourse(o.course) ? 0 : 1);
   return all
     .map((o, i) => ({ o, i }))
     .sort((a, b) => tier(a.o) - tier(b.o) || date(a.o).localeCompare(date(b.o)) || a.i - b.i)

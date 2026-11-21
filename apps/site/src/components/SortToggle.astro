@@ -1,0 +1,83 @@
+---
+/**
+ * "By ranking" / "By date": the order of a list. Two links that reload the page
+ * with `sort=date` (ranking is the default and sets no parameter), so it works
+ * without JavaScript. The links keep the page's filters; on city and state
+ * pages the filter script keeps their hrefs in step as filters change.
+ */
+import { listParams, SORT_LABELS, SORT_ORDERS, type ListingFilters, type SortOrder } from "@gof/shared/filters";
+
+interface Props {
+  sort: SortOrder;
+  filters: ListingFilters;
+  /** The unfiltered page path. */
+  action: string;
+  /** A fragment to land on after the reload ("soonest"). */
+  hash?: string;
+}
+
+const { sort, filters, action, hash } = Astro.props;
+const hrefFor = (order: SortOrder) => {
+  const qs = listParams(filters, order).toString();
+  return `${qs ? `${action}?${qs}` : action}${hash ? `#${hash}` : ""}`;
+};
+---
+
+<nav class="sort-toggle" aria-label="Sort outings" data-sort-toggle data-sort={sort}>
+  <span class="sort-label" aria-hidden="true">Sort</span>
+  <span class="segments">
+    {
+      SORT_ORDERS.map((order) => (
+        <a href={hrefFor(order)} aria-current={order === sort ? "true" : undefined} data-sort-link={order} rel="nofollow">
+          {SORT_LABELS[order]}
+        </a>
+      ))
+    }
+  </span>
+</nav>
+
+<style>
+  .sort-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 44px;
+    font-size: 0.9375rem;
+  }
+  .sort-label {
+    font-style: italic;
+    color: var(--ink-muted);
+  }
+  .segments {
+    display: inline-flex;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 0.875rem;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  a + a {
+    border-left: 1px solid var(--rule-strong);
+  }
+  a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  a[aria-current="true"] {
+    background: var(--fairway);
+    color: var(--page);
+  }
+  a[aria-current="true"]:hover {
+    text-decoration: none;
+  }
+  a:focus-visible {
+    outline-offset: -3px;
+  }
+</style>

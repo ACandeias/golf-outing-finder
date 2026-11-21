@@ -33,6 +33,7 @@ test.describe("home /", () => {
         new URL(a.href).pathname.slice("/outings/".length),
       ),
     );
+  /** Dated seed outings at courses on the top-course list (none municipal), soonest first. */
   const TOP_PRIVATE_IN_DATE_ORDER = [
     "2026/nkf-golf-classic-at-philadelphia-country-club-philadelphia", // Oct 12
     FORDHAM_WINGED_FOOT.slug, // Oct 13
@@ -58,12 +59,12 @@ test.describe("home /", () => {
     expect(await comingUp(page)).toContain(BUILDERS_METROPOLIS.slug);
   });
 
-  test("leaves out municipal courses and puts top private clubs first, then by date", async ({ page }) => {
+  test("by default: no municipal courses, top-course list first, then by date", async ({ page }) => {
     await page.goto("/");
     const slugs = await comingUp(page);
     for (const m of MUNICIPAL) expect(slugs, m).not.toContain(m);
-    // Private clubs on the top-course list lead, soonest first; then the rest by
-    // date (Metropolis is private but not on the list, so it waits its turn).
+    // Courses on the top-course list lead, soonest first; then the rest by date
+    // (Metropolis is private but not on the list, so it waits its turn).
     expect(slugs.slice(0, TOP_PRIVATE_IN_DATE_ORDER.length)).toEqual(TOP_PRIVATE_IN_DATE_ORDER);
     expect(slugs.slice(TOP_PRIVATE_IN_DATE_ORDER.length)).toEqual([
       BUILDERS_METROPOLIS.slug, // Oct 7
@@ -71,10 +72,27 @@ test.describe("home /", () => {
       "2026/hyslop-drive-fore-a-cure-arizona-biltmore", // Oct 30
       "2026/12th-annual-brian-ong-memorial-charity-golf-tournament-mccormick-ranch", // Oct 31, public
     ]);
+    const sortNav = page.getByRole("navigation", { name: "Sort outings" });
+    await expect(sortNav.getByRole("link", { name: "By ranking" })).toHaveAttribute("aria-current", "true");
+    await expect(sortNav.getByRole("link", { name: "By date" })).not.toHaveAttribute("aria-current", "true");
     const toggle = page.getByRole("switch", { name: "Include municipal courses" });
     await expect(toggle).toBeVisible();
     await expect(toggle).toHaveAttribute("aria-checked", "false");
     await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
+  });
+
+  test("By date re-sorts the list soonest first, noindexed", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("navigation", { name: "Sort outings" }).getByRole("link", { name: "By date" }).click();
+    await expect(page).toHaveURL(/[?&]sort=date/);
+    const slugs = await comingUp(page);
+    expect(slugs[0]).toBe(BUILDERS_METROPOLIS.slug); // Oct 7, before the top courses' Oct 12
+    expect(slugs).toHaveLength(9);
+    for (const m of MUNICIPAL) expect(slugs, m).not.toContain(m);
+    await expect(page.getByRole("link", { name: "By date" })).toHaveAttribute("aria-current", "true");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    // The municipal switch keeps the sort.
+    await expect(page.getByRole("switch", { name: "Include municipal courses" })).toHaveAttribute("href", /sort=date/);
   });
 
   test("the toggle brings municipal courses back, noindexed", async ({ page }) => {
@@ -84,9 +102,12 @@ test.describe("home /", () => {
     await expect(page.getByRole("switch", { name: "Include municipal courses" })).toHaveAttribute("aria-checked", "true");
     const slugs = await comingUp(page);
     expect(slugs).toContain(ENCANTO.slug);
-    // Top private clubs still come first.
-    expect(slugs.slice(0, TOP_PRIVATE_IN_DATE_ORDER.length)).toEqual(TOP_PRIVATE_IN_DATE_ORDER);
-    expect(slugs.at(TOP_PRIVATE_IN_DATE_ORDER.length)).toBe(ENCANTO.slug); // Oct 3
+    // Still by ranking: TPC Harding Park (a municipal course on the list) joins
+    // the top courses, and Encanto (Oct 3, not on the list) follows them.
+    expect(slugs.indexOf("2026/thrivers-and-survivors-charity-golf-tournament-tpc-harding-park")).toBeLessThan(
+      slugs.indexOf(ENCANTO.slug),
+    );
+    expect(slugs.indexOf("2026/legends-on-the-links-riviera")).toBeLessThan(slugs.indexOf(ENCANTO.slug));
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/$/);
   });
@@ -372,5 +393,35 @@ test.describe("municipal courses on list pages", () => {
     await expect(page.getByRole("switch", { name: "Include municipal courses" })).toBeHidden();
     expect((await request.get(`/outings/${ENCANTO.slug}`)).status()).toBe(200);
     expect((await request.get(`/courses/${ENCANTO.courseSlug}`)).status()).toBe(200);
+  });
+});
+
+test.describe("list order on state and city pages", () => {
+  const headings = (page: Page) =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>("[data-filter-group]:not([hidden]) > h2")].map((h) => h.textContent?.trim() ?? ""),
+    );
+
+  test("a state page lists top-ranked courses first, and By date goes back to months", async ({ page }) => {
+    await page.goto("/golf-outings/ny");
+    const first = await headings(page);
+    expect(first[0]).toBe("At top-ranked courses");
+    expect(first).toContain("October 2026"); // Metropolis isn't on the list
+    await page.getByRole("navigation", { name: "Sort outings" }).getByRole("link", { name: "By date" }).click();
+    await expect(page).toHaveURL(/[?&]sort=date/);
+    const byDate = await headings(page);
+    expect(byDate[0]).toBe("October 2026");
+    expect(byDate).not.toContain("At top-ranked courses");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  });
+
+  test("filters keep the sort, and the sort links keep the filters", async ({ page }) => {
+    await page.goto("/golf-outings/ny/mamaroneck?sort=date");
+    await page.locator("details.filters > summary").click();
+    await page.locator('[data-filter-form] input[name="course_type"][value="private"]').check();
+    await expect(page).toHaveURL(/course_type=private/);
+    await expect(page).toHaveURL(/sort=date/);
+    await expect(page.getByRole("link", { name: "By ranking" })).toHaveAttribute("href", /course_type=private/);
+    await expect(page.getByRole("link", { name: "By ranking" })).not.toHaveAttribute("href", /sort=/);
   });
 });

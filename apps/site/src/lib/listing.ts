@@ -1,12 +1,27 @@
 import type { OutingListItem } from "@gof/db/queries";
 import { parseFilterParams, type ParsedFilters } from "@gof/shared/filter-params";
-import { matchesFilters, type ListingFilters } from "@gof/shared/filters";
+import { matchesFilters, parseSort, type ListingFilters, type SortOrder } from "@gof/shared/filters";
 import { haversineKm, KM_PER_MILE, type LatLng } from "@gof/shared/places";
 import { monthYear } from "./format.ts";
 
-/** Filters from the request URL; any filter parameter means noindex (SPEC.md 9.2). */
-export function filtersFromUrl(url: URL): ParsedFilters {
-  return parseFilterParams(url.searchParams);
+/**
+ * Filters and sort from the request URL. Any filter parameter, or a `sort`
+ * parameter (a re-ordered copy of the page), means noindex with the unfiltered
+ * canonical (SPEC.md 9.2).
+ */
+export function filtersFromUrl(url: URL): ParsedFilters & { sort: SortOrder } {
+  const parsed = parseFilterParams(url.searchParams);
+  const { sort, present } = parseSort(url.searchParams);
+  return { ...parsed, sort, anyFilterParam: parsed.anyFilterParam || present };
+}
+
+/** Outing URLs in the order a list page shows them (its ItemList). */
+export function orderedForList(
+  dated: readonly OutingListItem[],
+  expected: readonly OutingListItem[],
+  sort: SortOrder,
+): OutingListItem[] {
+  return listGroups(dated, expected, sort).flatMap((g) => g.outings);
 }
 
 export function isVisible(o: OutingListItem, f: ListingFilters, center: LatLng | null): boolean {
@@ -43,6 +58,29 @@ export function groupByMonth(dated: readonly OutingListItem[], expected: readonl
     out.push({ key: "expected", heading: "Expected outings, dates not yet confirmed", outings: [...expected] });
   }
   return out;
+}
+
+/** The heading over the top-course part of a list sorted by ranking. */
+export const TOP_COURSES_HEADING = "At top-ranked courses";
+
+/**
+ * A list page's sections. By date: months, then expected outings. By ranking
+ * (the default): outings at courses on the top-course list first in one
+ * section, dated then expected, then the rest by month. `dated` comes in date
+ * order and `expected` in expected-month order (the queries' own order).
+ */
+export function listGroups(
+  dated: readonly OutingListItem[],
+  expected: readonly OutingListItem[],
+  sort: SortOrder,
+): MonthGroup[] {
+  if (sort === "date") return groupByMonth(dated, expected);
+  const top = [...dated, ...expected].filter((o) => o.course.notable);
+  const rest = groupByMonth(
+    dated.filter((o) => !o.course.notable),
+    expected.filter((o) => !o.course.notable),
+  );
+  return top.length > 0 ? [{ key: "top", heading: TOP_COURSES_HEADING, outings: top }, ...rest] : rest;
 }
 
 /** The meta description for a list page, built from the data. */

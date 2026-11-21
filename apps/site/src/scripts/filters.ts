@@ -8,13 +8,16 @@ import {
   COURSE_TYPE_FILTERS,
   DISTANCE_MILES,
   FORMAT_FILTERS,
-  filtersToParams,
+  DEFAULT_SORT,
+  listParams,
   matchesFilters,
+  SORT_ORDERS,
   type CourseTypeFilter,
   type DistanceMiles,
   type FilterableOuting,
   type FormatFilter,
   type ListingFilters,
+  type SortOrder,
 } from "@gof/shared/filters";
 import { visibleListAds } from "../lib/ads.ts";
 
@@ -23,6 +26,12 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** The "Include municipal courses" switch (MunicipalToggle.astro), outside the form. */
 function muniToggle(): HTMLElement | null {
   return document.querySelector<HTMLElement>("[data-muni-toggle]");
+}
+
+/** The page's order, from the sort switch (SortToggle.astro). */
+function currentSort(): SortOrder {
+  const v = document.querySelector<HTMLElement>("[data-sort-toggle]")?.dataset.sort ?? "";
+  return (SORT_ORDERS as readonly string[]).includes(v) ? (v as SortOrder) : DEFAULT_SORT;
 }
 
 function readForm(form: HTMLFormElement): ListingFilters {
@@ -107,15 +116,20 @@ function apply(form: HTMLFormElement): void {
   }
   const empty = document.querySelector<HTMLElement>("[data-filter-empty]");
   if (empty) empty.hidden = shown > 0 || cards.length === 0;
-  const qs = filtersToParams(filters).toString();
-  history.replaceState(null, "", qs ? `${location.pathname}?${qs}` : location.pathname);
+  const sort = currentSort();
+  const at = (qs: string) => (qs ? `${location.pathname}?${qs}` : location.pathname);
+  history.replaceState(null, "", at(listParams(filters, sort).toString()));
+  // The sort links reload the page, so they carry the filters as they are now.
+  for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-sort-link]"))) {
+    const order = (SORT_ORDERS as readonly string[]).includes(link.dataset.sortLink ?? "") ? (link.dataset.sortLink as SortOrder) : DEFAULT_SORT;
+    link.setAttribute("href", at(listParams(filters, order).toString()));
+  }
   // A picked course type replaces the municipal default, so the switch steps aside.
   const toggle = muniToggle();
   const wrap = document.querySelector<HTMLElement>("[data-muni-wrap]");
   if (wrap) wrap.hidden = filters.courseTypes.length > 0;
   if (toggle) {
-    const next = filtersToParams({ ...filters, includeMunicipal: !filters.includeMunicipal }).toString();
-    toggle.setAttribute("href", next ? `${location.pathname}?${next}` : location.pathname);
+    toggle.setAttribute("href", at(listParams({ ...filters, includeMunicipal: !filters.includeMunicipal }, sort).toString()));
   }
 }
 

@@ -6,7 +6,7 @@
  * and re-filters in place. A course type picked in the filter replaces the
  * default, so the switch hides while one is picked.
  */
-import { filtersToParams, INCLUDE_MUNICIPAL_PARAM, type ListingFilters } from "@gof/shared/filters";
+import { DEFAULT_SORT, INCLUDE_MUNICIPAL_PARAM, listParams, type ListingFilters, type SortOrder } from "@gof/shared/filters";
 
 interface Props {
   filters: ListingFilters;
@@ -14,11 +14,13 @@ interface Props {
   action: string;
   /** A fragment to land on after a no-JS reload ("soonest"). */
   hash?: string;
+  /** The list's order, kept in the link. */
+  sort?: SortOrder;
 }
 
-const { filters: f, action, hash } = Astro.props;
+const { filters: f, action, hash, sort = DEFAULT_SORT } = Astro.props;
 const on = f.includeMunicipal;
-const params = filtersToParams({ ...f, includeMunicipal: !on }).toString();
+const params = listParams({ ...f, includeMunicipal: !on }, sort).toString();
 const href = `${params ? `${action}?${params}` : action}${hash ? `#${hash}` : ""}`;
 ---
 
@@ -38,7 +40,7 @@ const href = `${params ? `${action}?${params}` : action}${hash ? `#${hash}` : ""
 
 <style>
   .muni-toggle {
-    margin: 0.5rem 0 0;
+    margin: 0;
   }
   .muni-toggle[hidden] {
     display: none;
