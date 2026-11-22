@@ -55,6 +55,8 @@ describe("access opportunities", () => {
 
   it("featured: courses on the top-course list only, open and recurring first", async () => {
     expect(ids(await featuredAccess(db, TODAY, 3))).toEqual(["a_open", "o_upcoming", "m_recurring"]);
+    // The home page's course-type default (no municipal) applies too.
+    expect(await featuredAccess(db, TODAY, 3, ["municipal"])).toEqual([]);
   });
 
   it("the full page: every published item at a matched course", async () => {

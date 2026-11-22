@@ -56,7 +56,7 @@ const soonest = await listUpcomingOutings(db, { today, limit: 12 });
 const counts = await countUpcomingByState(db, today);
 // "Ways onto top courses": auction lots, member-for-a-day, stay-and-play and the
 // like at courses on the top-course list, open and recurring first.
-const topAccess = await featuredAccess(db, today, 6);
+const topAccess = await featuredAccess(db, today, 6, ["public", "semi_private", "private", "resort", "unknown"]);
 const countBy = new Map(counts.map((c) => [c.state, c.count]));
 const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
 

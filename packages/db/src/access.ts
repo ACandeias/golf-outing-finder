@@ -3,8 +3,9 @@
  * non-member gets onto a course besides a dated outing row. Only published rows
  * at a matched course are ever returned.
  */
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { accessOpportunities, courses, type AccessKind } from "./schema.ts";
+import type { CourseType } from "@gof/shared/schemas";
 import type { GofDb } from "./queries.ts";
 
 export interface AccessListItem {
@@ -123,9 +124,20 @@ export async function accessForCourse(db: GofDb, courseId: string, today: string
   return orderAccess(rows.map(toItem), today);
 }
 
-/** Items at courses on the top-course list (courses.notable) for the home page, best first. */
-export async function featuredAccess(db: GofDb, today: string, limit: number): Promise<AccessListItem[]> {
-  const rows = await select(db, and(published, eq(courses.notable, 1)));
+/**
+ * Items at courses on the top-course list (courses.notable) for the home page,
+ * best first. `courseTypes` limits the course types (the home page's municipal default).
+ */
+export async function featuredAccess(
+  db: GofDb,
+  today: string,
+  limit: number,
+  courseTypes?: readonly CourseType[],
+): Promise<AccessListItem[]> {
+  const rows = await select(
+    db,
+    and(published, eq(courses.notable, 1), courseTypes ? inArray(courses.courseType, [...courseTypes]) : undefined),
+  );
   return orderAccess(rows.map(toItem), today).slice(0, limit);
 }
 
