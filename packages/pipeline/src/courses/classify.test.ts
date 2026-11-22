@@ -39,3 +39,22 @@ describe("courseTypeFromOsmTags (SPEC 8.1 step 4.2)", () => {
     expect(courseTypeFromOsmTags(tags)).toBe(type);
   });
 });
+
+describe("courseTypeFromOsmTags: municipal by name", () => {
+  it("a name saying Municipal or Muni gives municipal when no tag decides", () => {
+    expect(courseTypeFromOsmTags({ name: "Horton Smith Municipal Golf Course" })).toBe("municipal");
+    expect(courseTypeFromOsmTags({ name: "Riverside Muni" })).toBe("municipal");
+    expect(courseTypeFromOsmTags({ name: "Muni Golf Course at Elm Park" })).toBe("municipal");
+    expect(courseTypeFromOsmTags({ name: "Lakeview Municipal", access: "yes" })).toBe("municipal");
+  });
+
+  it("matches whole words only", () => {
+    expect(courseTypeFromOsmTags({ name: "Community Golf Course" })).toBeNull();
+    expect(courseTypeFromOsmTags({ name: "Munich Hills Golf Club" })).toBeNull();
+    expect(courseTypeFromOsmTags({ name: "Cleveland Heights Golf Course", access: "yes" })).toBe("public");
+  });
+
+  it("access=private still wins over the name", () => {
+    expect(courseTypeFromOsmTags({ name: "Old Municipal Club", access: "private" })).toBe("private");
+  });
+});
