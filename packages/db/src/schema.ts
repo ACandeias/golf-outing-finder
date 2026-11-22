@@ -278,54 +278,70 @@ export const runs = sqliteTable(
   (t) => [index("runs_started").on(t.startedAt)],
 );
 
-export const AUCTION_LOT_STATUSES = ["upcoming", "open", "closed", "sold", "withdrawn", "unknown"] as const;
-export const AUCTION_PRICE_KINDS = ["current_bid", "starting_bid", "buy_now", "sold"] as const;
-export const AUCTION_HOLD_REASONS = [
-  "needs_review",
-  "platform_not_allowed",
-  "course_unmatched",
-  "no_close_date",
-  "closed",
-  "removed",
+export const ACCESS_KINDS = [
+  "outing",
+  "auction",
+  "member_for_a_day",
+  "stay_and_play",
+  "resort_booking",
+  "public_tee_time",
+  "qualifier",
+  "pro_am",
+  "charity_dinner",
+  "fundraiser_package",
+  "other",
+] as const;
+export type AccessKind = (typeof ACCESS_KINDS)[number];
+export const ACCESS_STATUSES = ["open", "upcoming", "closed", "recurring", "unknown"] as const;
+export const ACCESS_PRICE_KINDS = [
+  "entry_fee",
+  "green_fee",
+  "package",
+  "current_bid",
+  "starting_bid",
+  "buy_now",
+  "sold",
+  "donation",
 ] as const;
 
-/** Auction lots for a round at a named club (migration 0001, docs/plans/auction-lots.md). */
-export const auctionLots = sqliteTable(
-  "auction_lots",
+/** Ways onto a course besides a dated outing row (migration 0001). No ranks (SPEC.md 7.1). */
+export const accessOpportunities = sqliteTable(
+  "access_opportunities",
   {
     id: text("id").primaryKey(),
     slug: text("slug").notNull().unique(),
-    courseId: text("course_id")
-      .notNull()
-      .references(() => courses.id),
-    organizerId: text("organizer_id").references(() => organizers.id),
-    organizerName: text("organizer_name"),
-    auctionName: text("auction_name"),
+    courseId: text("course_id").references(() => courses.id),
+    courseName: text("course_name").notNull(),
+    courseState: text("course_state").notNull(),
+    kind: text("kind", { enum: ACCESS_KINDS }).notNull(),
     title: text("title").notNull(),
-    summary: text("summary"),
+    organizerName: text("organizer_name"),
+    eventName: text("event_name"),
+    platform: text("platform").notNull(),
+    link: text("link").notNull(),
+    dateStart: text("date_start"),
+    dateEnd: text("date_end"),
+    season: text("season"),
+    recurring: integer("recurring").notNull().default(0),
+    priceKind: text("price_kind", { enum: ACCESS_PRICE_KINDS }),
+    priceMinCents: integer("price_min_cents"),
+    priceMaxCents: integer("price_max_cents"),
     players: integer("players"),
     memberHosted: integer("member_hosted"),
-    includes: text("includes").notNull().default("[]"),
-    platform: text("platform").notNull(),
-    closesAt: text("closes_at"),
-    priceKind: text("price_kind", { enum: AUCTION_PRICE_KINDS }),
-    priceCents: integer("price_cents"),
-    valueCents: integer("value_cents"),
-    priceCheckedAt: text("price_checked_at").notNull(),
-    status: text("status", { enum: AUCTION_LOT_STATUSES }).notNull(),
-    lotUrl: text("lot_url").notNull(),
+    status: text("status", { enum: ACCESS_STATUSES }).notNull(),
     confirmed: text("confirmed", { enum: ["fetched", "snippet"] }).notNull(),
     published: integer("published").notNull().default(0),
-    holdReason: text("hold_reason", { enum: AUCTION_HOLD_REASONS }),
+    holdReason: text("hold_reason", { enum: ["needs_review", "course_unmatched", "removed"] }),
     firstSeen: text("first_seen").notNull(),
     lastVerified: text("last_verified").notNull(),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
   (t) => [
-    uniqueIndex("auction_lots_lot").on(t.lotUrl, t.courseId, t.title),
-    index("auction_lots_course").on(t.courseId, t.closesAt),
-    index("auction_lots_listed").on(t.published, t.status, t.closesAt),
+    uniqueIndex("access_opportunities_item").on(t.link, t.kind, t.courseName, t.title),
+    index("access_opportunities_course").on(t.courseId, t.kind),
+    index("access_opportunities_listed").on(t.published, t.status, t.dateEnd),
+    index("access_opportunities_platform").on(t.platform),
   ],
 );
 
@@ -341,7 +357,7 @@ export const allTables = {
   discovery_queue: discoveryQueue,
   submissions,
   runs,
-  auction_lots: auctionLots,
+  access_opportunities: accessOpportunities,
 } as const;
 
 export type City = typeof cities.$inferSelect;
@@ -359,5 +375,4 @@ export type SourceOuting = typeof sourceOutings.$inferSelect;
 export type Run = typeof runs.$inferSelect;
 export type NewRun = typeof runs.$inferInsert;
 export type HoldReason = (typeof HOLD_REASONS)[number];
-export type AuctionLot = typeof auctionLots.$inferSelect;
-export type NewAuctionLot = typeof auctionLots.$inferInsert;
+export type AccessOpportunity = typeof accessOpportunities.$inferSelect;

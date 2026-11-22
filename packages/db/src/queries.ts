@@ -394,7 +394,15 @@ export async function courseBySlug(db: GofDb, slug: string): Promise<(CourseRow 
   const rows = await db
     .select()
     .from(courses)
-    .where(and(eq(courses.slug, slug), gte(courses.outingCount, 1)))
+    .where(
+      and(
+        eq(courses.slug, slug),
+        // A course page exists for a course with an outing (SPEC.md 9.1) or a
+        // published access opportunity (migration 0001).
+        sql`(${courses.outingCount} >= 1 or exists (select 1 from access_opportunities a
+          where a.course_id = ${courses.id} and a.published = 1))`,
+      ),
+    )
     .limit(1);
   const r = rows[0];
   if (!r) return null;
