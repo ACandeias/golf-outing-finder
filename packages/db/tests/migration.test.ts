@@ -26,6 +26,8 @@ const SPEC_TABLES = [
   "discovery_queue",
   "submissions",
   "runs",
+  // 0001: access opportunities (docs/plans/auction-lots.md).
+  "access_opportunities",
 ];
 
 function migrate(): DatabaseSync {

@@ -1,10 +1,12 @@
 ---
 import { z } from "zod";
 import { countUpcomingByState, listUpcomingOutings, searchCities, zipLookup } from "@gof/db/queries";
+import { featuredAccess } from "@gof/db/access";
 import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
 import TeeSheet from "../components/TeeSheet.astro";
+import AccessList from "../components/AccessList.astro";
 import Crest from "../components/Crest.astro";
 import Photo from "../components/Photo.astro";
 import { HERO_PHOTO, HERO_TALL_WIDTHS, HERO_WIDE_WIDTHS, photoSrcset } from "../lib/photos.ts";
@@ -52,6 +54,9 @@ if (Astro.url.searchParams.has("q")) {
 
 const soonest = await listUpcomingOutings(db, { today, limit: 12 });
 const counts = await countUpcomingByState(db, today);
+// "Ways onto top courses": auction lots, member-for-a-day, stay-and-play and the
+// like at courses on the top-course list, open and recurring first.
+const topAccess = await featuredAccess(db, today, 6, ["public", "semi_private", "private", "resort", "unknown"]);
 const countBy = new Map(counts.map((c) => [c.state, c.count]));
 const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
 
@@ -140,6 +145,17 @@ setCache(Astro, TTL.home);
       {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : <TeeSheet outings={soonest} />}
       <p class="more-link"><a href="/golf-outings">See outings in every state</a></p>
     </section>
+
+    {
+      topAccess.length > 0 && (
+        <section aria-labelledby="top-access">
+          <h2 id="top-access" class="section-title">Ways onto top courses</h2>
+          <p class="small muted top-access-note">Charity auction lots, member-for-a-day programs and packages at top clubs and resorts.</p>
+          <AccessList items={topAccess} showCourse />
+          <p class="more-link"><a href="/top-courses">See every way onto a top course</a></p>
+        </section>
+      )
+    }
 
     <section aria-labelledby="near" class="near" data-needs-js>
       <h2 id="near" class="section-title">Outings near you</h2>
@@ -348,6 +364,11 @@ setCache(Astro, TTL.home);
     .section-title {
       font-size: 1.875rem;
     }
+  }
+  .top-access-note {
+    text-align: center;
+    font-style: italic;
+    margin: 0.25rem auto 0;
   }
   .more-link,
   .near-status,

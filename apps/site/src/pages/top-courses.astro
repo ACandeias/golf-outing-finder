@@ -1,0 +1,75 @@
+---
+/**
+ * Every published access opportunity (auction lots, member-for-a-day,
+ * stay-and-play, outings found by research, ...), grouped by course. Research
+ * data still being reviewed, so the page stays out of the index and sitemaps.
+ */
+import { accessPage, type AccessListItem } from "@gof/db/access";
+import Base from "../layouts/Base.astro";
+import AccessList from "../components/AccessList.astro";
+import { ACCESS_KIND_LABELS } from "../lib/access-view.ts";
+import { getDb } from "../lib/db.ts";
+import { listToday } from "../lib/clock.ts";
+import { TTL } from "../lib/cache.ts";
+import { setCache } from "../lib/page.ts";
+import { placeText } from "../lib/format.ts";
+import { coursePath } from "../lib/urls.ts";
+
+export const prerender = false;
+
+const items = await accessPage(getDb(), listToday());
+const byCourse = new Map<string, AccessListItem[]>();
+for (const it of items) byCourse.set(it.course.id, [...(byCourse.get(it.course.id) ?? []), it]);
+const groups = [...byCourse.values()].sort((a, b) =>
+  a[0]!.course.name.replace(/^the /i, "").localeCompare(b[0]!.course.name.replace(/^the /i, "")),
+);
+const kindCounts = new Map<string, number>();
+for (const it of items) kindCounts.set(it.kind, (kindCounts.get(it.kind) ?? 0) + 1);
+const open = items.filter((i) => i.status === "open" || i.status === "upcoming").length;
+
+setCache(Astro, TTL.list);
+---
+
+<Base
+  title="Ways to Play Top Golf Courses | Golf Outing Finder"
+  description="Charity auction lots, outings, member-for-a-day programs and stay-and-play packages that get non-members onto top US golf courses."
+  path="/top-courses"
+  noindex
+  crumbs={[{ name: "Ways to play top courses", path: "/top-courses" }]}
+  heading="Ways to play top courses"
+  photo="bunker-edge"
+>
+  <p class="lead">
+    {`${items.length} ways onto ${groups.length} courses, ${open} open or upcoming now.`} Charity auction lots, outings,
+    member-for-a-day programs, stay-and-play packages and more. Each links to the organizer's or course's own listing,
+    where bidding and booking happen. Closed lots stay listed so you can see what a round has gone for.
+  </p>
+  <ul class="inline-links kind-counts">
+    {[...kindCounts.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li>{ACCESS_KIND_LABELS[k as keyof typeof ACCESS_KIND_LABELS]}: {n}</li>)}
+  </ul>
+  {items.length === 0 && <p>Nothing listed yet.</p>}
+  {
+    groups.map((g) => {
+      const c = g[0]!.course;
+      return (
+        <section aria-labelledby={`c-${c.id}`}>
+          <h2 id={`c-${c.id}`}>
+            <a href={coursePath(c.slug)}>{c.name}</a>
+          </h2>
+          <p class="muted course-place">{placeText(c.city, c.state)}</p>
+          <AccessList items={g} />
+        </section>
+      );
+    })
+  }
+</Base>
+
+<style>
+  .kind-counts {
+    margin: 1rem 0 0.5rem;
+  }
+  .course-place {
+    margin: -0.5rem 0 0;
+    font-style: italic;
+  }
+</style>

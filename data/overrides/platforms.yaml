@@ -145,6 +145,121 @@ platforms:
     listing_url_pattern: "^/(d|b|o|cc)/"
     event_url_pattern: "^https://(www\\.)?eventbrite\\.com/e/"
 
+  # DENY: terms 11 ban any scraper, crawler, spider or robot.
+  - name: givebutter
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://givebutter.com/terms
+    adapter: page
+    domains: [givebutter.com]
+  # DENY: no robot, spider or script to extract, index or scrape; deep links banned.
+  - name: Member For a Day
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://memberforaday.com/terms-of-use
+    adapter: page
+    domains: [memberforaday.com]
+  # DENY: Geronimo Solutions terms 9 and 11 ban bots, scrapers and data mining
+  # (NCGA Foundation, Carolinas Golf Foundation and Youth on Course auctions).
+  - name: WinningBidder and Travel Pledge
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.winningbidder.com/terms-of-use
+    adapter: page
+    domains: [winningbidder.com, travelpledge.com, travelpledgeauctions.com]
+  # DENY: terms ban scraping, systematic data extraction and framing without permission.
+  - name: Charitybuzz
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.charitybuzz.com/terms
+    adapter: page
+    domains: [charitybuzz.com]
+  # DENY: Acceptable Use Policy 14 bans spiders, robots and crawlers; framing banned.
+  - name: Handbid
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.handbid.com/legal/aup
+    adapter: page
+    domains: [handbid.com]
+  # DENY: no robots or automatic devices, no commercial use, no deep links.
+  - name: BiddingOwl
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.biddingowl.com/en-us/terms-and-conditions
+    adapter: page
+    domains: [biddingowl.com]
+  # DENY: the AUP bans scraping by manual or automated means.
+  - name: ClickBid
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://try.cbo.io/aup/
+    adapter: page
+    domains: [cbo.io, clickbid.com]
+  # DENY: bans any robot, spider or automatic device.
+  - name: Qtego
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://qtego.com/terms/
+    adapter: page
+    domains: [qtego.com, qtego.us]
+  # DENY: bans links to anything but the home page, and framing.
+  - name: Givergy (momoGood)
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://momogood.com/terms
+    adapter: page
+    domains: [givergy.com, givergy.us, momogood.com]
+  # DENY: bans bots, scraping and deep links without consent.
+  - name: PledgeIt
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://pledgeit.org/terms-of-service
+    adapter: page
+    domains: [pledgeit.org]
+  # UNCLEAR: robots.txt invites crawlers to auction pages, but displaying
+  # content needs written permission. The best first permission request.
+  - name: 32auctions
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.32auctions.com/pages/terms.html
+    adapter: page
+    domains: [32auctions.com]
+  # UNCLEAR: no commercial use; the bot exception covers search engines only.
+  - name: Charity Auctions (Today)
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.charityauctions.com/terms
+    adapter: page
+    domains: [charityauctions.com, charityauctionstoday.com]
+  # UNCLEAR: no commercial use of site content without a licence.
+  - name: Ticket Tailor
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.tickettailor.com/en-us/legal/terms-of-use
+    adapter: page
+    domains: [tickettailor.com, buytickets.at]
+  # UNCLEAR: personal, non-commercial use only; robots.txt blocks ClaudeBot.
+  - name: BiddingForGood
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.biddingforgood.com/docs/eula_buyer.pdf
+    adapter: page
+    domains: [biddingforgood.com]
+  # UNCLEAR: no commercial or public use of site information.
+  - name: Greater Giving
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://www.greatergiving.com/en/terms-of-use
+    adapter: page
+    domains: [greatergiving.com, ggo.bid]
+  # UNCLEAR: no copying of their material without written permission.
+  - name: GalaBid
+    allowed: false
+    terms_checked: 2026-11-21
+    terms_url: https://galabid.com/terms-and-conditions
+    adapter: page
+    domains: [galabid.com]
+
 associations:
   - name: Arizona Golf Association
     allowed: true

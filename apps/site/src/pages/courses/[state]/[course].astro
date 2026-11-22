@@ -1,15 +1,17 @@
 ---
 import { z } from "zod";
 import { courseBySlug, outingsForCourse } from "@gof/db/queries";
+import { accessForCourse } from "@gof/db/access";
 import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { isPast } from "@gof/shared/dates";
 import { OSM_ATTRIBUTION_TEXT } from "@gof/shared/places";
 import type { CourseType } from "@gof/shared/schemas";
 import Base from "../../../layouts/Base.astro";
 import TeeSheet from "../../../components/TeeSheet.astro";
+import AccessList from "../../../components/AccessList.astro";
 import { listAdsFor } from "../../../lib/ads.ts";
 import { getDb } from "../../../lib/db.ts";
-import { requestNow } from "../../../lib/clock.ts";
+import { listToday, requestNow } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
 import { notFound, setCache } from "../../../lib/page.ts";
 import { COURSE_TYPE_LABELS, placeText, stateName } from "../../../lib/format.ts";
@@ -32,7 +34,10 @@ const course = await courseBySlug(db, `${params.data.state}/${params.data.course
 if (!course) return notFound(Astro);
 
 const now = requestNow();
-const all = await outingsForCourse(db, course.id);
+const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, listToday())]);
+// A course page that exists only for its access opportunities stays out of the
+// index until the course has an outing (SPEC.md 9.1 indexing rule unchanged).
+const accessOnly = course.outingCount < 1;
 const isDone = (o: (typeof all)[number]) =>
   o.status === "past" || (o.status !== "expected" && o.startDate !== null && isPast(o.startDate, o.endDate, now, o.course.timeZone));
 const upcoming = all.filter((o) => o.status !== "expected" && !isDone(o)).reverse();
@@ -72,12 +77,13 @@ setCache(Astro, TTL.list);
 ---
 
 <Base
-  title={`Golf Outings at ${course.name}, ${place}`}
+  title={accessOnly ? `Ways to Play ${course.name}, ${place}` : `Golf Outings at ${course.name}, ${place}`}
+  noindex={accessOnly}
   description={`${upcoming.length} upcoming and ${expected.length} expected golf outings at ${course.name}, ${typeSentence[course.courseType] ?? "a golf course"} in ${place}. Dates, prices and registration links.`}
   path={path}
   crumbs={crumbs}
   jsonLd={[buildItemListJsonLd([...upcoming, ...expected, ...past].map((o) => absoluteUrl(outingPath(o.slug))))]}
-  heading={`Golf outings at ${course.name}`}
+  heading={accessOnly ? `Ways to play ${course.name}` : `Golf outings at ${course.name}`}
   tagline={`${capitalize(typeSentence[course.courseType] ?? "a golf course")} in ${place}`}
   photo={bandPhotoFor(course.state)}
 >
@@ -108,6 +114,18 @@ setCache(Astro, TTL.list);
       <section aria-labelledby="past">
         <h2 id="past">Past outings</h2>
         <TeeSheet outings={past} alwaysYear />
+      </section>
+    )
+  }
+  {
+    access.length > 0 && (
+      <section aria-labelledby="access">
+        <h2 id="access">Other ways to play {course.name}</h2>
+        <p class="small muted">
+          Charity auction lots, member-for-a-day programs, stay-and-play packages and more, from organizers' and courses' own
+          listings. Bidding and booking happen on their sites.
+        </p>
+        <AccessList items={access} />
       </section>
     )
   }

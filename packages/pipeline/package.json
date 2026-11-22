@@ -14,7 +14,8 @@
     "start:top-course-outings": "node --experimental-strip-types --no-warnings src/top-course-outings.ts",
     "start:top-course-research": "node --experimental-strip-types --no-warnings src/top-course-research.ts",
     "start:places-load": "node --experimental-strip-types --no-warnings src/places/load-cli.ts",
-    "start:top-courses-match": "node --experimental-strip-types --no-warnings src/top-courses-match.ts"
+    "start:top-courses-match": "node --experimental-strip-types --no-warnings src/top-courses-match.ts",
+    "start:access-load": "node --experimental-strip-types --no-warnings src/access/load.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.131.0",

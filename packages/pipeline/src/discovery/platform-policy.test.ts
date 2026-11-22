@@ -187,6 +187,23 @@ describe("the committed platforms.yaml", () => {
       "Scramble Hunter": "https://scramblehunter.com/event/some-scramble/",
       "charitygolfevent.com": "https://www.charitygolfevent.com/en-US/charity-golf-events/x",
       "golfsync.io": "https://golfsync.io/tournament-center/tournaments/x",
+      // 2026-11-21 terms check.
+      givebutter: "https://givebutter.com/golf-classic-2026",
+      "Member For a Day": "https://memberforaday.com/listing/1175",
+      "WinningBidder and Travel Pledge": "https://ncga.winningbidder.com/Event/4886",
+      Charitybuzz: "https://www.charitybuzz.com/catalog_items/round-at-x",
+      Handbid: "https://events.handbid.com/auctions/gala/item/foursome-1",
+      BiddingOwl: "https://new.biddingowl.com/gala/item/1",
+      ClickBid: "https://event.cbo.io/gala",
+      Qtego: "https://bid.qtego.us/gala",
+      "Givergy (momoGood)": "https://event.givergy.us/gala",
+      PledgeIt: "https://charity.pledgeit.org/c/abc/auction/def",
+      "32auctions": "https://www.32auctions.com/organizations/1/auctions/2/auction_items/3",
+      "Charity Auctions (Today)": "https://www.charityauctionstoday.com/risk-free-auction-items/golf",
+      "Ticket Tailor": "https://www.tickettailor.com/events/org/123",
+      BiddingForGood: "https://www.biddingforgood.com/auction/item/1",
+      "Greater Giving": "https://ggo.bid/gala",
+      GalaBid: "https://app.galabid.com/gala",
     };
     const off = [...config.platforms, ...config.directories].filter((e) => !e.allowed).map((e) => e.name);
     // A new `allowed: false` entry needs a sample here, so it can't go unchecked.
