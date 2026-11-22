@@ -116,7 +116,7 @@ export async function main(argv: readonly string[], deps: MainDeps = {}): Promis
       now: new Date(nowMs),
       caps: Object.freeze(resolveBudget(opts.budget, env)),
       overrides: Object.freeze({
-        ...(await loadOverrides({ overrides: PATHS.overrides, places: PATHS.places })),
+        ...(await loadOverrides({ overrides: PATHS.overrides, places: PATHS.places, topCourses: PATHS.topCourses })),
         ...deps.overrides,
       }),
       log,

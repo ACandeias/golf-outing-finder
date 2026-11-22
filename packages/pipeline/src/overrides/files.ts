@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises";
+import { parseTopCoursesFile, topCoursesAsNotable } from "../topcourses/list.ts";
 import {
+  mergeNotable,
   OVERRIDE_FILES,
   parseHostsYaml,
   parseNotableCoursesYaml,
@@ -21,4 +23,10 @@ export async function readRegistrationHosts(path: string): Promise<string[]> {
 /** notable-courses.yaml: course names or osm_refs, no ranks. */
 export async function readNotableCourses(path: string): Promise<NotableCourses> {
   return parseNotableCoursesYaml(await readFile(path, "utf8"));
+}
+
+/** notable-courses.yaml plus the pinned entries of data/top-courses.json. */
+export async function readNotableWithTopCourses(notablePath: string, topCoursesPath: string): Promise<NotableCourses> {
+  const [yaml, top] = await Promise.all([readNotableCourses(notablePath), readFile(topCoursesPath, "utf8")]);
+  return mergeNotable(yaml, topCoursesAsNotable(parseTopCoursesFile(top)));
 }

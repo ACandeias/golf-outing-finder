@@ -5,6 +5,7 @@ import { z } from "zod";
 import { normalizeUrl } from "../discovery/url.ts";
 import { metroSchema, type Metro } from "../places/files.ts";
 import { parseCourseTypesYaml, type CourseTypeOverride } from "./course-types.ts";
+import { parseTopCoursesFile, topCoursesAsNotable } from "../topcourses/list.ts";
 
 /**
  * zod-validated readers for every owner-edited file in data/overrides (SPEC.md
@@ -144,6 +145,14 @@ export function parseNotableCoursesYaml(text: string): NotableCourses {
   return { names, osmRefs };
 }
 
+/** Both sets of notable flags, first-seen order, no repeats. */
+export function mergeNotable(a: NotableCourses, b: NotableCourses): NotableCourses {
+  return {
+    names: [...new Set([...a.names, ...b.names])],
+    osmRefs: [...new Set([...a.osmRefs, ...b.osmRefs])],
+  };
+}
+
 // series.yaml -----------------------------------------------------------------
 
 export const seriesEntrySchema = z
@@ -228,10 +237,14 @@ export function parseOverrides(texts: OverrideTexts): Overrides {
   });
 }
 
-/** Reads data/overrides/*.yaml and data/places/metros.yaml. */
+/**
+ * Reads data/overrides/*.yaml and data/places/metros.yaml. With `topCourses`
+ * (data/top-courses.json), the list's pinned courses are notable too.
+ */
 export async function loadOverrides(dirs: {
   overrides: string;
   places: string;
+  topCourses?: string;
 }): Promise<Overrides> {
   const entries = await Promise.all(
     (Object.keys(OVERRIDE_FILES) as OverrideFile[]).map(
@@ -240,7 +253,10 @@ export async function loadOverrides(dirs: {
   );
   const texts = Object.fromEntries(entries) as Record<OverrideFile, string>;
   const metros = await readFile(join(dirs.places, "metros.yaml"), "utf8");
-  return parseOverrides({ ...texts, metros });
+  const parsed = parseOverrides({ ...texts, metros });
+  if (!dirs.topCourses) return parsed;
+  const top = topCoursesAsNotable(parseTopCoursesFile(await readFile(dirs.topCourses, "utf8")));
+  return deepFreeze({ ...parsed, notableCourses: mergeNotable(parsed.notableCourses, top) });
 }
 
 /** An empty set of overrides, for tests that build their own. */

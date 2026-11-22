@@ -10,6 +10,7 @@ import {
   DISTANCE_MILES,
   FILTER_PARAMS,
   FORMAT_FILTERS,
+  INCLUDE_MUNICIPAL_PARAM,
   type CourseTypeFilter,
   type DistanceMiles,
   type ListingFilters,
@@ -86,6 +87,7 @@ export function parseFilterParams(params: URLSearchParams): ParsedFilters {
   return {
     filters: {
       courseTypes,
+      includeMunicipal: pick(INCLUDE_MUNICIPAL_PARAM, flag) ?? false,
       charityOnly: pick("charity", flag) ?? false,
       maxPriceCents: pick("max_price", maxPrice),
       from,

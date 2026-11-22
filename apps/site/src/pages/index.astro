@@ -1,12 +1,16 @@
 ---
 import { z } from "zod";
 import { countUpcomingByState, listUpcomingOutings, searchCities, zipLookup } from "@gof/db/queries";
+import { parseFilterParams } from "@gof/shared/filter-params";
+import { listedCourseTypes, orderOutings, parseSort } from "@gof/shared/filters";
 import { buildItemListJsonLd } from "@gof/shared/jsonld";
 import { US_STATES } from "@gof/shared/places";
 import Base from "../layouts/Base.astro";
 import TeeSheet from "../components/TeeSheet.astro";
 import Crest from "../components/Crest.astro";
 import Photo from "../components/Photo.astro";
+import MunicipalToggle from "../components/MunicipalToggle.astro";
+import SortToggle from "../components/SortToggle.astro";
 import { HERO_PHOTO, HERO_TALL_WIDTHS, HERO_WIDE_WIDTHS, photoSrcset } from "../lib/photos.ts";
 import { getDb } from "../lib/db.ts";
 import { listToday, siteYear } from "../lib/clock.ts";
@@ -50,7 +54,19 @@ if (Astro.url.searchParams.has("q")) {
   }
 }
 
-const soonest = await listUpcomingOutings(db, { today, limit: 12 });
+// "Coming up": municipal courses are left out unless the visitor includes them or
+// picks course types. By ranking (the default), outings at courses on the
+// top-course list (courses.notable) come first, then the rest, each by date;
+// `sort=date` is plain date order.
+const SOONEST = 12;
+const { filters: listFilters, anyFilterParam } = parseFilterParams(Astro.url.searchParams);
+const { sort, present: sortParam } = parseSort(Astro.url.searchParams);
+const courseTypes = listedCourseTypes(listFilters);
+const [topCourses, byDate] = await Promise.all([
+  sort === "ranking" ? listUpcomingOutings(db, { today, limit: SOONEST, courseTypes, notableOnly: true }) : Promise.resolve([]),
+  listUpcomingOutings(db, { today, limit: SOONEST, courseTypes }),
+]);
+const soonest = orderOutings([topCourses, byDate], sort, SOONEST);
 const counts = await countUpcomingByState(db, today);
 const countBy = new Map(counts.map((c) => [c.state, c.count]));
 const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
@@ -62,7 +78,7 @@ setCache(Astro, TTL.home);
   title="Golf Outings and Charity Tournaments Near You | Golf Outing Finder"
   description="Find golf outings anyone can pay to enter, from $125 muni scrambles to charity days at private clubs. Dates, prices, what's included and registration links, across the US."
   path="/"
-  noindex={Astro.url.searchParams.has("q")}
+  noindex={Astro.url.searchParams.has("q") || anyFilterParam || sortParam}
   jsonLd={[buildItemListJsonLd(soonest.map((o) => absoluteUrl(outingPath(o.slug))))]}
   home
 >
@@ -137,6 +153,10 @@ setCache(Astro, TTL.home);
 
     <section aria-labelledby="soonest">
       <h2 id="soonest" class="section-title">Coming up</h2>
+      <div class="soonest-controls">
+        <SortToggle sort={sort} filters={listFilters} action="/" hash="soonest" />
+        <MunicipalToggle filters={listFilters} action="/" hash="soonest" sort={sort} />
+      </div>
       {soonest.length === 0 ? <p>No upcoming outings listed yet.</p> : <TeeSheet outings={soonest} />}
       <p class="more-link"><a href="/golf-outings">See outings in every state</a></p>
     </section>
@@ -147,7 +167,12 @@ setCache(Astro, TTL.home);
         Share your location to see outings within 100 miles. We don't store it.
       </p>
       <p class="near-action"><button class="button secondary" type="button" data-near-button>Use my location</button></p>
-      <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
+      <ul
+        class="tee-sheet"
+        data-near-list
+        data-year={String(siteYear())}
+        data-include-municipal={listFilters.includeMunicipal || listFilters.courseTypes.includes("municipal_public") ? "1" : "0"}
+      ></ul>
     </section>
 
     <section aria-labelledby="states">
@@ -348,6 +373,14 @@ setCache(Astro, TTL.home);
     .section-title {
       font-size: 1.875rem;
     }
+  }
+  .soonest-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0 1.5rem;
+    margin-top: 0.5rem;
   }
   .more-link,
   .near-status,

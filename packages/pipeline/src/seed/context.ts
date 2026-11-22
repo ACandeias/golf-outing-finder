@@ -4,7 +4,7 @@ import { fixtureFeatures, readCoursesFixture } from "../courses/fixture.ts";
 import { buildCourses, type CourseRecord, type ExistingCourse } from "../courses/import.ts";
 import type { OsmFeature } from "../courses/overpass.ts";
 import { readCourseTypeOverrides, type CourseTypeOverride } from "../overrides/course-types.ts";
-import { readNotableCourses } from "../overrides/files.ts";
+import { readNotableWithTopCourses } from "../overrides/files.ts";
 import { PATHS } from "../lib/paths.ts";
 import { readPlaces } from "../places/files.ts";
 import type { CityRow, ZipRow } from "../places/geonames.ts";
@@ -42,7 +42,8 @@ export async function loadCourseContext(opts: {
   const states = opts.states ?? [...SEED_STATES];
   const features = opts.features ?? fixtureFeatures(await readCoursesFixture(opts.fixturePath ?? PATHS.coursesFixture), states);
   const overrides = opts.withOverrides === false ? [] : await readCourseTypeOverrides(PATHS.courseTypes);
-  const notable = await readNotableCourses(PATHS.notable);
+  // The top-course list counts as notable, as on a pipeline run.
+  const notable = await readNotableWithTopCourses(PATHS.notable, PATHS.topCourses);
   const { courses } = buildCourses(features, {
     now: opts.now,
     cities,

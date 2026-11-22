@@ -4,9 +4,14 @@ import {
   COURSE_TYPE_FILTER_LABELS,
   DISTANCE_MILES,
   FORMAT_FILTERS,
+  DEFAULT_SORT,
+  SORT_PARAM,
   type ListingFilters,
+  type SortOrder,
 } from "@gof/shared/filters";
 import { FORMAT_LABELS } from "../lib/format.ts";
+import MunicipalToggle from "./MunicipalToggle.astro";
+import SortToggle from "./SortToggle.astro";
 
 interface Props {
   filters: ListingFilters;
@@ -17,10 +22,13 @@ interface Props {
   distanceFrom?: string;
   total: number;
   shown: number;
+  /** The list's order ("By ranking" or "By date"). */
+  sort?: SortOrder;
 }
 
-const { filters: f, action, showDistance = false, distanceFrom = "", total, shown } = Astro.props;
-// Collapsed until a filter is in use, so the tee sheet comes first.
+const { filters: f, action, showDistance = false, distanceFrom = "", total, shown, sort = DEFAULT_SORT } = Astro.props;
+// Collapsed until a filter is in use, so the tee sheet comes first. The
+// municipal switch sits outside the panel, so it doesn't open it.
 const active =
   f.courseTypes.length > 0 ||
   f.charityOnly ||
@@ -40,6 +48,7 @@ const active =
     Filter outings
   </summary>
   <form method="get" action={action} data-filter-form>
+    {sort !== DEFAULT_SORT && <input type="hidden" name={SORT_PARAM} value={sort} />}
     <fieldset>
       <legend>Course type</legend>
       {
@@ -117,6 +126,10 @@ const active =
     </div>
   </form>
 </details>
+<div class="list-controls">
+  <SortToggle sort={sort} filters={f} action={action} />
+  <MunicipalToggle filters={f} action={action} sort={sort} />
+</div>
 <p class="count small muted" aria-live="polite" data-filter-count>
   {shown === total ? `${total} ${total === 1 ? "outing" : "outings"}` : `Showing ${shown} of ${total} outings`}
 </p>
@@ -257,8 +270,15 @@ const active =
     text-underline-offset: 3px;
     text-decoration-color: var(--rule-strong);
   }
+  .list-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 1.5rem;
+    margin-top: 0.375rem;
+  }
   .count {
-    margin: 0.625rem 0 0;
+    margin: 0.375rem 0 0;
     font-style: italic;
   }
 </style>
