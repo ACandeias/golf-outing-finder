@@ -54,7 +54,8 @@ describe("platforms.yaml", () => {
     const cfg = await loadPlatforms(PATHS.overrides);
     const listed = [...cfg.platforms, ...cfg.directories];
     expect(listed.filter((e) => e.allowed).map((e) => e.name)).toEqual(["Play Private Golf"]);
-    expect(listed.every((e) => e.terms_checked === "2026-10-14" && e.terms_url !== undefined)).toBe(true);
+    // Terms were read on 2026-10-14, and again on 2026-11-21 for the auction and outing platforms added then.
+    expect(listed.every((e) => ["2026-10-14", "2026-11-21"].includes(e.terms_checked ?? "") && e.terms_url !== undefined)).toBe(true);
     expect(cfg.directories.find((d) => d.name === "Play Private Golf")).toMatchObject({
       allowed: true,
       adapter: "sitemap",
@@ -76,6 +77,22 @@ describe("platforms.yaml", () => {
       "gofundme-pro",
       "networkforgood",
       "eventbrite",
+      "givebutter",
+      "Member For a Day",
+      "WinningBidder and Travel Pledge",
+      "Charitybuzz",
+      "Handbid",
+      "BiddingOwl",
+      "ClickBid",
+      "Qtego",
+      "Givergy (momoGood)",
+      "PledgeIt",
+      "32auctions",
+      "Charity Auctions (Today)",
+      "Ticket Tailor",
+      "BiddingForGood",
+      "Greater Giving",
+      "GalaBid",
     ]);
     expect(cfg.platforms.every((p) => !p.allowed)).toBe(true);
     expect(cfg.directories.map((d) => d.name)).toEqual([
