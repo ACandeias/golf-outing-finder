@@ -97,9 +97,18 @@ describe("homePageOnlyCheck with the committed platforms.yaml", () => {
     expect(check("https://www.priceless.com/golf/product/123")).toBe("Mastercard Priceless");
   });
 
+  it("treats an event or charity subdomain's root as a deep link: it is that event's page, not the site's home page", () => {
+    expect(check("https://charity.pledgeit.org/")).toBe("PledgeIt");
+    expect(check("https://gala2026.givergy.us/")).toBe("Givergy (momoGood)");
+    expect(check("https://new.biddingowl.com")).toBe("BiddingOwl");
+  });
+
   it("lets the home page through, and every page of a site with no such ban", () => {
     expect(check("https://pledgeit.org/")).toBeNull();
     expect(check("https://pledgeit.org")).toBeNull();
+    expect(check("https://www.pledgeit.org/")).toBeNull();
+    expect(check("https://WWW.PledgeIt.org/")).toBeNull();
+    expect(check("https://pledgeit.org/?utm_source=mail")).toBe("PledgeIt");
     expect(check("https://memberforaday.com/npo/first-tee-greater-detroit")).toBeNull();
     expect(check("https://www.32auctions.com/organizations/1/auctions/2")).toBeNull();
     expect(check("not a url")).toBeNull();

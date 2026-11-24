@@ -357,6 +357,7 @@ export function accessInsertSql(rows: readonly AccessRow[]): string[] {
 /** What a hand-checked entry may change on its stored row. Identity (link, kind, course, title), id, slug and first-seen stay. */
 const UPSERT_COLUMNS = [
   "course_id",
+  "course_state",
   "organizer_name",
   "event_name",
   "platform",
@@ -378,13 +379,17 @@ const UPSERT_COLUMNS = [
 ] as const satisfies readonly (typeof ACCESS_COLUMNS)[number][];
 
 /**
- * Hand-checked entries: insert, or update the stored row when this check is at
- * least as new as the one stored. An older copy of the catalog changes nothing.
+ * Hand-checked entries: insert, or update the stored row when this check is
+ * from the same day as the stored one or later. An older copy of the catalog
+ * changes nothing.
  */
 export function accessUpsertSql(rows: readonly AccessRow[]): string[] {
   const set = UPSERT_COLUMNS.map((c) => `${c} = excluded.${c}`).join(", ");
   return insertStatements("access_opportunities", ACCESS_COLUMNS, rows, {
-    suffix: `ON CONFLICT(link, kind, course_name, title) DO UPDATE SET ${set} WHERE excluded.last_verified >= access_opportunities.last_verified`,
+    // Compared by day: a hand check is stamped at noon UTC, a researched row at its load time.
+    suffix:
+      `ON CONFLICT(link, kind, course_name, title) DO UPDATE SET ${set} ` +
+      "WHERE substr(excluded.last_verified, 1, 10) >= substr(access_opportunities.last_verified, 1, 10)",
   });
 }
 
@@ -393,18 +398,35 @@ export function accessSql(plan: Pick<AccessPlan, "rows" | "upserts">): string[] 
   return [...accessInsertSql(plan.rows), ...accessUpsertSql(plan.upserts)];
 }
 
-/** Unpublishes stored rows whose link is in removals.yaml. Nothing to do for an empty list. */
-export function accessRemovalSql(removedUrls: ReadonlySet<string>, now: number): string[] {
-  if (removedUrls.size === 0) return [];
-  const links = [...removedUrls].sort().map((u) => sqlValue(u));
+/** `UPDATE ... WHERE published = 1 AND link IN (...)` in chunks: takes stored rows on these links off the site. */
+function unpublishSql(links: readonly string[], reason: "removed" | "needs_review", now: number): string[] {
+  const values = [...new Set(links)].sort().map((u) => sqlValue(u));
   const out: string[] = [];
-  for (let i = 0; i < links.length; i += 50) {
+  for (let i = 0; i < values.length; i += 50) {
     out.push(
-      `UPDATE access_opportunities SET published = 0, hold_reason = 'removed', updated_at = ${sqlValue(new Date(now).toISOString())} ` +
-        `WHERE published = 1 AND link IN (${links.slice(i, i + 50).join(", ")});`,
+      `UPDATE access_opportunities SET published = 0, hold_reason = ${sqlValue(reason)}, updated_at = ${sqlValue(new Date(now).toISOString())} ` +
+        `WHERE published = 1 AND link IN (${values.slice(i, i + 50).join(", ")});`,
     );
   }
   return out;
+}
+
+/** Unpublishes stored rows whose link is in removals.yaml. Nothing to do for an empty list. */
+export function accessRemovalSql(removedUrls: ReadonlySet<string>, now: number): string[] {
+  return unpublishSql([...removedUrls], "removed", now);
+}
+
+/**
+ * Holds stored rows that link past the home page of a site whose terms allow
+ * home-page links only. The plan skips rows already stored, so a rule added
+ * after a row was loaded reaches it here.
+ */
+export function accessLinkHoldSql(storedLinks: readonly string[], homePageOnly: (link: string) => string | null, now: number): string[] {
+  return unpublishSql(
+    storedLinks.filter((link) => homePageOnly(link) !== null),
+    "needs_review",
+    now,
+  );
 }
 
 /** Course lookups for the plan: by OSM ref, and by name for names that are unique in their state. */
@@ -499,8 +521,16 @@ export async function runLoadAccess(argv: readonly string[]): Promise<number> {
     removedUrls,
     homePageOnly,
   });
-  // removals.yaml is honored on every run: rows already stored on a removed link come down too.
-  const statements = [...accessRemovalSql(removedUrls, now), ...accessSql(plan)];
+  // Rules reach rows already stored too: removals.yaml on every run, and links a site's terms don't allow.
+  const statements = [
+    ...accessRemovalSql(removedUrls, now),
+    ...accessLinkHoldSql(
+      stored.map((e) => e.link),
+      homePageOnly,
+      now,
+    ),
+    ...accessSql(plan),
+  ];
   const all = [...plan.rows, ...plan.upserts];
   let where: string;
   if (toFile) {

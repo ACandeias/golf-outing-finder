@@ -43,11 +43,7 @@ const dayOf = (iso: string): string => shortDate(iso).replace(/, \d{4}$/, "");
                 <p class="tl-course">
                   <a href={coursePath(e.item.course.slug)}>{e.item.course.name}</a>, {placeText(e.item.course.city, e.item.course.state)}
                 </p>
-                <p class="tl-meta">
-                  <span>{v.kindLabel}</span>
-                  {hasPrice(e.item) && <span>{v.price}</span>}
-                  {v.party && <span>{v.party}</span>}
-                </p>
+                <p class="tl-meta">{[v.kindLabel, hasPrice(e.item) ? v.price : "", v.party].filter(Boolean).join(". ")}</p>
                 {href && (
                   <p class="tl-link">
                     <a href={href} rel="nofollow noopener" target="_blank">
@@ -125,16 +121,9 @@ const dayOf = (iso: string): string => shortDate(iso).replace(/, \d{4}$/, "");
     font-style: italic;
   }
   .tl-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 0.75rem;
     font-size: 0.875rem;
     color: var(--ink-muted);
     font-variant-numeric: lining-nums tabular-nums;
-  }
-  .tl-meta span + span {
-    border-left: 1px solid var(--rule-strong);
-    padding-left: 0.75rem;
   }
   .tl-link {
     margin-top: 0.25rem !important;

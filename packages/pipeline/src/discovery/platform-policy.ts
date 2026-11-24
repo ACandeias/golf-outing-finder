@@ -126,7 +126,11 @@ export function homePageOnlyPlatform(url: string, rules: readonly PlatformRule[]
   const rule = rules.find((r) => r.deep_links === false && r.domains.some((d) => domainMatches(reg, d)));
   if (!rule) return null;
   const u = new URL(url);
-  return (u.pathname === "/" || u.pathname === "") && u.search === "" ? null : rule.name;
+  // The home page is the root of the site's own domain. The root of an event or
+  // charity subdomain (charity.pledgeit.org, gala2026.givergy.us) is that event's page.
+  const bare = host.toLowerCase().replace(/^www\./, "");
+  const home = bare === reg && (u.pathname === "/" || u.pathname === "") && u.search === "";
+  return home ? null : rule.name;
 }
 
 /**

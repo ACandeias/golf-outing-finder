@@ -35,8 +35,8 @@ const course = await courseBySlug(db, `${params.data.state}/${params.data.course
 if (!course) return notFound(Astro);
 
 const now = requestNow();
-const today = listToday();
-const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, today, courseDay())]);
+const today = listToday(now);
+const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, today, courseDay(now))]);
 // When this course's dated listings have fallen in the year: a hint for when to look again.
 const accessMonths = monthsSeenText(access);
 // A course page that exists only for its access opportunities stays out of the
@@ -77,7 +77,7 @@ const typeSentence: Record<string, string> = {
 
 const capitalize = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
-setCache(Astro, access.length > 0 ? ttlWithinDay(TTL.list, [course.timeZone]) : TTL.list);
+setCache(Astro, access.length > 0 ? ttlWithinDay(TTL.list, [course.timeZone], now) : TTL.list);
 ---
 
 <Base

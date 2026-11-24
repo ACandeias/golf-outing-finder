@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { migratedSqlite } from "@gof/db/testing";
-import { accessItemSchema, accessRemovalSql, accessSql, buildAccessPlan, indexCourses, itemKey, itemsFromFile, type AccessItem, type AccessPlanInput } from "./load.ts";
+import { accessItemSchema, accessLinkHoldSql, accessRemovalSql, accessSql, buildAccessPlan, indexCourses, itemKey, itemsFromFile, type AccessItem, type AccessPlanInput } from "./load.ts";
 
 const NOW = Date.parse("2026-11-21T12:00:00Z");
 const TOP = [
@@ -296,5 +296,45 @@ describe("access SQL against the real schema", () => {
       { title: "Round for 3 with a member, O'Brien's charity", published: 0, hold_reason: "removed" },
     ]);
     expect(accessRemovalSql(new Set(), now)).toEqual([]);
+  });
+
+  it("a researched row promoted to the catalog on the day it was loaded takes the hand-checked values", () => {
+    const db = migratedSqlite();
+    db.exec(COURSE);
+    // Researched and stored at 8 PM UTC; the same listing is then hand-checked that day.
+    load(db, [item({ status: "open", date_end: "2026-11-30", price_kind: "current_bid", price_min_usd: 1000 })], Date.parse("2026-11-23T20:00:00Z"));
+    load(db, [item({ status: "open", date_end: "2026-11-30", price_kind: "current_bid", price_min_usd: 999, checked_on: "2026-11-23" })], Date.parse("2026-11-23T21:00:00Z"));
+    expect(read(db)).toHaveLength(1);
+    expect(read(db)[0]).toMatchObject({ price_min_cents: 99_900 });
+  });
+
+  it("a corrected state reaches the stored row along with the course it now matches", () => {
+    const db = migratedSqlite();
+    db.exec(COURSE);
+    load(db, [open({ course_name: "Maidstone Club", course_state: "NJ" })], Date.parse("2026-11-23T20:00:00Z"));
+    load(db, [open({ course_name: "Maidstone Club", course_state: "NY", checked_on: "2026-11-24" })], Date.parse("2026-11-24T20:00:00Z"));
+    expect(db.prepare("SELECT course_state, course_id, published, hold_reason FROM access_opportunities").all()).toEqual([
+      { course_state: "NY", course_id: "crs_maid", published: 1, hold_reason: null },
+    ]);
+  });
+
+  it("a stored deep link to a home-page-only site is held by the next load, even though the row itself is skipped", () => {
+    const db = migratedSqlite();
+    db.exec(COURSE);
+    const pledge = item({ link: "https://charity.pledgeit.org/c/abc/auction/def", platform: "pledgeit.org" });
+    const now = Date.parse("2026-11-23T20:00:00Z");
+    // Stored before the rule existed.
+    load(db, [pledge, item({ title: "Kept", link: "https://example.org/kept" })], now);
+    expect(read(db).map((r) => r.published)).toEqual([1, 1]);
+    const homeOnly = (link: string) => (new URL(link).hostname.endsWith("pledgeit.org") ? "PledgeIt" : null);
+    const stored = keysOf(db).map((e) => e.link);
+    db.exec(accessLinkHoldSql(stored, homeOnly, now).join("\n"));
+    const p = load(db, [pledge], now, { homePageOnly: homeOnly });
+    expect(p.skipped).toHaveLength(1);
+    expect(db.prepare("SELECT title, published, hold_reason FROM access_opportunities ORDER BY title").all()).toEqual([
+      { title: "Foursome with lunch, drinks and caddies", published: 0, hold_reason: "needs_review" },
+      { title: "Kept", published: 1, hold_reason: null },
+    ]);
+    expect(accessLinkHoldSql(["https://example.org/kept"], homeOnly, now)).toEqual([]);
   });
 });

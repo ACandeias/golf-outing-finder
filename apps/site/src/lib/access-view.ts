@@ -3,12 +3,13 @@
  * stay-and-play, ...). Plain text only: every value renders through Astro's
  * escaping, never as HTML.
  */
+import { lastDay } from "@gof/db/access";
 import type { AccessKind } from "@gof/db/schema";
 import { formatUsd } from "@gof/shared/money";
 import { shortDate, verifiedDate } from "./format.ts";
 
 export const ACCESS_KIND_LABELS: Readonly<Record<AccessKind, string>> = {
-  outing: "Charity outing",
+  outing: "Outing",
   auction: "Auction lot",
   member_for_a_day: "Member for a day",
   stay_and_play: "Stay and play",
@@ -61,6 +62,8 @@ export interface AccessViewInput {
   platform: string;
   confirmed: "fetched" | "snippet";
   lastVerified: string;
+  /** Today at the item's course (set by the queries); decides whether a dated listing is over. */
+  localToday?: string;
 }
 
 function priceText(v: AccessViewInput): string {
@@ -69,7 +72,10 @@ function priceText(v: AccessViewInput): string {
   if (min === null && max === null) return "See site";
   const amount = min !== null && max !== null && max > min ? `${formatUsd(min)} to ${formatUsd(max)}` : formatUsd(min ?? max);
   // A bid seen while a lot was open is not what it went for: once the lot is over, say so.
-  const over = v.status === "closed" || v.status === "recurring";
+  // Over means closed, past its last day whatever the stored status, or a recurring listing with no dates ahead.
+  const last = lastDay(v);
+  const past = last !== null && v.localToday !== undefined && last < v.localToday;
+  const over = v.status === "closed" || past || (v.status === "recurring" && (last === null || v.localToday === undefined));
   switch (v.priceKind) {
     case "sold":
       return `Sold for ${amount}`;

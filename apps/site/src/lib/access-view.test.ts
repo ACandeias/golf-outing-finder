@@ -40,7 +40,7 @@ describe("accessView", () => {
       when: "Bidding closes Dec 5, 2026",
     });
     expect(accessView({ ...base, kind: "outing", status: "upcoming", priceKind: "entry_fee", priceMinCents: 50000, priceMaxCents: 200000, dateEnd: null, dateStart: "2027-05-10" })).toMatchObject({
-      kindLabel: "Charity outing",
+      kindLabel: "Outing",
       price: "$500 to $2,000",
       when: "May 10, 2027",
     });
@@ -64,7 +64,14 @@ describe("accessView", () => {
     const lot = { ...base, priceKind: "current_bid", priceMinCents: 250_000, dateEnd: "2026-11-24" };
     expect(accessView({ ...lot, status: "open" }).price).toBe("Current bid $2,500");
     expect(accessView({ ...lot, status: "closed" }).price).toBe("Last bid seen $2,500");
-    expect(accessView({ ...lot, status: "recurring" }).price).toBe("Last bid seen $2,500");
+    // A recurring lot with no dates ahead is over; one whose closing day is still ahead is live.
+    expect(accessView({ ...lot, status: "recurring", dateEnd: null }).price).toBe("Last bid seen $2,500");
+    expect(accessView({ ...lot, status: "recurring", localToday: "2026-11-25" }).price).toBe("Last bid seen $2,500");
+    expect(accessView({ ...lot, status: "recurring", dateEnd: "2026-12-05", localToday: "2026-11-23" }).price).toBe("Current bid $2,500");
+    expect(accessView({ ...lot, status: "recurring", dateEnd: "2026-12-05", localToday: "2026-11-23", priceKind: "buy_now" }).price).toBe("Buy now $2,500");
+    // A lot of unknown status long past its closing day isn't quoting a live bid either.
+    expect(accessView({ ...lot, status: "unknown", dateEnd: "2026-04-12", localToday: "2026-11-23" }).price).toBe("Last bid seen $2,500");
+    expect(accessView({ ...lot, status: "unknown", dateEnd: null, localToday: "2026-11-23" }).price).toBe("Current bid $2,500");
     expect(accessView({ ...lot, status: "closed", priceKind: "starting_bid" }).price).toBe("Bidding started at $2,500");
     expect(accessView({ ...lot, status: "upcoming", priceKind: "starting_bid" }).price).toBe("Starting bid $2,500");
     expect(accessView({ ...lot, status: "closed", priceKind: "buy_now" }).price).toBe("Buy now was $2,500");

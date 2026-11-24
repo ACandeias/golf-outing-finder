@@ -112,7 +112,8 @@ describe("access opportunities", () => {
     expect(items.find((i) => i.id === "a_open")).toMatchObject({ status: "closed", localToday: "2026-12-06", course: { timeZone: "America/New_York" } });
     // Without one, the list day stands and the item carries it.
     expect((await accessForCourse(db, "crs_top", "2026-12-05"))[0]).toMatchObject({ id: "a_open", status: "open", localToday: "2026-12-05" });
-    expect((await accessPage(db, "2026-12-05", eastAhead)).find((i) => i.id === "p_plain")?.status).toBe("closed");
+    expect((await accessPage(db, "2026-12-05", eastAhead)).find((i) => i.id === "a_open")).toMatchObject({ status: "closed", localToday: "2026-12-06" });
+    expect((await accessPage(db, "2026-12-05")).find((i) => i.id === "a_open")).toMatchObject({ status: "open", localToday: "2026-12-05" });
     expect((await featuredAccess(db, "2026-12-05", 9, undefined, eastAhead)).find((i) => i.id === "a_open")?.status).toBe("closed");
   });
 

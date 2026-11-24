@@ -12,7 +12,7 @@ import AccessTimeline from "../components/AccessTimeline.astro";
 import { accessTimeline } from "../lib/access-timeline.ts";
 import { ACCESS_KIND_LABELS } from "../lib/access-view.ts";
 import { getDb } from "../lib/db.ts";
-import { courseDay, listToday, ttlWithinDay } from "../lib/clock.ts";
+import { courseDay, listToday, requestNow, ttlWithinDay } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { placeText } from "../lib/format.ts";
@@ -20,8 +20,10 @@ import { coursePath } from "../lib/urls.ts";
 
 export const prerender = false;
 
-const today = listToday();
-const items = await accessPage(getDb(), today, courseDay());
+// One clock reading for the day, each course's day and the cache lifetime, so they can't straddle a midnight.
+const now = requestNow();
+const today = listToday(now);
+const items = await accessPage(getDb(), today, courseDay(now));
 const timeline = accessTimeline(items, today);
 const count = (groups: typeof timeline.upcoming) => groups.reduce((n, g) => n + g.entries.length, 0);
 const upcomingCount = count(timeline.upcoming);
@@ -36,7 +38,7 @@ for (const it of items) kindCounts.set(it.kind, (kindCounts.get(it.kind) ?? 0) +
 const open = items.filter((i) => i.status === "open" || i.status === "upcoming").length;
 
 // Countdowns and statuses change at each course's midnight; the cached page must not outlive one.
-setCache(Astro, ttlWithinDay(TTL.list, items.map((i) => i.course.timeZone)));
+setCache(Astro, ttlWithinDay(TTL.list, items.map((i) => i.course.timeZone), now));
 ---
 
 <Base
