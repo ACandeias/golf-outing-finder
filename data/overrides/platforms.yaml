@@ -152,12 +152,15 @@ platforms:
     terms_url: https://givebutter.com/terms
     adapter: page
     domains: [givebutter.com]
-  # DENY: no robot, spider or script to extract, index or scrape. The same terms
-  # allow links to its home page and auction pages ("Linking to the Site"), so a
-  # hand-added link in data/access-links.json is fine; a fetch never is.
+  # DENY: no "robot, spider, script, or any means" to extract, index or scrape,
+  # and no public or commercial use of its content without written permission.
+  # The same terms allow links to its home page, auction pages and scheduling
+  # pages, from your own site, with no implied endorsement, and it can withdraw
+  # that at any time (re-read 2026-11-24). A link is fine; a fetch never is.
+  # Listing its lots with facts needs its written yes first.
   - name: Member For a Day
     allowed: false
-    terms_checked: 2026-11-23
+    terms_checked: 2026-11-24
     terms_url: https://memberforaday.com/terms-of-use
     adapter: page
     domains: [memberforaday.com]
@@ -169,6 +172,8 @@ platforms:
     terms_url: https://www.winningbidder.com/terms-of-use
     adapter: page
     domains: [winningbidder.com, travelpledge.com, travelpledgeauctions.com]
+    # Section 11 also bars unauthorized linking to the site (travelpledge.com/legal, read 2026-11-23).
+    deep_links: false
   # DENY: terms ban scraping, systematic data extraction and framing without permission.
   - name: Charitybuzz
     allowed: false
@@ -323,6 +328,94 @@ platforms:
     terms_url: https://www.coloradogolf.org/terms-of-service/
     adapter: page
     domains: [coloradogolf.org]
+
+  # --- Source review, 2026-11-23: terms opened by a researcher and re-opened by a checker ---
+  # DENY: section 6(C) bans robots, spiders, scrapers and crawlers; section 6(F)
+  # bans any link without written permission except a plain text link to the home page.
+  - name: TPC Network
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://tpc.com/terms-of-use/
+    adapter: page
+    domains: [tpc.com]
+    deep_links: false
+  # Terms section 5: no link to the site without prior written authorization.
+  - name: Invited
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://www.invitedclubs.com/terms-of-use
+    adapter: page
+    domains: [invitedclubs.com]
+    deep_links: false
+  # Terms section 4: written authorization before any link to troon.com.
+  - name: Troon
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://www.troon.com/terms-of-use/
+    adapter: page
+    domains: [troon.com]
+    deep_links: false
+  # DENY: no bots, parsers, spiders or screen scrapers, no systematic retrieval to
+  # build a directory, no deep links unless BlueGolf authorizes them. Many
+  # association and PGA section calendars are hosted here.
+  - name: BlueGolf
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://www.bluegolf.com/legal/terms.html
+    adapter: page
+    domains: [bluegolf.com]
+    deep_links: false
+  # Terms section 5: deep links are not allowed unless NYSGA authorizes them;
+  # content is for personal, non-commercial use.
+  - name: New York State Golf Association
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://nysga.org/terms-disclaimer
+    adapter: page
+    domains: [nysga.org]
+    deep_links: false
+  # Terms: no link to the site without MSGA's prior written consent. That
+  # covers the home page too, so nothing links here until MSGA says yes.
+  - name: Maryland State Golf Association
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://msga.org/terms-of-use/
+    adapter: page
+    domains: [msga.org]
+    deep_links: false
+  # Terms, Linking and Framing: home-page links are allowed; a link to any
+  # internal page needs prior express written consent. Its schedule is on BlueGolf.
+  - name: Wisconsin State Golf Association
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://wsga.org/terms-privacy/
+    adapter: page
+    domains: [wsga.org]
+    deep_links: false
+  # DENY: the User Agreement bars data mining and data gathering or extraction.
+  # It lets other sites link, and asks for removal on request.
+  - name: The Golfer's Journal
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://www.golfersjournal.com/user-agreement/
+    adapter: page
+    domains: [golfersjournal.com]
+  # DENY: no automated scripts or bots to access or collect content, and no
+  # commercial use without written consent. Links are not addressed.
+  - name: Fried Egg Golf
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://www.thefriedegg.com/legal/terms-and-conditions
+    adapter: page
+    domains: [thefriedegg.com]
+  # DENY: no bots, scrapers or other automated tools; no copying of content.
+  # Links are not addressed.
+  - name: Golf Moose
+    allowed: false
+    terms_checked: 2026-11-23
+    terms_url: https://golfmoose.com/terms-of-use/
+    adapter: page
+    domains: [golfmoose.com]
 
 associations:
   - name: Arizona Golf Association

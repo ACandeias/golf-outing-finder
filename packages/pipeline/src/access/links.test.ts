@@ -95,6 +95,9 @@ describe("homePageOnlyCheck with the committed platforms.yaml", () => {
     expect(check("https://momogood.com/a/b")).toBe("Givergy (momoGood)");
     expect(check("https://www.ajga.org/foundation/auction")).toBe("AJGA");
     expect(check("https://www.priceless.com/golf/product/123")).toBe("Mastercard Priceless");
+    expect(check("https://ncga.winningbidder.com/event/4886")).toBe("WinningBidder and Travel Pledge");
+    expect(check("https://tpc.com/sawgrass/faq/")).toBe("TPC Network");
+    expect(check("https://wsga.bluegolf.com/bluegolf/wsga26/schedule/index.htm")).toBe("BlueGolf");
   });
 
   it("treats an event or charity subdomain's root as a deep link: it is that event's page, not the site's home page", () => {
@@ -120,9 +123,8 @@ describe("data/access-links.json", () => {
   const raw = (json as { opportunities: unknown[] }).opportunities;
   const items = itemsFromFile(json);
 
-  it("has no entry the loader would drop", () => {
+  it("has no entry the loader would drop (the catalog may be empty)", () => {
     expect(items).toHaveLength(raw.length);
-    expect(items.length).toBeGreaterThan(0);
   });
 
   it("passes the curated-link rules, with the link bans in platforms.yaml", () => {

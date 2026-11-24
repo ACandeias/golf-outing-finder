@@ -102,15 +102,33 @@ describe("platforms.yaml", () => {
       "Chicago District Golf Association",
       "Minnesota Golf Association",
       "coloradogolf.org",
+      "TPC Network",
+      "Invited",
+      "Troon",
+      "BlueGolf",
+      "New York State Golf Association",
+      "Maryland State Golf Association",
+      "Wisconsin State Golf Association",
+      "The Golfer's Journal",
+      "Fried Egg Golf",
+      "Golf Moose",
     ]);
     expect(cfg.platforms.every((p) => !p.allowed)).toBe(true);
     // Sites whose terms allow links to the home page only.
     expect(cfg.platforms.filter((p) => p.deep_links === false).map((p) => p.name)).toEqual([
+      "WinningBidder and Travel Pledge",
       "BiddingOwl",
       "Givergy (momoGood)",
       "PledgeIt",
       "AJGA",
       "Mastercard Priceless",
+      "TPC Network",
+      "Invited",
+      "Troon",
+      "BlueGolf",
+      "New York State Golf Association",
+      "Maryland State Golf Association",
+      "Wisconsin State Golf Association",
     ]);
     // Colorado's terms forbid automated access (read 2026-11-24), so that association is off.
     expect(cfg.associations.filter((a) => a.allowed).map((a) => a.name)).toEqual(["Arizona Golf Association", "Southern California Golf Association"]);

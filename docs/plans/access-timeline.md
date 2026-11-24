@@ -30,6 +30,7 @@ The code is `actByDate`, `lastDay` and `liveStatus` in `packages/db/src/access.t
 
 ## What isn't built yet
 
+0. **Three dates per listing.** The source research (`docs/sources/first-principles-report.md`) recommends storing when a listing opens, when it closes and the play-by date, each marked stated, estimated or expected, on organizer, series and edition records. Today a listing has a start and an end date and nothing says how sure either is. For association days, media-society events and resort booking windows the opening time is the real deadline. This needs a migration and the owner's approval.
 1. **Closing time.** Only the day is stored. A lot that closes at 9 PM Eastern reads "Bidding closes today" all day. An hour-level countdown needs a new nullable column (a closing timestamp with its time zone) in a new migration, and the sources would have to state the time. Most don't.
 2. **Rechecks keyed to the end date.** Access items are loaded from research files and the link catalog; the nightly pipeline doesn't recheck them. When it does, the end date should set the schedule, the same way SPEC.md 8.9 does for outings: weekly when the act-by day is more than 30 days out, every 48 hours inside 30 days, once more the day after closing to record the sold price. Only pages on platforms that allow fetching can be rechecked; the rest rely on their stored closing day.
 3. **Alerts.** "Tell me when a round at this club is listed" needs accounts or email, which the site doesn't have. Owner decision.
