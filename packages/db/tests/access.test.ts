@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { accessForCourse, accessPage, courseHasAccess, featuredAccess, orderAccess } from "../src/access.ts";
+import { accessForCourse, accessPage, actByDate, courseHasAccess, featuredAccess, lastDay, liveStatus, orderAccess } from "../src/access.ts";
 import type { GofDb } from "../src/queries.ts";
 import { drizzleOver, migratedSqlite } from "../src/testing.ts";
 
@@ -40,10 +40,55 @@ const ids = (rows: { id: string }[]) => rows.map((r) => r.id);
 
 describe("access opportunities", () => {
   it("orders open and upcoming first (soonest), then recurring, then closed (most recent first)", () => {
-    const o = (id: string, status: string, end: string | null) => ({ id, status, dateEnd: end, dateStart: null });
+    const o = (id: string, status: string, end: string | null) => ({ id, kind: "auction", status, dateEnd: end, dateStart: null });
     expect(
       ids(orderAccess([o("c1", "closed", "2026-03-18"), o("r", "recurring", null), o("c2", "closed", "2026-09-28"), o("u", "upcoming", "2027-05-01"), o("p", "open", "2026-12-05")], TODAY)),
     ).toEqual(["p", "u", "r", "c2", "c1"]);
+  });
+
+  it("orders by the day to act by: an event's first day, an auction's closing day", () => {
+    const multiDay = { id: "event", kind: "outing", status: "open", dateStart: "2026-12-31", dateEnd: "2027-01-03" };
+    const lot = { id: "lot", kind: "auction", status: "open", dateStart: "2026-11-01", dateEnd: "2027-01-02" };
+    const offer = { id: "offer", kind: "stay_and_play", status: "open", dateStart: "2026-04-01", dateEnd: "2027-03-31" };
+    expect(ids(orderAccess([offer, lot, multiDay], TODAY))).toEqual(["event", "lot", "offer"]);
+  });
+
+  it("act-by date: closing day for an auction, first day for an event, last day for an offer", () => {
+    expect(actByDate({ kind: "auction", dateStart: "2026-11-01", dateEnd: "2026-11-24" })).toBe("2026-11-24");
+    expect(actByDate({ kind: "auction", dateStart: "2026-11-01", dateEnd: null })).toBe("2026-11-01");
+    expect(actByDate({ kind: "outing", dateStart: "2026-12-31", dateEnd: "2027-01-03" })).toBe("2026-12-31");
+    expect(actByDate({ kind: "pro_am", dateStart: null, dateEnd: "2027-05-26" })).toBe("2027-05-26");
+    expect(actByDate({ kind: "stay_and_play", dateStart: "2026-04-01", dateEnd: "2027-03-31" })).toBe("2027-03-31");
+    expect(actByDate({ kind: "public_tee_time", dateStart: null, dateEnd: null })).toBeNull();
+  });
+
+  it("last day: an auction with no closing date never ends on its own", () => {
+    expect(lastDay({ kind: "auction", dateStart: "2026-11-01", dateEnd: null })).toBeNull();
+    expect(lastDay({ kind: "auction", dateStart: null, dateEnd: "2026-11-24" })).toBe("2026-11-24");
+    expect(lastDay({ kind: "outing", dateStart: "2026-12-31", dateEnd: "2027-01-03" })).toBe("2027-01-03");
+    expect(lastDay({ kind: "outing", dateStart: "2026-12-31", dateEnd: null })).toBe("2026-12-31");
+  });
+
+  it("live status: open and upcoming items close the day after their last day", () => {
+    const lot = { kind: "auction", status: "open" as const, dateStart: null, dateEnd: "2026-11-24" };
+    expect(liveStatus(lot, "2026-11-24")).toBe("open");
+    expect(liveStatus(lot, "2026-11-25")).toBe("closed");
+    expect(liveStatus({ ...lot, status: "upcoming" as const }, "2026-11-25")).toBe("closed");
+    // An event under way is still open until its last day has passed.
+    const event = { kind: "outing", status: "open" as const, dateStart: "2026-12-31", dateEnd: "2027-01-03" };
+    expect(liveStatus(event, "2027-01-02")).toBe("open");
+    expect(liveStatus(event, "2027-01-04")).toBe("closed");
+    // Stored statuses that aren't open or upcoming are never changed, and no date means no change.
+    expect(liveStatus({ ...lot, status: "recurring" as const }, "2027-06-01")).toBe("recurring");
+    expect(liveStatus({ kind: "auction", status: "open" as const, dateStart: "2026-11-01", dateEnd: null }, "2027-06-01")).toBe("open");
+  });
+
+  it("a stored open lot reads as closed once its closing day has passed", async () => {
+    const items = await accessForCourse(db, "crs_top", "2026-12-06");
+    expect(items.find((i) => i.id === "a_open")?.status).toBe("closed");
+    expect(ids(items)).toEqual(["o_upcoming", "m_recurring", "a_open", "a_closed_new", "a_closed_old"]);
+    // The same row is still open on its closing day.
+    expect((await accessForCourse(db, "crs_top", "2026-12-05"))[0]).toMatchObject({ id: "a_open", status: "open" });
   });
 
   it("a course's published items, with the course attached", async () => {

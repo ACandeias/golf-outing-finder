@@ -55,7 +55,8 @@ describe("platforms.yaml", () => {
     const listed = [...cfg.platforms, ...cfg.directories];
     expect(listed.filter((e) => e.allowed).map((e) => e.name)).toEqual(["Play Private Golf"]);
     // Terms were read on 2026-10-14, and again on 2026-11-21 for the auction and outing platforms added then.
-    expect(listed.every((e) => ["2026-10-14", "2026-11-21"].includes(e.terms_checked ?? "") && e.terms_url !== undefined)).toBe(true);
+    // Member For a Day was re-read on 2026-11-23 (its terms allow links to auction pages).
+    expect(listed.every((e) => ["2026-10-14", "2026-11-21", "2026-11-23"].includes(e.terms_checked ?? "") && e.terms_url !== undefined)).toBe(true);
     expect(cfg.directories.find((d) => d.name === "Play Private Golf")).toMatchObject({
       allowed: true,
       adapter: "sitemap",

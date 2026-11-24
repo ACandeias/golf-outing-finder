@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accessItemSchema, buildAccessPlan, itemKey, itemsFromFile, type AccessItem } from "./load.ts";
+import { accessItemSchema, buildAccessPlan, indexCourses, itemKey, itemsFromFile, type AccessItem } from "./load.ts";
 
 const NOW = Date.parse("2026-11-21T12:00:00Z");
 const TOP = [
@@ -84,6 +84,21 @@ describe("buildAccessPlan", () => {
     });
   });
 
+  it("a hand-checked item keeps the day it was checked as its first-seen and last-verified day", () => {
+    const { rows } = plan([item({ checked_on: "2026-11-19" }), item({ title: "Another lot" })]);
+    expect(rows[0]).toMatchObject({
+      first_seen: "2026-11-19T12:00:00.000Z",
+      last_verified: "2026-11-19T12:00:00.000Z",
+      created_at: "2026-11-21T12:00:00.000Z",
+      updated_at: "2026-11-21T12:00:00.000Z",
+    });
+    // Without it, the load time stands.
+    expect(rows[1]).toMatchObject({ first_seen: "2026-11-21T12:00:00.000Z", last_verified: "2026-11-21T12:00:00.000Z" });
+    expect(accessItemSchema.safeParse({ ...item(), checked_on: "Nov 19" }).success).toBe(false);
+    // A checked day after the load is a typo, not a fact.
+    expect(plan([item({ checked_on: "2026-11-22" })]).rows[0]).toMatchObject({ last_verified: "2026-11-21T12:00:00.000Z" });
+  });
+
   it("skips repeats within a load and items already stored; catalog lots sharing a link stay apart", () => {
     const stored = itemKey(GROVE, "auction", "The Grove XXIII", "Foursome with lunch, drinks and caddies");
     expect(plan([item()], [stored]).skipped.map((s) => s.reason)).toEqual(["already stored"]);
@@ -140,5 +155,24 @@ describe("itemsFromFile", () => {
   it("drops an entry that doesn't validate instead of failing the whole file", () => {
     const items = itemsFromFile({ opportunities: [item(), { ...item(), link: "not a url" }] });
     expect(items).toHaveLength(1);
+  });
+});
+
+describe("indexCourses", () => {
+  it("looks courses up by OSM ref, and by name only when the name is unique in its state", () => {
+    const { byRef, byName } = indexCourses([
+      { id: "c1", name: "Maidstone Club", state: "NY", osm_ref: "way/1" },
+      { id: "c2", name: "Riverside Golf Course", state: "NY", osm_ref: null },
+      { id: "c3", name: "Riverside Golf Course", state: "NY", osm_ref: "way/3" },
+      { id: "c4", name: "Riverside Golf Course", state: "CA", osm_ref: null },
+    ]);
+    expect([...byRef]).toEqual([
+      ["way/1", "c1"],
+      ["way/3", "c3"],
+    ]);
+    expect([...byName]).toEqual([
+      ["ny/maidstone club", "c1"],
+      ["ca/riverside golf course", "c4"],
+    ]);
   });
 });

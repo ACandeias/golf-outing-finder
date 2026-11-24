@@ -1,12 +1,15 @@
 ---
 /**
  * Every published access opportunity (auction lots, member-for-a-day,
- * stay-and-play, outings found by research, ...), grouped by course. Research
- * data still being reviewed, so the page stays out of the index and sitemaps.
+ * stay-and-play, outings found by research, ...): first as a timeline placed by
+ * the day to act by, then grouped by course. Research data still being
+ * reviewed, so the page stays out of the index and sitemaps.
  */
 import { accessPage, type AccessListItem } from "@gof/db/access";
 import Base from "../layouts/Base.astro";
 import AccessList from "../components/AccessList.astro";
+import AccessTimeline from "../components/AccessTimeline.astro";
+import { accessTimeline } from "../lib/access-timeline.ts";
 import { ACCESS_KIND_LABELS } from "../lib/access-view.ts";
 import { getDb } from "../lib/db.ts";
 import { listToday } from "../lib/clock.ts";
@@ -17,7 +20,12 @@ import { coursePath } from "../lib/urls.ts";
 
 export const prerender = false;
 
-const items = await accessPage(getDb(), listToday());
+const today = listToday();
+const items = await accessPage(getDb(), today);
+const timeline = accessTimeline(items, today);
+const count = (groups: typeof timeline.upcoming) => groups.reduce((n, g) => n + g.entries.length, 0);
+const upcomingCount = count(timeline.upcoming);
+const expectedCount = count(timeline.expected);
 const byCourse = new Map<string, AccessListItem[]>();
 for (const it of items) byCourse.set(it.course.id, [...(byCourse.get(it.course.id) ?? []), it]);
 const groups = [...byCourse.values()].sort((a, b) =>
@@ -49,15 +57,60 @@ setCache(Astro, TTL.list);
   </ul>
   {items.length === 0 && <p>Nothing listed yet.</p>}
   {
+    items.length > 0 && (
+      <ul class="inline-links page-jumps">
+        <li><a href="#timeline">Coming up ({upcomingCount})</a></li>
+        {expectedCount > 0 && <li><a href="#expected">Expected back ({expectedCount})</a></li>}
+        {timeline.anytime.length > 0 && <li><a href="#anytime">Open any time ({timeline.anytime.length})</a></li>}
+        <li><a href="#by-course">By course ({groups.length})</a></li>
+      </ul>
+    )
+  }
+  {
+    items.length > 0 && (
+      <section aria-labelledby="timeline" data-timeline="upcoming">
+        <h2 id="timeline">Coming up</h2>
+        <p class="small muted">
+          Placed by the day to act by: the day bidding closes, an event's first day, or an offer's last day. Bids and prices
+          are as seen on the date shown on each course's page.
+        </p>
+        {upcomingCount === 0 && <p>Nothing with a date is open right now.</p>}
+        <AccessTimeline groups={timeline.upcoming} idPrefix="up" />
+      </section>
+    )
+  }
+  {
+    expectedCount > 0 && (
+      <section aria-labelledby="expected" data-timeline="expected">
+        <h2 id="expected">Expected back</h2>
+        <p class="small muted">
+          Listings that come round every year, placed in the month they ran last time. Dates move, so check the
+          organizer's page before you plan around one.
+        </p>
+        <AccessTimeline groups={timeline.expected} idPrefix="exp" expected />
+      </section>
+    )
+  }
+  {
+    timeline.anytime.length > 0 && (
+      <section aria-labelledby="anytime" data-timeline="anytime">
+        <h2 id="anytime">Open any time</h2>
+        <p class="small muted">Tee times and packages with no closing date.</p>
+        <AccessList items={timeline.anytime} showCourse />
+      </section>
+    )
+  }
+  {items.length > 0 && <h2 id="by-course">By course</h2>}
+  {
     groups.map((g) => {
       const c = g[0]!.course;
       return (
         <section aria-labelledby={`c-${c.id}`}>
-          <h2 id={`c-${c.id}`}>
+          <h3 id={`c-${c.id}`} class="course-heading">
             <a href={coursePath(c.slug)}>{c.name}</a>
-          </h2>
+          </h3>
           <p class="muted course-place">{placeText(c.city, c.state)}</p>
-          <AccessList items={g} />
+          <AccessList items={g} today={today} headingLevel={4} />
         </section>
       );
     })
@@ -67,6 +120,14 @@ setCache(Astro, TTL.list);
 <style>
   .kind-counts {
     margin: 1rem 0 0.5rem;
+  }
+  .page-jumps {
+    margin: 0.25rem 0 1.5rem;
+  }
+  .course-heading {
+    font-family: var(--serif);
+    font-size: 1.375rem;
+    margin: 2rem 0 0.5rem;
   }
   .course-place {
     margin: -0.5rem 0 0;

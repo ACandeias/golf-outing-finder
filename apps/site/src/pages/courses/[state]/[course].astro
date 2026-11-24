@@ -9,6 +9,7 @@ import type { CourseType } from "@gof/shared/schemas";
 import Base from "../../../layouts/Base.astro";
 import TeeSheet from "../../../components/TeeSheet.astro";
 import AccessList from "../../../components/AccessList.astro";
+import { monthsSeenText } from "../../../lib/access-timeline.ts";
 import { listAdsFor } from "../../../lib/ads.ts";
 import { getDb } from "../../../lib/db.ts";
 import { listToday, requestNow } from "../../../lib/clock.ts";
@@ -34,7 +35,10 @@ const course = await courseBySlug(db, `${params.data.state}/${params.data.course
 if (!course) return notFound(Astro);
 
 const now = requestNow();
-const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, listToday())]);
+const today = listToday();
+const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, today)]);
+// When this course's dated listings have fallen in the year: a hint for when to look again.
+const accessMonths = monthsSeenText(access);
 // A course page that exists only for its access opportunities stays out of the
 // index until the course has an outing (SPEC.md 9.1 indexing rule unchanged).
 const accessOnly = course.outingCount < 1;
@@ -125,7 +129,12 @@ setCache(Astro, TTL.list);
           Charity auction lots, member-for-a-day programs, stay-and-play packages and more, from organizers' and courses' own
           listings. Bidding and booking happen on their sites.
         </p>
-        <AccessList items={access} />
+        {accessMonths && (
+          <p class="small muted" data-access-months>
+            Dated listings here have fallen in {accessMonths}.
+          </p>
+        )}
+        <AccessList items={access} today={today} />
       </section>
     )
   }

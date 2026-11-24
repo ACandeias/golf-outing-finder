@@ -1,0 +1,152 @@
+---
+/**
+ * Timeline groups of access opportunities: one heading per group ("In the next
+ * 7 days", then a month), one compact row per entry with its countdown. Text
+ * only; the link goes to the listing on its own platform.
+ */
+import type { AccessListItem } from "@gof/db/access";
+import type { TimelineGroup } from "../lib/access-timeline.ts";
+import { accessView, hasPrice, safeHttpUrl } from "../lib/access-view.ts";
+import { placeText, shortDate } from "../lib/format.ts";
+import { coursePath } from "../lib/urls.ts";
+
+interface Props {
+  groups: readonly TimelineGroup<AccessListItem>[];
+  /** Prefix for heading ids, unique on the page. */
+  idPrefix: string;
+  /** Expected-back rows: the date is last time's, moved forward, so only the month heading shows it. */
+  expected?: boolean;
+}
+const { groups, idPrefix, expected = false } = Astro.props;
+/** "Nov 24": the group heading already carries the year. */
+const dayOf = (iso: string): string => shortDate(iso).replace(/, \d{4}$/, "");
+---
+
+{
+  groups.map((g) => (
+    <section class="tl-group" aria-labelledby={`${idPrefix}-${g.key}`} data-timeline-group={g.key}>
+      <h3 id={`${idPrefix}-${g.key}`} class="tl-heading">
+        {g.heading}
+      </h3>
+      <ol class="tl-list">
+        {g.entries.map((e) => {
+          const v = accessView(e.item);
+          const href = safeHttpUrl(e.item.link);
+          return (
+            <li class="tl-row" data-timeline-entry data-kind={e.item.kind} data-status={e.item.status} data-date={e.date}>
+              <p class="tl-when">
+                {!expected && <time datetime={e.date}>{dayOf(e.date)}</time>}
+                <span class:list={["tl-label", { "tl-soon": !expected && g.key === "week" }]}>{e.label}</span>
+              </p>
+              <div class="tl-body">
+                <p class="tl-title">{e.item.title}</p>
+                <p class="tl-course">
+                  <a href={coursePath(e.item.course.slug)}>{e.item.course.name}</a>, {placeText(e.item.course.city, e.item.course.state)}
+                </p>
+                <p class="tl-meta">
+                  <span>{v.kindLabel}</span>
+                  {hasPrice(e.item) && <span>{v.price}</span>}
+                  {v.party && <span>{v.party}</span>}
+                </p>
+                {href && (
+                  <p class="tl-link">
+                    <a href={href} rel="nofollow noopener" target="_blank">
+                      View on {e.item.platform}
+                      <span class="visually-hidden"> (opens {e.item.platform})</span>
+                    </a>
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  ))
+}
+
+<style>
+  .tl-group {
+    margin: 0 0 1.5rem;
+  }
+  .tl-heading {
+    font-family: var(--display);
+    font-size: 0.8125rem;
+    letter-spacing: var(--track);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 1.25rem 0 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .tl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tl-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.25rem 1.5rem;
+    padding: 0.875rem 0 1rem;
+    border-bottom: 1px solid var(--rule);
+    max-width: none;
+  }
+  .tl-row p {
+    margin: 0;
+  }
+  .tl-when {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.625rem;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .tl-when time {
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    color: var(--title);
+  }
+  .tl-label {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+  .tl-soon {
+    font-weight: 600;
+    color: var(--fairway);
+  }
+  .tl-title {
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    line-height: 1.3;
+    color: var(--title);
+  }
+  .tl-course {
+    font-style: italic;
+  }
+  .tl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .tl-meta span + span {
+    border-left: 1px solid var(--rule-strong);
+    padding-left: 0.75rem;
+  }
+  .tl-link {
+    margin-top: 0.25rem !important;
+    font-size: 0.9375rem;
+  }
+  @media (min-width: 720px) {
+    .tl-row {
+      grid-template-columns: 11rem 1fr;
+    }
+    .tl-when {
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+  }
+</style>

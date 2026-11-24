@@ -150,9 +150,11 @@ setCache(Astro, TTL.home);
       topAccess.length > 0 && (
         <section aria-labelledby="top-access">
           <h2 id="top-access" class="section-title">Ways onto top courses</h2>
-          <p class="small muted top-access-note">Charity auction lots, member-for-a-day programs and packages at top clubs and resorts.</p>
-          <AccessList items={topAccess} showCourse />
-          <p class="more-link"><a href="/top-courses">See every way onto a top course</a></p>
+          <p class="small muted top-access-note">
+            Charity auction lots, outings and packages at top clubs and resorts, the soonest to close or start first.
+          </p>
+          <AccessList items={topAccess} showCourse today={today} />
+          <p class="more-link"><a href="/top-courses#timeline">See the full timeline and every way onto a top course</a></p>
         </section>
       )
     }

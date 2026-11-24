@@ -9,6 +9,7 @@ export const PATHS = {
   places: join(REPO_ROOT, "data/places"),
   overrides: join(REPO_ROOT, "data/overrides"),
   topCourses: join(REPO_ROOT, "data/top-courses.json"),
+  accessLinks: join(REPO_ROOT, "data/access-links.json"),
   courseTypes: join(REPO_ROOT, "data/overrides/course-types.yaml"),
   removals: join(REPO_ROOT, "data/overrides/removals.yaml"),
   notable: join(REPO_ROOT, "data/overrides/notable-courses.yaml"),

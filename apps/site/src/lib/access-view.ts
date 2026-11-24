@@ -29,6 +29,21 @@ const STATUS_LABELS: Readonly<Record<string, string>> = {
   unknown: "Status unknown",
 };
 
+/** The link as an absolute http(s) URL, or null: a stored link never renders with another scheme. */
+export function safeHttpUrl(u: string): string | null {
+  try {
+    const x = new URL(u);
+    return x.protocol === "https:" || x.protocol === "http:" ? x.href : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when a price is known (otherwise the price text is "See site"). */
+export function hasPrice(v: { priceMinCents: number | null; priceMaxCents: number | null }): boolean {
+  return v.priceMinCents !== null || v.priceMaxCents !== null;
+}
+
 export interface AccessViewInput {
   kind: AccessKind;
   status: string;

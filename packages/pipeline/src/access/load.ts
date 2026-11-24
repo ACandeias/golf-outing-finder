@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
 import type * as NodeSqlite from "node:sqlite";
 import { z } from "zod";
@@ -10,8 +11,10 @@ import { kebab, truncateAtHyphen, withCollisionSuffix } from "@gof/shared/slug";
 import { normalizeUrl } from "../discovery/url.ts";
 import { pipelineNow } from "../lib/clock.ts";
 import { fromInvocationDir, PATHS } from "../lib/paths.ts";
+import { executeLocalD1, queryLocalD1, writeSqlFiles } from "../lib/wrangler.ts";
 import { insertStatements } from "../sql/literal.ts";
 import { parseTopCoursesFile } from "../topcourses/list.ts";
+import { curatedLinkProblems } from "./links.ts";
 
 /**
  * Loads researched access opportunities (every way a non-member gets onto a
@@ -65,6 +68,8 @@ export const accessItemSchema = z.object({
   status: z.enum(["open", "upcoming", "closed", "recurring", "unknown"]),
   confirmed: z.enum(["fetched", "snippet"]),
   note: text(300),
+  /** The day a person checked a hand-added link (data/access-links.json); research runs leave it out. */
+  checked_on: z.string().regex(ISO_DATE).nullable().optional(),
 });
 export type AccessItem = z.infer<typeof accessItemSchema>;
 
@@ -275,6 +280,8 @@ export function buildAccessPlan(input: AccessPlanInput): { rows: AccessRow[]; sk
     const end = it.date_end ?? (it.kind === "auction" ? null : it.date_start);
     if ((status === "open" || status === "upcoming") && end !== null && end < today) status = "closed";
 
+    // A hand-checked item was last verified on the day it was checked, not the day it was loaded.
+    const verifiedAt = it.checked_on && it.checked_on <= today ? `${it.checked_on}T12:00:00.000Z` : iso;
     const slug = withCollisionSuffix(`${it.kind.replace(/_/g, "-")}/${truncateAtHyphen(kebab(`${it.title} ${baseName(it.course_name)}`), 100)}`, taken);
     taken.add(slug);
     const cents = (v: number | null) => (v === null ? null : dollarsToCents(v));
@@ -304,8 +311,8 @@ export function buildAccessPlan(input: AccessPlanInput): { rows: AccessRow[]; sk
       confirmed: it.confirmed,
       published: courseId ? 1 : 0,
       hold_reason: courseId ? null : "course_unmatched",
-      first_seen: iso,
-      last_verified: iso,
+      first_seen: verifiedAt,
+      last_verified: verifiedAt,
       created_at: iso,
       updated_at: iso,
     });
@@ -318,75 +325,106 @@ export function accessInsertSql(rows: readonly AccessRow[]): string[] {
   return insertStatements("access_opportunities", ACCESS_COLUMNS, rows, { verb: "INSERT OR IGNORE" });
 }
 
+/** Course lookups for the plan: by OSM ref, and by name for names that are unique in their state. */
+export function indexCourses(all: readonly { id: string; name: string; state: string; osm_ref: string | null }[]): {
+  byRef: Map<string, string>;
+  byName: Map<string, string>;
+} {
+  const byRef = new Map(all.flatMap((r) => (r.osm_ref ? [[r.osm_ref, r.id] as const] : [])));
+  const key = (r: { name: string; state: string }) => `${r.state.toLowerCase()}/${r.name.toLowerCase()}`;
+  const nameCount = new Map<string, number>();
+  for (const r of all) nameCount.set(key(r), (nameCount.get(key(r)) ?? 0) + 1);
+  const byName = new Map(all.flatMap((r) => (nameCount.get(key(r)) === 1 ? [[key(r), r.id] as const] : [])));
+  return { byRef, byName };
+}
+
 // CLI ----------------------------------------------------------------------
 
 const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as typeof NodeSqlite;
 
+type CourseRow = { id: string; name: string; state: string; osm_ref: string | null };
+type StoredRow = { link: string; kind: string; course_name: string; title: string; slug: string };
+const COURSES_SQL = "SELECT id, name, state, osm_ref FROM courses";
+const STORED_SQL = "SELECT link, kind, course_name, title, slug FROM access_opportunities";
+
+/** Courses and stored items from a SQLite file (read-only). The table may not exist yet. */
+function readFromFile(path: string): { courses: CourseRow[]; stored: StoredRow[] } {
+  const db = new DatabaseSync(path, { readOnly: true });
+  const courses = db.prepare(COURSES_SQL).all() as CourseRow[];
+  const hasTable = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'access_opportunities'").get();
+  const stored = hasTable ? (db.prepare(STORED_SQL).all() as StoredRow[]) : [];
+  db.close();
+  return { courses, stored };
+}
+
+/**
+ * `access-load [--courses-db=<sqlite> --sql-out=<file.sql>] [--persist-to=<dir>] [<research.json>...]`
+ *
+ * With --courses-db and --sql-out it reads that SQLite file and only writes the
+ * SQL. Without them it reads the local D1 through wrangler and applies the SQL
+ * to it (--persist-to picks the state directory). With no file named it loads
+ * the hand-curated link catalog, data/access-links.json, which must pass the
+ * curated-link rules.
+ */
 export async function runLoadAccess(argv: readonly string[]): Promise<number> {
   const { values, positionals } = parseArgs({
     args: [...argv],
-    options: { "courses-db": { type: "string" }, "sql-out": { type: "string" } },
+    options: { "courses-db": { type: "string" }, "sql-out": { type: "string" }, "persist-to": { type: "string" } },
     allowPositionals: true,
   });
-  if (!values["courses-db"] || !values["sql-out"] || positionals.length === 0) {
-    console.error("usage: access-load --courses-db=<sqlite> --sql-out=<file.sql> <research.json>...");
+  const toFile = Boolean(values["courses-db"] || values["sql-out"]);
+  if (toFile && (!values["courses-db"] || !values["sql-out"])) {
+    console.error("usage: access-load [--courses-db=<sqlite> --sql-out=<file.sql>] [--persist-to=<dir>] [<research.json>...]");
     return 2;
   }
+  const files = positionals.length > 0 ? positionals.map((p) => fromInvocationDir(p)) : [PATHS.accessLinks];
+
   const items: AccessItem[] = [];
   let dropped = 0;
-  for (const p of positionals) {
-    const json: unknown = JSON.parse(await readFile(fromInvocationDir(p), "utf8"));
+  for (const file of files) {
+    const json: unknown = JSON.parse(await readFile(file, "utf8"));
     const got = itemsFromFile(json);
     const raw = json as { opportunities?: unknown[]; lots?: unknown[]; listings?: unknown[] };
     dropped += (raw.opportunities?.length ?? 0) + (raw.lots?.length ?? 0) + (raw.listings?.length ?? 0) - got.length;
+    if (file === PATHS.accessLinks) {
+      const problems = curatedLinkProblems(got);
+      if (problems.length > 0) {
+        console.error(`data/access-links.json breaks the curated-link rules:\n  ${problems.join("\n  ")}`);
+        return 2;
+      }
+    }
     items.push(...got);
   }
-  const top = parseTopCoursesFile(await readFile(PATHS.topCourses, "utf8")).courses;
-  const db = new DatabaseSync(fromInvocationDir(values["courses-db"]), { readOnly: true });
-  const all = db.prepare("SELECT id, name, state, osm_ref FROM courses").all() as {
-    id: string;
-    name: string;
-    state: string;
-    osm_ref: string | null;
-  }[];
-  const byRef = new Map(all.flatMap((r) => (r.osm_ref ? [[r.osm_ref, r.id] as const] : [])));
-  const nameCount = new Map<string, number>();
-  for (const r of all) {
-    const k = `${r.state.toLowerCase()}/${r.name.toLowerCase()}`;
-    nameCount.set(k, (nameCount.get(k) ?? 0) + 1);
-  }
-  const byName = new Map(
-    all.flatMap((r) => {
-      const k = `${r.state.toLowerCase()}/${r.name.toLowerCase()}`;
-      return nameCount.get(k) === 1 ? [[k, r.id] as const] : [];
-    }),
-  );
-  const hasTable = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'access_opportunities'").get();
-  const existing = hasTable
-    ? (db.prepare("SELECT link, kind, course_name, title, slug FROM access_opportunities").all() as {
-        link: string;
-        kind: string;
-        course_name: string;
-        title: string;
-        slug: string;
-      }[])
-    : [];
-  db.close();
+
+  const target = { persistTo: values["persist-to"] && fromInvocationDir(values["persist-to"]) };
+  const { courses, stored } = toFile
+    ? readFromFile(fromInvocationDir(values["courses-db"]!))
+    : { courses: queryLocalD1(COURSES_SQL, target) as CourseRow[], stored: queryLocalD1(STORED_SQL, target) as StoredRow[] };
+  const { byRef, byName } = indexCourses(courses);
 
   const plan = buildAccessPlan({
     items,
-    topCourses: top,
+    topCourses: parseTopCoursesFile(await readFile(PATHS.topCourses, "utf8")).courses,
     courseIdByOsmRef: byRef,
     courseIdByName: byName,
     now: pipelineNow(),
-    existingKeys: existing.map((e) => itemKey(e.link, e.kind, e.course_name, e.title)),
-    takenSlugs: new Set(existing.map((e) => e.slug)),
+    existingKeys: stored.map((e) => itemKey(e.link, e.kind, e.course_name, e.title)),
+    takenSlugs: new Set(stored.map((e) => e.slug)),
   });
-  await writeFile(fromInvocationDir(values["sql-out"]), `${accessInsertSql(plan.rows).join("\n")}\n`);
+  const statements = accessInsertSql(plan.rows);
+  let where: string;
+  if (toFile) {
+    where = fromInvocationDir(values["sql-out"]!);
+    await writeFile(where, `${statements.join("\n")}\n`);
+  } else {
+    const sqlFiles = await writeSqlFiles(statements, join(PATHS.cache, "access-sql"), "access");
+    executeLocalD1(sqlFiles, target);
+    where = "the local D1 (gof)";
+  }
   const matched = plan.rows.filter((r) => r.course_id !== null).length;
   console.log(
     `access-load: ${plan.rows.length} items (${matched} matched to a course, ${plan.rows.length - matched} kept unmatched), ` +
-      `${plan.skipped.length} skipped, ${dropped} invalid entries dropped -> ${values["sql-out"]}`,
+      `${plan.skipped.length} skipped, ${dropped} invalid entries dropped -> ${where}`,
   );
   return 0;
 }

@@ -152,10 +152,12 @@ platforms:
     terms_url: https://givebutter.com/terms
     adapter: page
     domains: [givebutter.com]
-  # DENY: no robot, spider or script to extract, index or scrape; deep links banned.
+  # DENY: no robot, spider or script to extract, index or scrape. The same terms
+  # allow links to its home page and auction pages ("Linking to the Site"), so a
+  # hand-added link in data/access-links.json is fine; a fetch never is.
   - name: Member For a Day
     allowed: false
-    terms_checked: 2026-11-21
+    terms_checked: 2026-11-23
     terms_url: https://memberforaday.com/terms-of-use
     adapter: page
     domains: [memberforaday.com]
