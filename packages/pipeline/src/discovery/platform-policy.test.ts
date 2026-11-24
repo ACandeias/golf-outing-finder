@@ -204,6 +204,13 @@ describe("the committed platforms.yaml", () => {
       BiddingForGood: "https://www.biddingforgood.com/auction/item/1",
       "Greater Giving": "https://ggo.bid/gala",
       GalaBid: "https://app.galabid.com/gala",
+      AJGA: "https://www.ajga.org/foundation/auction",
+      "Mastercard Priceless": "https://www.priceless.com/golf",
+      "Tee Trade": "https://www.goteetrade.com/listings",
+      "Thousand Greens": "https://thousandgreens.com/clubs",
+      "Chicago District Golf Association": "https://www.cdga.org/golf-competitions/memberdays.asp?id=161",
+      "Minnesota Golf Association": "https://mngolf.org/MemberDays",
+      "coloradogolf.org": "https://www.coloradogolf.org/charity-events",
     };
     const off = [...config.platforms, ...config.directories].filter((e) => !e.allowed).map((e) => e.name);
     // A new `allowed: false` entry needs a sample here, so it can't go unchecked.

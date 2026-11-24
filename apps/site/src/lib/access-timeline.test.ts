@@ -55,6 +55,11 @@ describe("deadlineLabel", () => {
     // An auction whose closing day has passed is over, not under way.
     expect(deadlineLabel(item("a", "auction", "open", null, "2026-11-22"), TODAY)).toBeNull();
   });
+
+  it("never calls a lot's start date its closing day", () => {
+    expect(deadlineLabel(item("a", "auction", "upcoming", "2026-11-24", null), TODAY)).toBeNull();
+    expect(deadlineLabel(item("a", "auction", "open", "2026-11-01", null), TODAY)).toBeNull();
+  });
 });
 
 describe("accessTimeline", () => {
@@ -126,6 +131,59 @@ describe("accessTimeline", () => {
   it("an event under way sits on today", () => {
     const under = accessTimeline([item("e", "outing", "open", "2026-11-22", "2026-11-25")], TODAY);
     expect(under.upcoming[0]).toMatchObject({ key: "week", entries: [{ date: TODAY, daysLeft: 0, label: "Under way until Nov 25, 2026" }] });
+  });
+
+  it("an open lot with no closing day is open any time; it never drops off the page", () => {
+    const t2 = accessTimeline([item("started", "auction", "open", "2026-11-01", null), item("opens-tomorrow", "auction", "open", "2026-11-24", null)], TODAY);
+    expect(t2.upcoming).toEqual([]);
+    expect(t2.anytime.map((i) => i.id)).toEqual(["started", "opens-tomorrow"]);
+  });
+
+  it("expected back holds only what has already happened", () => {
+    const t2 = accessTimeline(
+      [
+        // Marked closed and recurring, but the day is still ahead: not "last held".
+        item("closed-ahead", "outing", "closed", "2026-12-05", null, true),
+        // Closed today by the loader: today hasn't passed yet.
+        item("closed-today", "auction", "closed", null, TODAY, true),
+        // A recurring event between its first and last day is under way, not expected back.
+        item("recurring-under-way", "outing", "recurring", "2026-11-22", "2026-11-25", true),
+        item("closed-yesterday", "auction", "closed", null, "2026-11-22", true),
+      ],
+      TODAY,
+    );
+    expect(t2.expected.flatMap((g) => g.entries.map((e) => [e.item.id, g.key, e.label]))).toEqual([["closed-yesterday", "2027-11", "Last closed Nov 22, 2026"]]);
+    expect(t2.upcoming.flatMap((g) => g.entries.map((e) => [e.item.id, e.label]))).toEqual([["recurring-under-way", "Under way until Nov 25, 2026"]]);
+  });
+
+  it("a recurring offer is expected back when its season opens, not when it ends", () => {
+    const t2 = accessTimeline(
+      [
+        item("summer", "stay_and_play", "recurring", "2026-05-01", "2026-10-31", true),
+        item("winter", "stay_and_play", "recurring", "2025-11-01", "2026-03-31", true),
+        item("start-only", "public_tee_time", "recurring", "2026-04-15", null, true),
+        item("lot-start-only", "auction", "recurring", "2026-04-10", null, true),
+      ],
+      TODAY,
+    );
+    expect(t2.expected.flatMap((g) => g.entries.map((e) => [e.item.id, g.key, e.label]))).toEqual([
+      ["lot-start-only", "2027-04", "Last listed Apr 10, 2026"],
+      ["start-only", "2027-04", "Last offered from Apr 15, 2026"],
+      ["summer", "2027-05", "Last offered until Oct 31, 2026"],
+      // Last season opened Nov 1, 2025; the next opening on or after today is Nov 1, 2027.
+      ["winter", "2027-11", "Last offered until Mar 31, 2026"],
+    ]);
+  });
+
+  it("counts from each item's own day at its course", () => {
+    // The list day is Nov 23; at this course it is already Nov 24, the closing day.
+    const east = { ...item("east", "auction", "open", null, "2026-11-24"), localToday: "2026-11-24" };
+    const west = { ...item("west", "auction", "open", null, "2026-11-24"), localToday: "2026-11-23" };
+    const t2 = accessTimeline([east, west], TODAY);
+    expect(t2.upcoming[0]!.entries.map((e) => [e.item.id, e.label, e.daysLeft])).toEqual([
+      ["east", "Bidding closes today", 0],
+      ["west", "Bidding closes tomorrow", 1],
+    ]);
   });
 
   it("is empty for no items", () => {

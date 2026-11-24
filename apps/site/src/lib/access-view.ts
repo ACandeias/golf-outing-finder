@@ -68,15 +68,17 @@ function priceText(v: AccessViewInput): string {
   const max = v.priceMaxCents;
   if (min === null && max === null) return "See site";
   const amount = min !== null && max !== null && max > min ? `${formatUsd(min)} to ${formatUsd(max)}` : formatUsd(min ?? max);
+  // A bid seen while a lot was open is not what it went for: once the lot is over, say so.
+  const over = v.status === "closed" || v.status === "recurring";
   switch (v.priceKind) {
     case "sold":
       return `Sold for ${amount}`;
     case "current_bid":
-      return `Current bid ${amount}`;
+      return over ? `Last bid seen ${amount}` : `Current bid ${amount}`;
     case "starting_bid":
-      return `Starting bid ${amount}`;
+      return over ? `Bidding started at ${amount}` : `Starting bid ${amount}`;
     case "buy_now":
-      return `Buy now ${amount}`;
+      return over ? `Buy now was ${amount}` : `Buy now ${amount}`;
     case "green_fee":
       return `Green fees ${min !== null && max === null ? "from " : ""}${amount}`;
     case "package":

@@ -20,7 +20,9 @@ test.describe("/top-courses timeline", () => {
     await expect(soon).toContainText("Current bid $2,500");
     await expect(soon.getByRole("link", { name: "Winged Foot Golf Club" })).toHaveAttribute("href", "/courses/ny/winged-foot-golf-club");
 
+    // A two-day event (Nov 9 to 10) sits on its first day, the day to act by.
     const later = upcoming.locator('[data-timeline-group="2026-11"] [data-timeline-entry]');
+    await expect(later).toHaveAttribute("data-date", "2026-11-09");
     await expect(later).toContainText("Starts Nov 9, 2026");
     await expect(later).toContainText("Quaker Ridge Golf Club");
   });
@@ -43,8 +45,11 @@ test.describe("/top-courses timeline", () => {
     await expect(anytime).toContainText("TPC Harding Park");
     const timelineText = await page.locator("[data-timeline]").allInnerTexts();
     expect(timelineText.join("\n")).not.toContain("closed test lot");
-    // It is still listed under its course.
-    await expect(page.locator("[data-access]", { hasText: "closed test lot" })).toHaveCount(1);
+    // It is still listed under its course, and its last bid isn't passed off as the sold price.
+    const closed = page.locator("[data-access]", { hasText: "closed test lot" });
+    await expect(closed).toHaveCount(1);
+    await expect(closed).toContainText("Last bid seen $1,800");
+    await expect(closed).not.toContainText("Current bid");
   });
 
   test("the page stays out of the index and its outbound links carry nofollow", async ({ page }) => {

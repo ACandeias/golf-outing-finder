@@ -35,6 +35,12 @@ const listingEntrySchema = z
     urls: z.array(z.string().min(1)).default([]),
     /** Registrable domains the site uses (`eventbrite.*` for every country code); default: those of `urls`. */
     domains: z.array(z.string().min(1)).optional(),
+    /**
+     * `false` when the site's terms allow links to its home page only. A listing
+     * that links to any other page there is held, and the hand-curated link
+     * catalog refuses it (access/links.ts).
+     */
+    deep_links: z.boolean().optional(),
     /** Path regex for listing and search pages, which never stand for one outing (platform-policy.ts). */
     listing_url_pattern: z
       .string()

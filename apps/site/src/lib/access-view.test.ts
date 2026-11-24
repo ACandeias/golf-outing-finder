@@ -59,4 +59,15 @@ describe("accessView", () => {
   it("has a label for every kind", () => {
     expect(Object.keys(ACCESS_KIND_LABELS)).toHaveLength(11);
   });
+
+  it("a bid seen while a lot was open is not shown as its final price once the lot is over", () => {
+    const lot = { ...base, priceKind: "current_bid", priceMinCents: 250_000, dateEnd: "2026-11-24" };
+    expect(accessView({ ...lot, status: "open" }).price).toBe("Current bid $2,500");
+    expect(accessView({ ...lot, status: "closed" }).price).toBe("Last bid seen $2,500");
+    expect(accessView({ ...lot, status: "recurring" }).price).toBe("Last bid seen $2,500");
+    expect(accessView({ ...lot, status: "closed", priceKind: "starting_bid" }).price).toBe("Bidding started at $2,500");
+    expect(accessView({ ...lot, status: "upcoming", priceKind: "starting_bid" }).price).toBe("Starting bid $2,500");
+    expect(accessView({ ...lot, status: "closed", priceKind: "buy_now" }).price).toBe("Buy now was $2,500");
+    expect(accessView({ ...lot, status: "closed", priceKind: "sold" }).price).toBe("Sold for $2,500");
+  });
 });

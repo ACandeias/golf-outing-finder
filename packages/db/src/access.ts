@@ -2,7 +2,8 @@
  * Read queries for access opportunities (migration 0001): every way a
  * non-member gets onto a course besides a dated outing row. Only published rows
  * at a matched course are ever returned, with the status as of the day asked
- * for: an item whose last day has passed reads as closed.
+ * for (the course's own day when a LocalDay is passed): an item whose last day
+ * has passed reads as closed.
  */
 import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { accessOpportunities, courses, type AccessKind } from "./schema.ts";
@@ -37,7 +38,10 @@ export interface AccessListItem {
     state: string;
     courseType: string;
     notable: boolean;
+    timeZone: string;
   };
+  /** Today's date at the course when the item was read; its status and countdown are as of this day. */
+  localToday: string;
 }
 
 const fields = {
@@ -68,10 +72,12 @@ const fields = {
     state: courses.state,
     courseType: courses.courseType,
     notable: courses.notable,
+    timeZone: courses.timeZone,
   },
 };
 
-const STATUS_RANK: Record<string, number> = { open: 0, upcoming: 1, recurring: 2, unknown: 3, closed: 4 };
+// Open and upcoming share a rank: among live items only the day to act by decides the order.
+const STATUS_RANK: Record<string, number> = { open: 0, upcoming: 0, recurring: 2, unknown: 3, closed: 4 };
 
 /** Kinds that happen on a day (you enter before they start), as opposed to an auction or a standing offer. */
 const EVENT_KINDS: ReadonlySet<string> = new Set(["outing", "qualifier", "pro_am", "charity_dinner", "other"]);
@@ -84,10 +90,12 @@ interface Dated {
 
 /**
  * The last day someone can still act on an item: an auction's closing day, an
- * event's first day, a standing offer's last day. Null when no date is known.
+ * event's first day, a standing offer's last day. Null when that day isn't
+ * known. An auction's start date is never a closing day, so a lot with no
+ * closing date has no act-by day.
  */
 export function actByDate(item: Dated): string | null {
-  if (item.kind === "auction") return item.dateEnd ?? item.dateStart;
+  if (item.kind === "auction") return item.dateEnd;
   if (EVENT_KINDS.has(item.kind)) return item.dateStart ?? item.dateEnd;
   return item.dateEnd ?? item.dateStart;
 }
@@ -111,17 +119,18 @@ export function liveStatus<S extends string>(item: Dated & { status: S }, today:
 }
 
 /**
- * Open and upcoming first (soonest act-by date first), then recurring and
- * unknown, then closed (most recent first). `today` puts dated items that are
- * still ahead before ones already under way.
+ * Open and upcoming together, the soonest act-by day first (days still ahead
+ * before ones under way, undated last), then recurring and unknown, then
+ * closed (most recent first).
  */
 export function orderAccess<T extends Dated & { id: string; status: string }>(items: readonly T[], today: string): T[] {
+  // Closed items sort by whichever date they carry; everything else by the day to act by.
+  const when = (o: T): string | null => (o.status === "closed" ? (o.dateEnd ?? o.dateStart) : actByDate(o));
   return [...items].sort((a, b) => {
     const r = (STATUS_RANK[a.status] ?? 3) - (STATUS_RANK[b.status] ?? 3);
     if (r !== 0) return r;
-    // Closed items sort by the day they ended; everything else by the day to act by.
-    const wa = a.status === "closed" ? (lastDay(a) ?? actByDate(a)) : actByDate(a);
-    const wb = b.status === "closed" ? (lastDay(b) ?? actByDate(b)) : actByDate(b);
+    const wa = when(a);
+    const wb = when(b);
     if (wa === wb) return a.id.localeCompare(b.id);
     if (wa === null) return 1;
     if (wb === null) return -1;
@@ -131,6 +140,12 @@ export function orderAccess<T extends Dated & { id: string; status: string }>(it
     return fa - fb || wa.localeCompare(wb);
   });
 }
+
+/**
+ * Today's date in a course's time zone. Passed to the queries so each item's
+ * status is as of its own course's day; without it the list day is used.
+ */
+export type LocalDay = (timeZone: string) => string;
 
 type Row = Awaited<ReturnType<typeof select>>[number];
 
@@ -142,10 +157,12 @@ function select(db: GofDb, where: ReturnType<typeof and>) {
     .where(where);
 }
 
-function toItem(r: Row, today: string): AccessListItem {
+function toItem(r: Row, today: string, localDay?: LocalDay): AccessListItem {
+  const day = localDay ? localDay(r.course.timeZone) : today;
   return {
     ...r,
-    status: liveStatus(r, today),
+    localToday: day,
+    status: liveStatus(r, day),
     recurring: r.recurring === 1,
     memberHosted: r.memberHosted === null ? null : r.memberHosted === 1,
     course: { ...r.course, notable: r.course.notable === 1 },
@@ -155,9 +172,9 @@ function toItem(r: Row, today: string): AccessListItem {
 const published = and(eq(accessOpportunities.published, 1), isNotNull(accessOpportunities.courseId));
 
 /** A course's published items, best first. */
-export async function accessForCourse(db: GofDb, courseId: string, today: string): Promise<AccessListItem[]> {
+export async function accessForCourse(db: GofDb, courseId: string, today: string, localDay?: LocalDay): Promise<AccessListItem[]> {
   const rows = await select(db, and(published, eq(accessOpportunities.courseId, courseId)));
-  return orderAccess(rows.map((r) => toItem(r, today)), today);
+  return orderAccess(rows.map((r) => toItem(r, today, localDay)), today);
 }
 
 /**
@@ -169,18 +186,19 @@ export async function featuredAccess(
   today: string,
   limit: number,
   courseTypes?: readonly CourseType[],
+  localDay?: LocalDay,
 ): Promise<AccessListItem[]> {
   const rows = await select(
     db,
     and(published, eq(courses.notable, 1), courseTypes ? inArray(courses.courseType, [...courseTypes]) : undefined),
   );
-  return orderAccess(rows.map((r) => toItem(r, today)), today).slice(0, limit);
+  return orderAccess(rows.map((r) => toItem(r, today, localDay)), today).slice(0, limit);
 }
 
 /** Every published item (the /top-courses page), best first. */
-export async function accessPage(db: GofDb, today: string): Promise<AccessListItem[]> {
+export async function accessPage(db: GofDb, today: string, localDay?: LocalDay): Promise<AccessListItem[]> {
   const rows = await select(db, published);
-  return orderAccess(rows.map((r) => toItem(r, today)), today);
+  return orderAccess(rows.map((r) => toItem(r, today, localDay)), today);
 }
 
 /** True when a course has a published access item (its page then exists). */

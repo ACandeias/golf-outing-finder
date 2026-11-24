@@ -12,7 +12,7 @@ import AccessTimeline from "../components/AccessTimeline.astro";
 import { accessTimeline } from "../lib/access-timeline.ts";
 import { ACCESS_KIND_LABELS } from "../lib/access-view.ts";
 import { getDb } from "../lib/db.ts";
-import { listToday } from "../lib/clock.ts";
+import { courseDay, listToday, ttlWithinDay } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { placeText } from "../lib/format.ts";
@@ -21,7 +21,7 @@ import { coursePath } from "../lib/urls.ts";
 export const prerender = false;
 
 const today = listToday();
-const items = await accessPage(getDb(), today);
+const items = await accessPage(getDb(), today, courseDay());
 const timeline = accessTimeline(items, today);
 const count = (groups: typeof timeline.upcoming) => groups.reduce((n, g) => n + g.entries.length, 0);
 const upcomingCount = count(timeline.upcoming);
@@ -35,7 +35,8 @@ const kindCounts = new Map<string, number>();
 for (const it of items) kindCounts.set(it.kind, (kindCounts.get(it.kind) ?? 0) + 1);
 const open = items.filter((i) => i.status === "open" || i.status === "upcoming").length;
 
-setCache(Astro, TTL.list);
+// Countdowns and statuses change at each course's midnight; the cached page must not outlive one.
+setCache(Astro, ttlWithinDay(TTL.list, items.map((i) => i.course.timeZone)));
 ---
 
 <Base
@@ -71,8 +72,8 @@ setCache(Astro, TTL.list);
       <section aria-labelledby="timeline" data-timeline="upcoming">
         <h2 id="timeline">Coming up</h2>
         <p class="small muted">
-          Placed by the day to act by: the day bidding closes, an event's first day, or an offer's last day. Bids and prices
-          are as seen on the date shown on each course's page.
+          Placed by the day to act by: the day bidding closes, an event's first day, or an offer's last day. A bid is the
+          one seen on the day the listing was checked, shown on its course's page; it will have moved since.
         </p>
         {upcomingCount === 0 && <p>Nothing with a date is open right now.</p>}
         <AccessTimeline groups={timeline.upcoming} idPrefix="up" />
@@ -95,7 +96,7 @@ setCache(Astro, TTL.list);
     timeline.anytime.length > 0 && (
       <section aria-labelledby="anytime" data-timeline="anytime">
         <h2 id="anytime">Open any time</h2>
-        <p class="small muted">Tee times and packages with no closing date.</p>
+        <p class="small muted">Tee times, packages and lots with no closing date listed.</p>
         <AccessList items={timeline.anytime} showCourse />
       </section>
     )
@@ -110,7 +111,7 @@ setCache(Astro, TTL.list);
             <a href={coursePath(c.slug)}>{c.name}</a>
           </h3>
           <p class="muted course-place">{placeText(c.city, c.state)}</p>
-          <AccessList items={g} today={today} headingLevel={4} />
+          <AccessList items={g} countdown headingLevel={4} />
         </section>
       );
     })

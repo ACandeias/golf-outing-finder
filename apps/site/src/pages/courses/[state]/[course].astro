@@ -12,7 +12,7 @@ import AccessList from "../../../components/AccessList.astro";
 import { monthsSeenText } from "../../../lib/access-timeline.ts";
 import { listAdsFor } from "../../../lib/ads.ts";
 import { getDb } from "../../../lib/db.ts";
-import { listToday, requestNow } from "../../../lib/clock.ts";
+import { courseDay, listToday, requestNow, ttlWithinDay } from "../../../lib/clock.ts";
 import { TTL } from "../../../lib/cache.ts";
 import { notFound, setCache } from "../../../lib/page.ts";
 import { COURSE_TYPE_LABELS, placeText, stateName } from "../../../lib/format.ts";
@@ -36,7 +36,7 @@ if (!course) return notFound(Astro);
 
 const now = requestNow();
 const today = listToday();
-const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, today)]);
+const [all, access] = await Promise.all([outingsForCourse(db, course.id), accessForCourse(db, course.id, today, courseDay())]);
 // When this course's dated listings have fallen in the year: a hint for when to look again.
 const accessMonths = monthsSeenText(access);
 // A course page that exists only for its access opportunities stays out of the
@@ -77,7 +77,7 @@ const typeSentence: Record<string, string> = {
 
 const capitalize = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
-setCache(Astro, TTL.list);
+setCache(Astro, access.length > 0 ? ttlWithinDay(TTL.list, [course.timeZone]) : TTL.list);
 ---
 
 <Base
@@ -134,7 +134,7 @@ setCache(Astro, TTL.list);
             Dated listings here have fallen in {accessMonths}.
           </p>
         )}
-        <AccessList items={access} today={today} />
+        <AccessList items={access} countdown />
       </section>
     )
   }

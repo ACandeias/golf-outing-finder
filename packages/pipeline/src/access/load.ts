@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type * as NodeSqlite from "node:sqlite";
 import { z } from "zod";
+import { localToday } from "@gof/shared/dates";
 import { ulid } from "@gof/shared/ids";
 import { dollarsToCents } from "@gof/shared/money";
 import { kebab, truncateAtHyphen, withCollisionSuffix } from "@gof/shared/slug";
@@ -12,9 +13,13 @@ import { normalizeUrl } from "../discovery/url.ts";
 import { pipelineNow } from "../lib/clock.ts";
 import { fromInvocationDir, PATHS } from "../lib/paths.ts";
 import { executeLocalD1, queryLocalD1, writeSqlFiles } from "../lib/wrangler.ts";
-import { insertStatements } from "../sql/literal.ts";
+import { loadPlatforms } from "../discovery/sources.ts";
+import { platformRulesFrom } from "../discovery/platform-policy.ts";
+import { readRemovals } from "../overrides/files.ts";
+import { removedUrlSet } from "../overrides/load.ts";
+import { insertStatements, sqlValue } from "../sql/literal.ts";
 import { parseTopCoursesFile } from "../topcourses/list.ts";
-import { curatedLinkProblems } from "./links.ts";
+import { curatedLinkProblems, homePageOnlyCheck } from "./links.ts";
 
 /**
  * Loads researched access opportunities (every way a non-member gets onto a
@@ -227,7 +232,17 @@ export interface AccessPlanInput {
   now: number;
   existingKeys: readonly string[];
   takenSlugs: ReadonlySet<string>;
+  /** removals.yaml URLs, normalized (overrides/load.ts removedUrlSet). An item on one is held as removed. */
+  removedUrls?: ReadonlySet<string>;
+  /** Names the platform when a link goes past the home page of a site that allows home-page links only. */
+  homePageOnly?: (link: string) => string | null;
 }
+
+/**
+ * A day isn't over until it has ended everywhere in the US, so "past its last
+ * day" is judged in the last US time zone, as the site's lists are.
+ */
+const LAST_US_ZONE = "Pacific/Honolulu";
 
 const baseName = (n: string) =>
   n
@@ -240,7 +255,7 @@ export function itemKey(link: string, kind: string, courseName: string, title: s
   return [link, kind, courseName, title].join("\n");
 }
 
-const platformOf = (p: string) =>
+export const platformOf = (p: string): string =>
   p
     .trim()
     .toLowerCase()
@@ -248,19 +263,30 @@ const platformOf = (p: string) =>
     .replace(/^www\./, "")
     .replace(/\/.*$/, "");
 
-export function buildAccessPlan(input: AccessPlanInput): { rows: AccessRow[]; skipped: { link: string; reason: string }[] } {
+export interface AccessPlan {
+  /** Researched items not stored yet: inserted once, never rewritten. */
+  rows: AccessRow[];
+  /** Hand-checked items (`checked_on`): inserted, or updated in place when the check is at least as new. */
+  upserts: AccessRow[];
+  skipped: { link: string; reason: string }[];
+}
+
+export function buildAccessPlan(input: AccessPlanInput): AccessPlan {
   const iso = new Date(input.now).toISOString();
-  const today = iso.slice(0, 10);
+  const utcDay = iso.slice(0, 10);
+  const lastUsDay = localToday(input.now, LAST_US_ZONE);
   const stored = new Set(input.existingKeys);
   const seen = new Set<string>();
   const taken = new Set(input.takenSlugs);
   const rows: AccessRow[] = [];
+  const upserts: AccessRow[] = [];
   const skipped: { link: string; reason: string }[] = [];
 
   for (const it of input.items) {
     const link = normalizeUrl(it.link) ?? it.link;
     const key = itemKey(link, it.kind, it.course_name, it.title);
-    if (stored.has(key)) {
+    const checked = Boolean(it.checked_on);
+    if (stored.has(key) && !checked) {
       skipped.push({ link, reason: "already stored" });
       continue;
     }
@@ -278,15 +304,18 @@ export function buildAccessPlan(input: AccessPlanInput): { rows: AccessRow[]; sk
 
     let status: string = it.status;
     const end = it.date_end ?? (it.kind === "auction" ? null : it.date_start);
-    if ((status === "open" || status === "upcoming") && end !== null && end < today) status = "closed";
+    if ((status === "open" || status === "upcoming") && end !== null && end < lastUsDay) status = "closed";
+
+    // Why an item stays off the site, most serious first.
+    const hold = input.removedUrls?.has(link) ? "removed" : input.homePageOnly?.(link) ? "needs_review" : courseId ? null : "course_unmatched";
 
     // A hand-checked item was last verified on the day it was checked, not the day it was loaded.
-    const verifiedAt = it.checked_on && it.checked_on <= today ? `${it.checked_on}T12:00:00.000Z` : iso;
+    const verifiedAt = it.checked_on && it.checked_on <= utcDay ? `${it.checked_on}T12:00:00.000Z` : iso;
     const slug = withCollisionSuffix(`${it.kind.replace(/_/g, "-")}/${truncateAtHyphen(kebab(`${it.title} ${baseName(it.course_name)}`), 100)}`, taken);
     taken.add(slug);
     const cents = (v: number | null) => (v === null ? null : dollarsToCents(v));
 
-    rows.push({
+    (checked ? upserts : rows).push({
       id: `acc_${ulid(input.now, createHash("sha256").update(key).digest())}`,
       slug,
       course_id: courseId,
@@ -309,20 +338,73 @@ export function buildAccessPlan(input: AccessPlanInput): { rows: AccessRow[]; sk
       member_hosted: it.member_hosted === null ? null : it.member_hosted ? 1 : 0,
       status,
       confirmed: it.confirmed,
-      published: courseId ? 1 : 0,
-      hold_reason: courseId ? null : "course_unmatched",
+      published: hold === null ? 1 : 0,
+      hold_reason: hold,
       first_seen: verifiedAt,
       last_verified: verifiedAt,
       created_at: iso,
       updated_at: iso,
     });
   }
-  return { rows, skipped };
+  return { rows, upserts, skipped };
 }
 
 /** INSERT OR IGNORE: a re-run never overwrites an item already stored. */
 export function accessInsertSql(rows: readonly AccessRow[]): string[] {
   return insertStatements("access_opportunities", ACCESS_COLUMNS, rows, { verb: "INSERT OR IGNORE" });
+}
+
+/** What a hand-checked entry may change on its stored row. Identity (link, kind, course, title), id, slug and first-seen stay. */
+const UPSERT_COLUMNS = [
+  "course_id",
+  "organizer_name",
+  "event_name",
+  "platform",
+  "date_start",
+  "date_end",
+  "season",
+  "recurring",
+  "price_kind",
+  "price_min_cents",
+  "price_max_cents",
+  "players",
+  "member_hosted",
+  "status",
+  "confirmed",
+  "published",
+  "hold_reason",
+  "last_verified",
+  "updated_at",
+] as const satisfies readonly (typeof ACCESS_COLUMNS)[number][];
+
+/**
+ * Hand-checked entries: insert, or update the stored row when this check is at
+ * least as new as the one stored. An older copy of the catalog changes nothing.
+ */
+export function accessUpsertSql(rows: readonly AccessRow[]): string[] {
+  const set = UPSERT_COLUMNS.map((c) => `${c} = excluded.${c}`).join(", ");
+  return insertStatements("access_opportunities", ACCESS_COLUMNS, rows, {
+    suffix: `ON CONFLICT(link, kind, course_name, title) DO UPDATE SET ${set} WHERE excluded.last_verified >= access_opportunities.last_verified`,
+  });
+}
+
+/** Every statement a plan needs, in order. */
+export function accessSql(plan: Pick<AccessPlan, "rows" | "upserts">): string[] {
+  return [...accessInsertSql(plan.rows), ...accessUpsertSql(plan.upserts)];
+}
+
+/** Unpublishes stored rows whose link is in removals.yaml. Nothing to do for an empty list. */
+export function accessRemovalSql(removedUrls: ReadonlySet<string>, now: number): string[] {
+  if (removedUrls.size === 0) return [];
+  const links = [...removedUrls].sort().map((u) => sqlValue(u));
+  const out: string[] = [];
+  for (let i = 0; i < links.length; i += 50) {
+    out.push(
+      `UPDATE access_opportunities SET published = 0, hold_reason = 'removed', updated_at = ${sqlValue(new Date(now).toISOString())} ` +
+        `WHERE published = 1 AND link IN (${links.slice(i, i + 50).join(", ")});`,
+    );
+  }
+  return out;
 }
 
 /** Course lookups for the plan: by OSM ref, and by name for names that are unique in their state. */
@@ -377,7 +459,10 @@ export async function runLoadAccess(argv: readonly string[]): Promise<number> {
     console.error("usage: access-load [--courses-db=<sqlite> --sql-out=<file.sql>] [--persist-to=<dir>] [<research.json>...]");
     return 2;
   }
-  const files = positionals.length > 0 ? positionals.map((p) => fromInvocationDir(p)) : [PATHS.accessLinks];
+  // Resolved paths, so the catalog gets its rules however its path was typed.
+  const files = positionals.length > 0 ? positionals.map((p) => resolve(fromInvocationDir(p))) : [PATHS.accessLinks];
+  const homePageOnly = homePageOnlyCheck(platformRulesFrom(await loadPlatforms(PATHS.overrides)));
+  const removedUrls = removedUrlSet(await readRemovals(PATHS.removals));
 
   const items: AccessItem[] = [];
   let dropped = 0;
@@ -387,7 +472,7 @@ export async function runLoadAccess(argv: readonly string[]): Promise<number> {
     const raw = json as { opportunities?: unknown[]; lots?: unknown[]; listings?: unknown[] };
     dropped += (raw.opportunities?.length ?? 0) + (raw.lots?.length ?? 0) + (raw.listings?.length ?? 0) - got.length;
     if (file === PATHS.accessLinks) {
-      const problems = curatedLinkProblems(got);
+      const problems = curatedLinkProblems(got, homePageOnly);
       if (problems.length > 0) {
         console.error(`data/access-links.json breaks the curated-link rules:\n  ${problems.join("\n  ")}`);
         return 2;
@@ -401,17 +486,22 @@ export async function runLoadAccess(argv: readonly string[]): Promise<number> {
     ? readFromFile(fromInvocationDir(values["courses-db"]!))
     : { courses: queryLocalD1(COURSES_SQL, target) as CourseRow[], stored: queryLocalD1(STORED_SQL, target) as StoredRow[] };
   const { byRef, byName } = indexCourses(courses);
+  const now = pipelineNow();
 
   const plan = buildAccessPlan({
     items,
     topCourses: parseTopCoursesFile(await readFile(PATHS.topCourses, "utf8")).courses,
     courseIdByOsmRef: byRef,
     courseIdByName: byName,
-    now: pipelineNow(),
+    now,
     existingKeys: stored.map((e) => itemKey(e.link, e.kind, e.course_name, e.title)),
     takenSlugs: new Set(stored.map((e) => e.slug)),
+    removedUrls,
+    homePageOnly,
   });
-  const statements = accessInsertSql(plan.rows);
+  // removals.yaml is honored on every run: rows already stored on a removed link come down too.
+  const statements = [...accessRemovalSql(removedUrls, now), ...accessSql(plan)];
+  const all = [...plan.rows, ...plan.upserts];
   let where: string;
   if (toFile) {
     where = fromInvocationDir(values["sql-out"]!);
@@ -421,9 +511,11 @@ export async function runLoadAccess(argv: readonly string[]): Promise<number> {
     executeLocalD1(sqlFiles, target);
     where = "the local D1 (gof)";
   }
-  const matched = plan.rows.filter((r) => r.course_id !== null).length;
+  const matched = all.filter((r) => r.course_id !== null).length;
+  const held = (reason: string) => all.filter((r) => r.hold_reason === reason).length;
   console.log(
-    `access-load: ${plan.rows.length} items (${matched} matched to a course, ${plan.rows.length - matched} kept unmatched), ` +
+    `access-load: ${all.length} items (${matched} matched to a course, ${all.length - matched} kept unmatched, ` +
+      `${held("needs_review")} held for a link the site's terms don't allow, ${held("removed")} held as removed), ` +
       `${plan.skipped.length} skipped, ${dropped} invalid entries dropped -> ${where}`,
   );
   return 0;

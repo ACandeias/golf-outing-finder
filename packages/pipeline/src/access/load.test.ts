@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { accessItemSchema, buildAccessPlan, indexCourses, itemKey, itemsFromFile, type AccessItem } from "./load.ts";
+import { migratedSqlite } from "@gof/db/testing";
+import { accessItemSchema, accessRemovalSql, accessSql, buildAccessPlan, indexCourses, itemKey, itemsFromFile, type AccessItem, type AccessPlanInput } from "./load.ts";
 
 const NOW = Date.parse("2026-11-21T12:00:00Z");
 const TOP = [
@@ -40,8 +41,8 @@ function item(over: Partial<AccessItem> = {}): AccessItem {
   });
 }
 
-const plan = (items: AccessItem[], existingKeys: string[] = []) =>
-  buildAccessPlan({ items, topCourses: TOP, courseIdByOsmRef: BY_REF, courseIdByName: BY_NAME, now: NOW, existingKeys, takenSlugs: new Set() });
+const plan = (items: AccessItem[], existingKeys: string[] = [], over: Partial<AccessPlanInput> = {}) =>
+  buildAccessPlan({ items, topCourses: TOP, courseIdByOsmRef: BY_REF, courseIdByName: BY_NAME, now: NOW, existingKeys, takenSlugs: new Set(), ...over });
 
 describe("buildAccessPlan", () => {
   it("ties an item to its course through the top-course list and publishes it", () => {
@@ -85,18 +86,60 @@ describe("buildAccessPlan", () => {
   });
 
   it("a hand-checked item keeps the day it was checked as its first-seen and last-verified day", () => {
-    const { rows } = plan([item({ checked_on: "2026-11-19" }), item({ title: "Another lot" })]);
-    expect(rows[0]).toMatchObject({
+    const { rows, upserts } = plan([item({ checked_on: "2026-11-19" }), item({ title: "Another lot" })]);
+    expect(upserts).toHaveLength(1);
+    expect(upserts[0]).toMatchObject({
       first_seen: "2026-11-19T12:00:00.000Z",
       last_verified: "2026-11-19T12:00:00.000Z",
       created_at: "2026-11-21T12:00:00.000Z",
       updated_at: "2026-11-21T12:00:00.000Z",
     });
-    // Without it, the load time stands.
-    expect(rows[1]).toMatchObject({ first_seen: "2026-11-21T12:00:00.000Z", last_verified: "2026-11-21T12:00:00.000Z" });
+    // Without it, the load time stands and the row is insert-only.
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ title: "Another lot", first_seen: "2026-11-21T12:00:00.000Z", last_verified: "2026-11-21T12:00:00.000Z" });
     expect(accessItemSchema.safeParse({ ...item(), checked_on: "Nov 19" }).success).toBe(false);
     // A checked day after the load is a typo, not a fact.
-    expect(plan([item({ checked_on: "2026-11-22" })]).rows[0]).toMatchObject({ last_verified: "2026-11-21T12:00:00.000Z" });
+    expect(plan([item({ checked_on: "2026-11-22" })]).upserts[0]).toMatchObject({ last_verified: "2026-11-21T12:00:00.000Z" });
+  });
+
+  it("a hand-checked item already stored is planned again, so an edit can reach the database; a researched one is skipped", () => {
+    const stored = [itemKey(GROVE, "auction", "The Grove XXIII", "Foursome with lunch, drinks and caddies")];
+    const checked = plan([item({ checked_on: "2026-11-20", price_min_usd: 15000 })], stored);
+    expect(checked.upserts).toHaveLength(1);
+    expect(checked.upserts[0]).toMatchObject({ price_min_cents: 1_500_000 });
+    expect(checked.skipped).toEqual([]);
+    const researched = plan([item({ price_min_usd: 15000 })], stored);
+    expect(researched.rows).toEqual([]);
+    expect(researched.upserts).toEqual([]);
+    expect(researched.skipped).toEqual([{ link: GROVE, reason: "already stored" }]);
+  });
+
+  it("closes an open item only once its last day has ended everywhere in the US", () => {
+    const lot = item({ status: "open", date_end: "2026-11-24" });
+    // 00:30 UTC on Nov 25 is 7:30 PM Eastern and 2:30 PM in Honolulu on Nov 24: still the closing day.
+    expect(plan([lot], [], { now: Date.parse("2026-11-25T00:30:00Z") }).rows[0]).toMatchObject({ status: "open" });
+    // 10:30 UTC on Nov 25 is past midnight in Honolulu.
+    expect(plan([lot], [], { now: Date.parse("2026-11-25T10:30:00Z") }).rows[0]).toMatchObject({ status: "closed" });
+  });
+
+  it("holds an item whose link was removed at an organizer's request", () => {
+    const { rows } = plan([item(), item({ title: "Second lot", link: "https://example.org/kept" })], [], { removedUrls: new Set([GROVE]) });
+    expect(rows[0]).toMatchObject({ published: 0, hold_reason: "removed", course_id: "crs_grove" });
+    expect(rows[1]).toMatchObject({ published: 1, hold_reason: null });
+  });
+
+  it("holds a deep link to a site whose terms allow links to its home page only", () => {
+    const homeOnly = (link: string) => (new URL(link).hostname.endsWith("pledgeit.org") && new URL(link).pathname !== "/" ? "PledgeIt" : null);
+    const { rows } = plan(
+      [
+        item({ link: "https://pledgeit.org/some-auction/lot/12", platform: "pledgeit.org" }),
+        item({ title: "Home page link", link: "https://pledgeit.org/", platform: "pledgeit.org" }),
+      ],
+      [],
+      { homePageOnly: homeOnly },
+    );
+    expect(rows[0]).toMatchObject({ published: 0, hold_reason: "needs_review" });
+    expect(rows[1]).toMatchObject({ published: 1, hold_reason: null });
   });
 
   it("skips repeats within a load and items already stored; catalog lots sharing a link stay apart", () => {
@@ -174,5 +217,84 @@ describe("indexCourses", () => {
       ["ny/maidstone club", "c1"],
       ["ca/riverside golf course", "c4"],
     ]);
+  });
+});
+
+describe("access SQL against the real schema", () => {
+  const COURSE = `INSERT INTO courses (id, slug, name, city, state, lat, lng, time_zone, course_type, notable, outing_count, created_at, updated_at, aliases)
+    VALUES ('crs_grove', 'fl/the-grove-xxiii', 'The Grove XXIII', 'Hobe Sound', 'FL', 27.0, -80.1, 'America/New_York', 'private', 1, 0, 'x', 'x', '[]'),
+      ('crs_maid', 'ny/maidstone-club', 'Maidstone Club', 'East Hampton', 'NY', 40.9, -72.2, 'America/New_York', 'private', 1, 0, 'x', 'x', '[]');`;
+  type Stored = { id: string; slug: string; status: string; date_end: string | null; price_kind: string | null; price_min_cents: number | null; published: number; hold_reason: string | null; first_seen: string; last_verified: string };
+  const read = (db: ReturnType<typeof migratedSqlite>) =>
+    db.prepare("SELECT id, slug, status, date_end, price_kind, price_min_cents, published, hold_reason, first_seen, last_verified FROM access_opportunities ORDER BY title").all() as Stored[];
+  const keysOf = (db: ReturnType<typeof migratedSqlite>) =>
+    (db.prepare("SELECT link, kind, course_name, title, slug FROM access_opportunities").all() as { link: string; kind: string; course_name: string; title: string; slug: string }[]);
+  const load = (db: ReturnType<typeof migratedSqlite>, items: AccessItem[], now: number, over: Partial<AccessPlanInput> = {}) => {
+    const stored = keysOf(db);
+    const p = buildAccessPlan({
+      items,
+      topCourses: TOP,
+      courseIdByOsmRef: BY_REF,
+      courseIdByName: BY_NAME,
+      now,
+      existingKeys: stored.map((e) => itemKey(e.link, e.kind, e.course_name, e.title)),
+      takenSlugs: new Set(stored.map((e) => e.slug)),
+      ...over,
+    });
+    db.exec(accessSql(p).join("\n"));
+    return p;
+  };
+  const open = (over: Partial<AccessItem> = {}) =>
+    item({ status: "open", date_end: "2026-11-24", price_kind: "current_bid", price_min_usd: 2200, checked_on: "2026-11-23", title: "Round for 3 with a member, O'Brien's charity", ...over });
+
+  it("an edit to a hand-checked entry reaches the stored row, which keeps its id, slug and first-seen day", () => {
+    const db = migratedSqlite();
+    db.exec(COURSE);
+    load(db, [open()], Date.parse("2026-11-23T20:00:00Z"));
+    const before = read(db);
+    expect(before).toHaveLength(1);
+    expect(before[0]).toMatchObject({ status: "open", price_kind: "current_bid", price_min_cents: 220_000, published: 1, last_verified: "2026-11-23T12:00:00.000Z" });
+
+    // The lot closed; the owner types in what it sold for and the day they checked.
+    load(db, [open({ status: "closed", price_kind: "sold", price_min_usd: 3100, checked_on: "2026-11-25" })], Date.parse("2026-11-25T20:00:00Z"));
+    const after = read(db);
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({
+      id: before[0]!.id,
+      slug: before[0]!.slug,
+      first_seen: before[0]!.first_seen,
+      status: "closed",
+      price_kind: "sold",
+      price_min_cents: 310_000,
+      last_verified: "2026-11-25T12:00:00.000Z",
+    });
+  });
+
+  it("an older copy of the catalog never overwrites a newer check, and researched rows are never rewritten", () => {
+    const db = migratedSqlite();
+    db.exec(COURSE);
+    load(db, [open({ checked_on: "2026-11-25", price_min_usd: 3100 }), item({ title: "Researched lot" })], Date.parse("2026-11-25T20:00:00Z"));
+    load(db, [open({ checked_on: "2026-11-23", price_min_usd: 2200 }), item({ title: "Researched lot", price_min_usd: 1 })], Date.parse("2026-11-26T20:00:00Z"));
+    const rows = read(db);
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => r.price_min_cents).sort((a, b) => (a ?? 0) - (b ?? 0))).toEqual([310_000, 1_400_000]);
+  });
+
+  it("a removal request unpublishes stored rows on that link, and a reload doesn't bring them back", () => {
+    const db = migratedSqlite();
+    db.exec(COURSE);
+    const now = Date.parse("2026-11-23T20:00:00Z");
+    load(db, [open(), open({ title: "Another club on the same page", course_name: "Maidstone Club", course_state: "NY" }), item({ title: "Kept", link: "https://example.org/kept" })], now);
+    expect(read(db).map((r) => r.published)).toEqual([1, 1, 1]);
+    const removed = new Set([GROVE]);
+    db.exec(accessRemovalSql(removed, now).join("\n"));
+    load(db, [open({ checked_on: "2026-11-24" })], Date.parse("2026-11-24T20:00:00Z"), { removedUrls: removed });
+    const rows = db.prepare("SELECT title, published, hold_reason FROM access_opportunities ORDER BY title").all();
+    expect(rows).toEqual([
+      { title: "Another club on the same page", published: 0, hold_reason: "removed" },
+      { title: "Kept", published: 1, hold_reason: null },
+      { title: "Round for 3 with a member, O'Brien's charity", published: 0, hold_reason: "removed" },
+    ]);
+    expect(accessRemovalSql(new Set(), now)).toEqual([]);
   });
 });

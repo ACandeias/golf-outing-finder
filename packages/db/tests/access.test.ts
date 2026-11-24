@@ -53,9 +53,31 @@ describe("access opportunities", () => {
     expect(ids(orderAccess([offer, lot, multiDay], TODAY))).toEqual(["event", "lot", "offer"]);
   });
 
+  it("open and upcoming interleave by act-by day; undated live items come after dated ones", () => {
+    const o = (id: string, kind: string, status: string, dateStart: string | null, dateEnd: string | null) => ({ id, kind, status, dateStart, dateEnd });
+    const items = [
+      o("offer-march", "stay_and_play", "open", "2026-04-01", "2027-03-31"),
+      o("tee-times", "public_tee_time", "open", null, null),
+      o("outing-soon", "outing", "upcoming", "2026-11-24", null),
+      o("lot-no-close", "auction", "open", "2026-11-01", null),
+      o("lot-dec", "auction", "open", null, "2026-12-05"),
+    ];
+    expect(ids(orderAccess(items, TODAY))).toEqual(["outing-soon", "lot-dec", "offer-march", "lot-no-close", "tee-times"]);
+  });
+
+  it("closed lots sort by whichever date they carry, most recent first", () => {
+    const c = (id: string, dateStart: string | null, dateEnd: string | null) => ({ id, kind: "auction", status: "closed", dateStart, dateEnd });
+    expect(ids(orderAccess([c("end-march", null, "2026-03-18"), c("start-only-june", "2026-06-01", null), c("undated", null, null)], TODAY))).toEqual([
+      "start-only-june",
+      "end-march",
+      "undated",
+    ]);
+  });
+
   it("act-by date: closing day for an auction, first day for an event, last day for an offer", () => {
     expect(actByDate({ kind: "auction", dateStart: "2026-11-01", dateEnd: "2026-11-24" })).toBe("2026-11-24");
-    expect(actByDate({ kind: "auction", dateStart: "2026-11-01", dateEnd: null })).toBe("2026-11-01");
+    // A lot's start date is when bidding opens (or the day of the round), never a closing day.
+    expect(actByDate({ kind: "auction", dateStart: "2026-11-01", dateEnd: null })).toBeNull();
     expect(actByDate({ kind: "outing", dateStart: "2026-12-31", dateEnd: "2027-01-03" })).toBe("2026-12-31");
     expect(actByDate({ kind: "pro_am", dateStart: null, dateEnd: "2027-05-26" })).toBe("2027-05-26");
     expect(actByDate({ kind: "stay_and_play", dateStart: "2026-04-01", dateEnd: "2027-03-31" })).toBe("2027-03-31");
@@ -81,6 +103,17 @@ describe("access opportunities", () => {
     // Stored statuses that aren't open or upcoming are never changed, and no date means no change.
     expect(liveStatus({ ...lot, status: "recurring" as const }, "2027-06-01")).toBe("recurring");
     expect(liveStatus({ kind: "auction", status: "open" as const, dateStart: "2026-11-01", dateEnd: null }, "2027-06-01")).toBe("open");
+  });
+
+  it("with a local day, each item's status is as of its own course's day", async () => {
+    // The list day is still Dec 5, but it is already Dec 6 in New York, where both courses are.
+    const eastAhead = (tz: string) => (tz === "America/New_York" ? "2026-12-06" : "2026-12-05");
+    const items = await accessForCourse(db, "crs_top", "2026-12-05", eastAhead);
+    expect(items.find((i) => i.id === "a_open")).toMatchObject({ status: "closed", localToday: "2026-12-06", course: { timeZone: "America/New_York" } });
+    // Without one, the list day stands and the item carries it.
+    expect((await accessForCourse(db, "crs_top", "2026-12-05"))[0]).toMatchObject({ id: "a_open", status: "open", localToday: "2026-12-05" });
+    expect((await accessPage(db, "2026-12-05", eastAhead)).find((i) => i.id === "p_plain")?.status).toBe("closed");
+    expect((await featuredAccess(db, "2026-12-05", 9, undefined, eastAhead)).find((i) => i.id === "a_open")?.status).toBe("closed");
   });
 
   it("a stored open lot reads as closed once its closing day has passed", async () => {

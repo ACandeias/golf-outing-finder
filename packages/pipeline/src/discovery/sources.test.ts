@@ -55,8 +55,9 @@ describe("platforms.yaml", () => {
     const listed = [...cfg.platforms, ...cfg.directories];
     expect(listed.filter((e) => e.allowed).map((e) => e.name)).toEqual(["Play Private Golf"]);
     // Terms were read on 2026-10-14, and again on 2026-11-21 for the auction and outing platforms added then.
-    // Member For a Day was re-read on 2026-11-23 (its terms allow links to auction pages).
-    expect(listed.every((e) => ["2026-10-14", "2026-11-21", "2026-11-23"].includes(e.terms_checked ?? "") && e.terms_url !== undefined)).toBe(true);
+    // Member For a Day was re-read on 2026-11-23 (its terms allow links to auction pages); the access
+    // marketplaces and association sites were read on 2026-11-23 and 2026-11-24.
+    expect(listed.every((e) => ["2026-10-14", "2026-11-21", "2026-11-23", "2026-11-24"].includes(e.terms_checked ?? "") && e.terms_url !== undefined)).toBe(true);
     expect(cfg.directories.find((d) => d.name === "Play Private Golf")).toMatchObject({
       allowed: true,
       adapter: "sitemap",
@@ -94,8 +95,25 @@ describe("platforms.yaml", () => {
       "BiddingForGood",
       "Greater Giving",
       "GalaBid",
+      "AJGA",
+      "Mastercard Priceless",
+      "Tee Trade",
+      "Thousand Greens",
+      "Chicago District Golf Association",
+      "Minnesota Golf Association",
+      "coloradogolf.org",
     ]);
     expect(cfg.platforms.every((p) => !p.allowed)).toBe(true);
+    // Sites whose terms allow links to the home page only.
+    expect(cfg.platforms.filter((p) => p.deep_links === false).map((p) => p.name)).toEqual([
+      "BiddingOwl",
+      "Givergy (momoGood)",
+      "PledgeIt",
+      "AJGA",
+      "Mastercard Priceless",
+    ]);
+    // Colorado's terms forbid automated access (read 2026-11-24), so that association is off.
+    expect(cfg.associations.filter((a) => a.allowed).map((a) => a.name)).toEqual(["Arizona Golf Association", "Southern California Golf Association"]);
     expect(cfg.directories.map((d) => d.name)).toEqual([
       "Play Private Golf",
       "Scramble Hunter",

@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { join } from "node:path";
+import { PLATFORMS_FILE, parsePlatformsYaml } from "../discovery/sources.ts";
+import { platformRulesFrom } from "../discovery/platform-policy.ts";
 import { PATHS } from "../lib/paths.ts";
-import { curatedLinkProblems } from "./links.ts";
+import { curatedLinkProblems, homePageOnlyCheck } from "./links.ts";
 import { accessItemSchema, itemsFromFile, type AccessItem } from "./load.ts";
 
 function item(over: Partial<AccessItem> = {}): AccessItem {
@@ -53,18 +56,53 @@ describe("curatedLinkProblems", () => {
   });
 
   it("refuses a deep link to a site whose terms allow links to its home page only", () => {
-    expect(curatedLinkProblems([item({ link: "https://www.ajga.org/foundation/auction", platform: "ajga.org" })])).toEqual([
-      "Fox Chapel Golf Club, Round for 3 with a member: ajga.org allows links to its home page only",
+    const homeOnly = (link: string) => (new URL(link).hostname.endsWith("ajga.org") && new URL(link).pathname !== "/" ? "AJGA" : null);
+    expect(curatedLinkProblems([item({ link: "https://www.ajga.org/foundation/auction", platform: "ajga.org" })], homeOnly)).toEqual([
+      "Fox Chapel Golf Club, Round for 3 with a member: AJGA allows links to its home page only",
     ]);
-    expect(curatedLinkProblems([item({ link: "https://www.ajga.org/", platform: "ajga.org" })])).toEqual([]);
+    expect(curatedLinkProblems([item({ link: "https://www.ajga.org/", platform: "ajga.org" })], homeOnly)).toEqual([]);
   });
 
-  it("refuses the same item twice", () => {
+  it("refuses the same item twice, comparing links the way the loader stores them", () => {
     expect(curatedLinkProblems([item(), item({ price_min_usd: 2500 })])).toEqual([
+      "Fox Chapel Golf Club, Round for 3 with a member: listed twice",
+    ]);
+    // A fragment or a tracking parameter doesn't make it a different link.
+    expect(curatedLinkProblems([item(), item({ link: "https://memberforaday.com/npo/first-tee-greater-detroit?utm_source=mail#fox-chapel" })])).toEqual([
       "Fox Chapel Golf Club, Round for 3 with a member: listed twice",
     ]);
     // The same charity page with a different club is a different lot.
     expect(curatedLinkProblems([item(), item({ course_name: "Kingsley Club", course_state: "MI" })])).toEqual([]);
+  });
+
+  it("wants the platform to be the site the link opens", () => {
+    expect(curatedLinkProblems([item({ link: "https://www.32auctions.com/organizations/1/auctions/2" })])).toEqual([
+      "Fox Chapel Golf Club, Round for 3 with a member: the link opens 32auctions.com, not memberforaday.com",
+    ]);
+    // A subdomain of the platform is the platform.
+    expect(curatedLinkProblems([item({ link: "https://ncga.winningbidder.com/event/4886", platform: "winningbidder.com" })])).toEqual([]);
+  });
+});
+
+describe("homePageOnlyCheck with the committed platforms.yaml", () => {
+  const rules = platformRulesFrom(parsePlatformsYaml(readFileSync(join(PATHS.overrides, PLATFORMS_FILE), "utf8")));
+  const check = homePageOnlyCheck(rules);
+
+  it("names the platform for a deep link where the terms ban them", () => {
+    expect(check("https://pledgeit.org/some-auction/lots/12")).toBe("PledgeIt");
+    expect(check("https://www.biddingowl.com/Auction/item-detail.cfm?id=1")).toBe("BiddingOwl");
+    expect(check("https://app.givergy.us/auction/1")).toBe("Givergy (momoGood)");
+    expect(check("https://momogood.com/a/b")).toBe("Givergy (momoGood)");
+    expect(check("https://www.ajga.org/foundation/auction")).toBe("AJGA");
+    expect(check("https://www.priceless.com/golf/product/123")).toBe("Mastercard Priceless");
+  });
+
+  it("lets the home page through, and every page of a site with no such ban", () => {
+    expect(check("https://pledgeit.org/")).toBeNull();
+    expect(check("https://pledgeit.org")).toBeNull();
+    expect(check("https://memberforaday.com/npo/first-tee-greater-detroit")).toBeNull();
+    expect(check("https://www.32auctions.com/organizations/1/auctions/2")).toBeNull();
+    expect(check("not a url")).toBeNull();
   });
 });
 
@@ -78,8 +116,9 @@ describe("data/access-links.json", () => {
     expect(items.length).toBeGreaterThan(0);
   });
 
-  it("passes the curated-link rules", () => {
-    expect(curatedLinkProblems(items)).toEqual([]);
+  it("passes the curated-link rules, with the link bans in platforms.yaml", () => {
+    const rules = platformRulesFrom(parsePlatformsYaml(readFileSync(join(PATHS.overrides, PLATFORMS_FILE), "utf8")));
+    expect(curatedLinkProblems(items, homePageOnlyCheck(rules))).toEqual([]);
   });
 
   it("uses the site's own words: no title longer than 120 characters", () => {

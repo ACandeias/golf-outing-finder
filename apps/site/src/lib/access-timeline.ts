@@ -2,7 +2,9 @@
  * The access timeline: every dated way onto a course, placed by the day to act
  * by (an auction's closing day, an event's first day, an offer's last day), and
  * every recurring one placed where it is expected to come back. Pure: the
- * caller passes today's date and items whose status is already live.
+ * caller passes today's date and items whose status is already live. Day
+ * counts run from each item's own `localToday` when it has one, so a lot at a
+ * New York club says "closes today" on its closing day in New York.
  */
 import { actByDate, lastDay } from "@gof/db/access";
 import { monthYear, shortDate } from "./format.ts";
@@ -14,6 +16,8 @@ export interface TimelineInput {
   dateStart: string | null;
   dateEnd: string | null;
   recurring: boolean;
+  /** Today at the item's course (set by the queries). Countdowns use it; without it the caller's day is used. */
+  localToday?: string;
 }
 
 export interface TimelineEntry<T> {
@@ -38,7 +42,7 @@ export interface AccessTimeline<T> {
   upcoming: TimelineGroup<T>[];
   /** Recurring items by the month they are expected back. */
   expected: TimelineGroup<T>[];
-  /** Open items with no date: tee times, standing packages. */
+  /** Open items with no act-by day: tee times, standing packages, a lot with no closing date listed. */
   anytime: T[];
 }
 
@@ -86,8 +90,8 @@ const isLive = (status: string): boolean => status === "open" || status === "upc
 /**
  * The countdown for an open or upcoming item: "Bidding closes today", "Starts
  * tomorrow", "Ends in 12 days", "Under way until Jan 3, 2027". Null when the
- * item isn't live, has no date, is already over, or is more than
- * COUNTDOWN_DAYS away.
+ * item isn't live, has no act-by day, is already over, or is more than
+ * COUNTDOWN_DAYS away. `today` is the day at the item's course.
  */
 export function deadlineLabel(item: TimelineInput, today: string): string | null {
   if (!isLive(item.status)) return null;
@@ -125,35 +129,41 @@ export function accessTimeline<T extends TimelineInput>(items: readonly T[], tod
   const anytime: T[] = [];
 
   for (const item of items) {
+    const now = item.localToday ?? today;
     const by = actByDate(item);
-    const live = isLive(item.status);
-    const returning = item.status === "recurring" || (item.status === "closed" && item.recurring);
+    const end = lastDay(item);
+    const kin = family(item.kind);
+    // A recurring listing whose dates are still ahead, or under way, is on the calendar like any live one.
+    const current = isLive(item.status) || (item.status === "recurring" && end !== null && end >= now);
 
-    if (live || (item.status === "recurring" && by !== null && by >= today)) {
+    if (current) {
       if (by === null) {
         if (item.status === "open") anytime.push(item);
         continue;
       }
-      if (by >= today) {
-        const days = daysBetween(today, by);
-        const verb = VERBS[family(item.kind)];
-        const label = deadlineLabel({ ...item, status: "open" }, today) ?? `${verb} ${shortDate(by)}`;
-        upcoming.push({ item, date: by, daysLeft: days, label });
+      if (by >= now) {
+        const label = deadlineLabel({ ...item, status: "open" }, now) ?? `${VERBS[kin]} ${shortDate(by)}`;
+        upcoming.push({ item, date: by, daysLeft: daysBetween(now, by), label });
         continue;
       }
       // An event that has started but not finished sits on today.
-      const under = deadlineLabel(item, today);
-      if (under !== null) upcoming.push({ item, date: today, daysLeft: 0, label: under });
+      const under = deadlineLabel({ ...item, status: "open" }, now);
+      if (under !== null) upcoming.push({ item, date: now, daysLeft: 0, label: under });
       continue;
     }
 
-    if (returning) {
-      const base = by ?? lastDay(item);
-      if (base === null) continue;
-      const next = nextOccurrence(base, today);
-      const said = family(item.kind) === "auction" ? "Last closed" : family(item.kind) === "offer" ? "Last offered until" : "Last held";
-      expected.push({ item, date: next, daysLeft: daysBetween(today, next), label: `${said} ${shortDate(base)}` });
-    }
+    const returning = item.status === "recurring" || (item.status === "closed" && item.recurring);
+    if (!returning) continue;
+    // A standing offer comes back when its season opens; anything else on the day it ran.
+    const base = kin === "offer" ? (item.dateStart ?? item.dateEnd) : (by ?? item.dateEnd ?? item.dateStart);
+    const last = end ?? item.dateEnd ?? item.dateStart;
+    // Only something that has already happened can be expected back.
+    if (base === null || last === null || last >= now) continue;
+    const next = nextOccurrence(base, now);
+    const said =
+      kin === "offer" ? (item.dateEnd ? "Last offered until" : "Last offered from") : kin === "auction" ? (item.dateEnd ? "Last closed" : "Last listed") : "Last held";
+    const shown = kin === "offer" ? (item.dateEnd ?? base) : base;
+    expected.push({ item, date: next, daysLeft: daysBetween(now, next), label: `${said} ${shortDate(shown)}` });
   }
 
   return {
@@ -169,12 +179,12 @@ const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "Ju
 /**
  * The calendar months in which a course's dated items have fallen, in calendar
  * order, with a count: when rounds here tend to come up. Every dated item
- * counts once, by its act-by day.
+ * counts once, by its act-by day (or the only date it carries).
  */
 export function monthsSeen(items: readonly TimelineInput[]): { month: number; name: string; count: number }[] {
   const counts = new Map<number, number>();
   for (const item of items) {
-    const by = actByDate(item) ?? lastDay(item);
+    const by = actByDate(item) ?? item.dateEnd ?? item.dateStart;
     if (by === null) continue;
     const m = Number(by.slice(5, 7));
     counts.set(m, (counts.get(m) ?? 0) + 1);
