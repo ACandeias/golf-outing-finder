@@ -11,7 +11,7 @@ import Crest from "../components/Crest.astro";
 import Photo from "../components/Photo.astro";
 import { HERO_PHOTO, HERO_TALL_WIDTHS, HERO_WIDE_WIDTHS, photoSrcset } from "../lib/photos.ts";
 import { getDb } from "../lib/db.ts";
-import { listToday, siteYear } from "../lib/clock.ts";
+import { courseDay, listToday, requestNow, siteYear, ttlWithinDay } from "../lib/clock.ts";
 import { TTL } from "../lib/cache.ts";
 import { setCache } from "../lib/page.ts";
 import { absoluteUrl, cityPath, outingPath, statePath } from "../lib/urls.ts";
@@ -22,7 +22,9 @@ import { siteEnv } from "../lib/env.ts";
 const { GOOGLE_SITE_VERIFICATION: googleVerification, BING_SITE_VERIFICATION: bingVerification } = siteEnv();
 
 const db = getDb();
-const today = listToday();
+// One clock reading for the list day, each course's day and the cache lifetime.
+const now = requestNow();
+const today = listToday(now);
 
 // City or ZIP search: resolve and redirect to the city page.
 const qParam = z.string().trim().min(2).max(100).safeParse(Astro.url.searchParams.get("q") ?? "");
@@ -56,11 +58,12 @@ const soonest = await listUpcomingOutings(db, { today, limit: 12 });
 const counts = await countUpcomingByState(db, today);
 // "Ways onto top courses": auction lots, member-for-a-day, stay-and-play and the
 // like at courses on the top-course list, open and recurring first.
-const topAccess = await featuredAccess(db, today, 6, ["public", "semi_private", "private", "resort", "unknown"]);
+const topAccess = await featuredAccess(db, today, 6, ["public", "semi_private", "private", "resort", "unknown"], courseDay(now));
 const countBy = new Map(counts.map((c) => [c.state, c.count]));
 const states = Object.entries(US_STATES).sort((a, b) => a[1].localeCompare(b[1]));
 
-setCache(Astro, TTL.home);
+// The access rows count down by day, so the cached page ends with the day at those courses.
+setCache(Astro, ttlWithinDay(TTL.home, topAccess.map((i) => i.course.timeZone), now));
 ---
 
 <Base
@@ -150,9 +153,11 @@ setCache(Astro, TTL.home);
       topAccess.length > 0 && (
         <section aria-labelledby="top-access">
           <h2 id="top-access" class="section-title">Ways onto top courses</h2>
-          <p class="small muted top-access-note">Charity auction lots, member-for-a-day programs and packages at top clubs and resorts.</p>
-          <AccessList items={topAccess} showCourse />
-          <p class="more-link"><a href="/top-courses">See every way onto a top course</a></p>
+          <p class="small muted top-access-note">
+            Charity auction lots, outings and packages at top clubs and resorts, the soonest to close or start first.
+          </p>
+          <AccessList items={topAccess} showCourse countdown />
+          <p class="more-link"><a href="/top-courses#timeline">See the full timeline and every way onto a top course</a></p>
         </section>
       )
     }
@@ -163,7 +168,7 @@ setCache(Astro, TTL.home);
         Share your location to see outings within 100 miles. We don't store it.
       </p>
       <p class="near-action"><button class="button secondary" type="button" data-near-button>Use my location</button></p>
-      <ul class="tee-sheet" data-near-list data-year={String(siteYear())}></ul>
+      <ul class="tee-sheet" data-near-list data-year={String(siteYear(now))}></ul>
     </section>
 
     <section aria-labelledby="states">

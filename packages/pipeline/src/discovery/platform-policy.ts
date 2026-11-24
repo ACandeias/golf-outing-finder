@@ -37,6 +37,8 @@ export const platformRuleSchema = z.object({
   directory: z.boolean().optional(),
   /** Full-URL regex for event pages; on a directory, everything else is an index page. */
   event_url_pattern: z.string().nullable().optional(),
+  /** `false`: the site's terms allow links to its home page only. */
+  deep_links: z.boolean().optional(),
 });
 export type PlatformRule = z.infer<typeof platformRuleSchema>;
 
@@ -47,6 +49,7 @@ interface EntryLike {
   domains?: readonly string[] | undefined;
   listing_url_pattern?: string | undefined;
   event_url_pattern?: string | undefined;
+  deep_links?: boolean | undefined;
 }
 
 export function platformRulesFrom(config: {
@@ -69,6 +72,7 @@ export function platformRulesFrom(config: {
       listing_url_pattern: e.listing_url_pattern ?? null,
       directory,
       event_url_pattern: e.event_url_pattern ?? null,
+      ...(e.deep_links === undefined ? {} : { deep_links: e.deep_links }),
     };
   });
 }
@@ -109,6 +113,24 @@ export function platformVerdict(url: string, rules: readonly PlatformRule[]): Pl
   // Same test the listing adapter applies (sources.ts): the full URL, case-insensitive.
   if (directory && rule.event_url_pattern && !matches(rule.event_url_pattern, url, "i")) listing = true;
   return { platform: rule.name, allowed: rule.allowed, listing, directory };
+}
+
+/**
+ * The platform whose terms allow links to its home page only, when `url` is any
+ * other page there; else null. Says nothing about fetching.
+ */
+export function homePageOnlyPlatform(url: string, rules: readonly PlatformRule[]): string | null {
+  const host = hostOf(url);
+  if (!host) return null;
+  const reg = registrableDomain(host);
+  const rule = rules.find((r) => r.deep_links === false && r.domains.some((d) => domainMatches(reg, d)));
+  if (!rule) return null;
+  const u = new URL(url);
+  // The home page is the root of the site's own domain. The root of an event or
+  // charity subdomain (charity.pledgeit.org, gala2026.givergy.us) is that event's page.
+  const bare = host.toLowerCase().replace(/^www\./, "");
+  const home = bare === reg && (u.pathname === "/" || u.pathname === "") && u.search === "";
+  return home ? null : rule.name;
 }
 
 /**

@@ -204,6 +204,23 @@ describe("the committed platforms.yaml", () => {
       BiddingForGood: "https://www.biddingforgood.com/auction/item/1",
       "Greater Giving": "https://ggo.bid/gala",
       GalaBid: "https://app.galabid.com/gala",
+      AJGA: "https://www.ajga.org/foundation/auction",
+      "Mastercard Priceless": "https://www.priceless.com/golf",
+      "Tee Trade": "https://www.goteetrade.com/listings",
+      "Thousand Greens": "https://thousandgreens.com/clubs",
+      "Chicago District Golf Association": "https://www.cdga.org/golf-competitions/memberdays.asp?id=161",
+      "Minnesota Golf Association": "https://mngolf.org/MemberDays",
+      "coloradogolf.org": "https://www.coloradogolf.org/charity-events",
+      "TPC Network": "https://tpc.com/sawgrass/faq/",
+      Invited: "https://www.invitedclubs.com/clubs/firestone-country-club/stay-play/",
+      Troon: "https://www.troon.com/member-programs",
+      BlueGolf: "https://wsga.bluegolf.com/bluegolf/wsga26/schedule/index.htm",
+      "New York State Golf Association": "https://nysga.org/amateur-series-schedule",
+      "Maryland State Golf Association": "https://msga.org/play-golf/one-day-events/",
+      "Wisconsin State Golf Association": "https://wsga.org/tournaments/",
+      "The Golfer's Journal": "https://www.golfersjournal.com/tgj-events/",
+      "Fried Egg Golf": "https://events.thefriedegg.com/",
+      "Golf Moose": "https://golfmoose.com/event-tickets/",
     };
     const off = [...config.platforms, ...config.directories].filter((e) => !e.allowed).map((e) => e.name);
     // A new `allowed: false` entry needs a sample here, so it can't go unchecked.

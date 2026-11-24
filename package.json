@@ -19,6 +19,7 @@
     "db:migrate:local": "pnpm --filter @gof/site db:migrate:local",
     "db:migrate:remote": "pnpm --filter @gof/site db:migrate:remote",
     "seed": "pnpm --filter @gof/pipeline start:seed",
+    "access:load": "pnpm --filter @gof/pipeline start:access-load",
     "seed:course-types": "pnpm --filter @gof/pipeline start:seed-course-types",
     "courses:import": "pnpm --filter @gof/pipeline start:courses-import",
     "places:build": "pnpm --filter @gof/pipeline start:places-build",

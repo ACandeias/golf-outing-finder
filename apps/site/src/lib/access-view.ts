@@ -3,12 +3,13 @@
  * stay-and-play, ...). Plain text only: every value renders through Astro's
  * escaping, never as HTML.
  */
+import { lastDay } from "@gof/db/access";
 import type { AccessKind } from "@gof/db/schema";
 import { formatUsd } from "@gof/shared/money";
 import { shortDate, verifiedDate } from "./format.ts";
 
 export const ACCESS_KIND_LABELS: Readonly<Record<AccessKind, string>> = {
-  outing: "Charity outing",
+  outing: "Outing",
   auction: "Auction lot",
   member_for_a_day: "Member for a day",
   stay_and_play: "Stay and play",
@@ -29,6 +30,21 @@ const STATUS_LABELS: Readonly<Record<string, string>> = {
   unknown: "Status unknown",
 };
 
+/** The link as an absolute http(s) URL, or null: a stored link never renders with another scheme. */
+export function safeHttpUrl(u: string): string | null {
+  try {
+    const x = new URL(u);
+    return x.protocol === "https:" || x.protocol === "http:" ? x.href : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when a price is known (otherwise the price text is "See site"). */
+export function hasPrice(v: { priceMinCents: number | null; priceMaxCents: number | null }): boolean {
+  return v.priceMinCents !== null || v.priceMaxCents !== null;
+}
+
 export interface AccessViewInput {
   kind: AccessKind;
   status: string;
@@ -46,6 +62,8 @@ export interface AccessViewInput {
   platform: string;
   confirmed: "fetched" | "snippet";
   lastVerified: string;
+  /** Today at the item's course (set by the queries); decides whether a dated listing is over. */
+  localToday?: string;
 }
 
 function priceText(v: AccessViewInput): string {
@@ -53,15 +71,20 @@ function priceText(v: AccessViewInput): string {
   const max = v.priceMaxCents;
   if (min === null && max === null) return "See site";
   const amount = min !== null && max !== null && max > min ? `${formatUsd(min)} to ${formatUsd(max)}` : formatUsd(min ?? max);
+  // A bid seen while a lot was open is not what it went for: once the lot is over, say so.
+  // Over means closed, past its last day whatever the stored status, or a recurring listing with no dates ahead.
+  const last = lastDay(v);
+  const past = last !== null && v.localToday !== undefined && last < v.localToday;
+  const over = v.status === "closed" || past || (v.status === "recurring" && (last === null || v.localToday === undefined));
   switch (v.priceKind) {
     case "sold":
       return `Sold for ${amount}`;
     case "current_bid":
-      return `Current bid ${amount}`;
+      return over ? `Last bid seen ${amount}` : `Current bid ${amount}`;
     case "starting_bid":
-      return `Starting bid ${amount}`;
+      return over ? `Bidding started at ${amount}` : `Starting bid ${amount}`;
     case "buy_now":
-      return `Buy now ${amount}`;
+      return over ? `Buy now was ${amount}` : `Buy now ${amount}`;
     case "green_fee":
       return `Green fees ${min !== null && max === null ? "from " : ""}${amount}`;
     case "package":

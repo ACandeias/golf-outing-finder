@@ -3,7 +3,8 @@
  *
  *   1. pick a free port (or E2E_PORT)
  *   2. `pnpm run db:migrate:local --persist-to <tmp>` and
- *      `pnpm run seed --persist-to=<tmp>` with PIPELINE_NOW pinned, into a
+ *      `pnpm run seed --persist-to=<tmp>` with PIPELINE_NOW pinned, then
+ *      `pnpm run access:load` with tests/fixtures/access-e2e.json, into a
  *      throwaway D1 state directory, so a developer's own local D1 is untouched
  *   3. `pnpm build` with PUBLIC_SITE_URL set to the server's origin and
  *      NODE_ENV=development, which builds draft guides too (skip with
@@ -145,6 +146,11 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   // The loader honours PIPELINE_NOW outside production (SPEC.md 8.0); pin it to
   // the same day as SITE_NOW so publish decisions match the pages' clock.
   pnpm(["run", "seed", `--persist-to=${persist}`], {
+    PIPELINE_NOW: SITE_NOW,
+    NODE_ENV: "development",
+  });
+  // Access opportunities (auction lots, tee times, ...) dated around the pinned clock.
+  pnpm(["run", "access:load", `--persist-to=${persist}`, "tests/fixtures/access-e2e.json"], {
     PIPELINE_NOW: SITE_NOW,
     NODE_ENV: "development",
   });

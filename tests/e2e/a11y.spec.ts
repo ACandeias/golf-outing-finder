@@ -1,6 +1,6 @@
 /**
  * Accessibility smoke (SPEC.md 9.7: WCAG 2.1 AA) with axe-core on the home, a
- * city and an outing page: no serious or critical violations.
+ * city and an outing page, and the access timeline: no serious or critical violations.
  */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "./support/fixtures.ts";
@@ -9,7 +9,7 @@ import { SAMPLE_GUIDE_PATH } from "./support/guide-facts.ts";
 
 const PAGES = [
   // /golf-outings/ny has list ad units (the e2e server runs with ads on).
-  ...new Set(["/", "/golf-outings/ny", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`, "/guides", SAMPLE_GUIDE_PATH]),
+  ...new Set(["/", "/golf-outings/ny", "/golf-outings/ny/mamaroneck", `/outings/${NKF_WINGED_FOOT.slug}`, "/guides", SAMPLE_GUIDE_PATH, "/top-courses"]),
 ];
 
 for (const path of PAGES) {

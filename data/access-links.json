@@ -1,0 +1,4 @@
+{
+  "about": "Hand-curated links: each one added by a person, with the facts typed in from a page they opened themselves. Nothing in this file is fetched by the crawler. Rules are in docs/sources/link-catalog.md and enforced by packages/pipeline/src/access/links.ts. Empty until the owner decides who enters links (docs/sources/link-catalog.md, open decisions).",
+  "opportunities": []
+}
