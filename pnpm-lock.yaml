@@ -198,7 +198,7 @@ importers:
         version: 8.71.0(eslint@9.39.5(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.6.3)
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@22.20.4)(vite@8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1))
+        version: 4.1.11(@opentelemetry/api@1.10.0)(@types/node@22.20.4)(vite@8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1))
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -219,7 +219,7 @@ importers:
         version: 7.3.5(@types/node@22.20.4)(tsx@4.23.15)(yaml@2.9.1)
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@cloudflare/workers-types@4.20260702.1)
+        version: 0.45.4(@cloudflare/workers-types@4.20260702.1)(@opentelemetry/api@1.10.0)
       maplibre-gl:
         specifier: 6.11.2
         version: 6.11.2
@@ -247,7 +247,7 @@ importers:
         version: link:../shared
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@cloudflare/workers-types@4.20260702.1)
+        version: 0.45.4(@cloudflare/workers-types@4.20260702.1)(@opentelemetry/api@1.10.0)
     devDependencies:
       drizzle-kit:
         specifier: ^0.31.11
@@ -256,8 +256,8 @@ importers:
   packages/pipeline:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: 0.131.0
-        version: 0.131.0(zod@4.6.7)
+        specifier: 1.14.0
+        version: 1.14.0(zod@4.6.7)
       '@gof/db':
         specifier: workspace:*
         version: link:../db
@@ -301,8 +301,8 @@ importers:
 
 packages:
 
-  '@anthropic-ai/sdk@0.131.0':
-    resolution: {integrity: sha512-9+PepoU7qVMmM70jSahdnfcMHAvAnzhMOLv2W9WjRLO+OG/MAiBETkwKZqv7KIJ1Cj5h8eZ019bHzZaq+Mbepw==}
+  '@anthropic-ai/sdk@1.14.0':
+    resolution: {integrity: sha512-nADYXUd5fn9Zgw2nHi1iKyt/kb1UUt1cN3RbdxEI6XjTDTxbx4LLG4GnMrxWyS9GgXQllFOyAKSiFM3joDNK9A==}
     hasBin: true
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
@@ -1418,6 +1418,10 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.11.3
       '@emnapi/runtime': ^1.11.3
+
+  '@opentelemetry/api@1.10.0':
+    resolution: {integrity: sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ==}
+    engines: {node: '>=8.0.0'}
 
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
@@ -3429,8 +3433,9 @@ packages:
 
 snapshots:
 
-  '@anthropic-ai/sdk@0.131.0(zod@4.6.7)':
+  '@anthropic-ai/sdk@1.14.0(zod@4.6.7)':
     dependencies:
+      '@opentelemetry/api': 1.10.0
       json-schema-to-ts: 3.1.1
       standardwebhooks: 1.1.1
     optionalDependencies:
@@ -4272,6 +4277,8 @@ snapshots:
       '@tybys/wasm-util': 0.10.4
     optional: true
 
+  '@opentelemetry/api@1.10.0': {}
+
   '@oslojs/encoding@1.1.0': {}
 
   '@oxc-project/types@0.156.0': {}
@@ -4964,9 +4971,10 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.15
 
-  drizzle-orm@0.45.4(@cloudflare/workers-types@4.20260702.1):
+  drizzle-orm@0.45.4(@cloudflare/workers-types@4.20260702.1)(@opentelemetry/api@1.10.0):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260702.1
+      '@opentelemetry/api': 1.10.0
 
   dset@3.1.4: {}
 
@@ -5990,7 +5998,7 @@ snapshots:
     optionalDependencies:
       vite: 8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1)
 
-  vitest@4.1.11(@types/node@22.20.4)(vite@8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1)):
+  vitest@4.1.11(@opentelemetry/api@1.10.0)(@types/node@22.20.4)(vite@8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1))
@@ -6013,6 +6021,7 @@ snapshots:
       vite: 8.3.8(@types/node@22.20.4)(esbuild@0.28.1)(tsx@4.23.15)(yaml@2.9.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@opentelemetry/api': 1.10.0
       '@types/node': 22.20.4
     transitivePeerDependencies:
       - msw
